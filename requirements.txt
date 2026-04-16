@@ -1,0 +1,13 @@
+yfinance
+pandas
+numpy
+sqlalchemy
+asyncpg
+psycopg2-binary
+fastapi
+uvicorn
+python-dotenv
+beautifulsoup4
+chromadb
+sentence-transformers
+ta
