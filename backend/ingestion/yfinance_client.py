@@ -22,3 +22,11 @@ def fetch_stock_prices(symbol: str, period: str = "1mo") -> Optional[pd.DataFram
 
         column_to_keep = ["open", "high", "low", "close", "volume"]
         df = df[[c for c in column_to_keep if c in df.columns]]
+
+        return df
+    except Exception as e:
+        print(f"Error fetching data for {symbol}: {e}")
+        return None
+    
+def fetch_stock_info(symbol: str) -> dict:
+    
