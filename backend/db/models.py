@@ -2,6 +2,7 @@ from sqlalchemy import Column, Integer, String, Date, Numeric, BigInteger, DateT
 from sqlalchemy.orm import relationship
 from .connection import Base
 
+
 class Stock(Base):
     __tablename__ = 'stocks'
 
@@ -10,9 +11,10 @@ class Stock(Base):
     name = Column(String)
     sector = Column(String)
 
-    prices = relationship("Price", back_populates="stock")
-    indicators = relationship("Indicator", back_populates="stock")
-    news = relationship("News", back_populates="stock")
+    prices = relationship("Price", back_populates="stock", cascade="all, delete-orphan")
+    indicators = relationship("Indicator", back_populates="stock", cascade="all, delete-orphan")
+    news = relationship("News", back_populates="stock", cascade="all, delete-orphan")
+
 
 class Price(Base):
     __tablename__ = "prices"
@@ -26,7 +28,22 @@ class Price(Base):
     close = Column(Numeric)
     volume = Column(BigInteger)
 
-    stock = relationship("stock", back_populates="indicators")
+    stock = relationship("Stock", back_populates="prices")
+
+
+class Indicator(Base):
+    __tablename__ = "indicators"
+
+    id = Column(Integer, primary_key=True, index=True)
+    stock_id = Column(Integer, ForeignKey("stocks.id"), nullable=False, index=True)
+    date = Column(Date, nullable=False, index=True)
+    rsi = Column(Numeric)
+    sma_20 = Column(Numeric)
+    sma_50 = Column(Numeric)
+    volatility = Column(Numeric)
+
+    stock = relationship("Stock", back_populates="indicators")
+
 
 class News(Base):
     __tablename__ = "news"
@@ -36,6 +53,6 @@ class News(Base):
     title = Column(String)
     content = Column(String)
     source = Column(String)
-    publishes_at = Column(DateTime)
+    published_at = Column(DateTime)
     
-    stock = relationship("stock", back_populates="news")
+    stock = relationship("Stock", back_populates="news")
