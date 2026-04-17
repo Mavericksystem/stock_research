@@ -40,3 +40,11 @@ def fetch_stock_info(symbol: str) -> dict:
             "name": info.get("shortName", symbol)
             "sector": info.get("sector", "Unknown")
         }
+
+    except Exception as e:
+        print(f"Error fetching info for {symbol}: {e}")
+        return {
+            "symbol": symbol,
+            "name": symbol,
+            "sector": "Unknown"
+        }
