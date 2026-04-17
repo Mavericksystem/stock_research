@@ -29,4 +29,14 @@ def fetch_stock_prices(symbol: str, period: str = "1mo") -> Optional[pd.DataFram
         return None
     
 def fetch_stock_info(symbol: str) -> dict:
-    
+    """
+    fetches basic info (name, sector) for a stock.
+    """
+    try:
+        ticker = yf.Ticker(symbol)
+        info = ticker.info
+        return {
+            "symbol": symbol,
+            "name": info.get("shortName", symbol)
+            "sector": info.get("sector", "Unknown")
+        }
