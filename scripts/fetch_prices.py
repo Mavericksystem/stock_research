@@ -11,3 +11,18 @@ from backend.ingestion.yfinance_client import fetch_stock_prices, fetch_stock_in
 
 TARGET_SYMBOLS = ["AAPL", "TSLA", "MSFT"]
 PERIOD = "1mo"
+
+async def ingest_market_data ():
+    print(f"starting ingestion pipeline for : {', '.join(TARGET_SYMBOLS)}")
+
+    async with async_session_maker() as session:
+        for symbol in TARGET_SYMBOLS:
+            print(f"\n--- Processing {symbol} ---")
+
+            info = fetch_stock_info(symbol)
+
+            stmt = select(Stock).where(Stock.symbol == symbol)
+            result = await session.execute(stmt)
+            stock = result.scalars().first()
+
+            if not stock:
