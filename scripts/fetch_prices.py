@@ -59,3 +59,13 @@ async def ingest_market_data ():
                         volume=row.get("volume")
                     )
                     nwe_prices.append(new_price)
+
+            if nwe_prices:
+                session.add_all(nwe_prices)
+                await session.commit()
+                print(f"SUCCESS: Added {len(nwe_prices)} new price records for {symbol}.")
+            else:
+                print(f"INFO: Database is already up to date for {symbol}.")
+
+if __name__ == "__main__":
+    asyncio.run(ingest_market_data())
