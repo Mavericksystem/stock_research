@@ -37,4 +37,8 @@ async def ingest_market_data ():
                 stock.sector = info["sector"]
                 await session.commit()
 
+            df = fetch_stock_prices(symbol, period=PERIOD)
+            if df is None or df.empty:
+                print(f"Warning: No valid price data for {symbol}.")
+                continue
             
