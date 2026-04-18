@@ -26,3 +26,15 @@ async def ingest_market_data ():
             stock = result.scalars().first()
 
             if not stock:
+                print(f"Adding new stock: {symbol} to database.")
+                stock = stock(symbol=symbol, name=info["name"], sector=info["sector"])
+                session.add(stock)
+                await session.commit()
+                await session.refresh(stock)
+            else:
+                print(f"stock {symbol } found in database.")
+                stock.name = info["name"]
+                stock.sector = info["sector"]
+                await session.commit()
+
+            
