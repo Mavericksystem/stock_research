@@ -41,4 +41,21 @@ async def ingest_market_data ():
             if df is None or df.empty:
                 print(f"Warning: No valid price data for {symbol}.")
                 continue
-            
+
+            existing_dates_stmt = select(Price.date).where(Price.stock_id == stock.id)
+            existing_dates_res = await session.execute(existing_dates_stmt)
+            existing_dates = set(existing_dates_res.scalars().all())
+
+            nwe_prices = []
+            for date_obj, row in df.iterrows():
+                if date_obj not in existing_dates:
+                    new_price = Price(
+                        stock_id=stock.id,
+                        date=date_obj,
+                        open=row.get("open"),
+                        high=row.get("high"),
+                        low=row.get("low"),
+                        close=row.get("close"),
+                        volume=row.get("volume")
+                    )
+                    nwe_prices.append(new_price)
