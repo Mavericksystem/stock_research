@@ -14,6 +14,10 @@ TARGET_SYMBOLS = ["AAPL", "MSFT", "NVDA", "GOOGL", "AMZN",
 PERIOD = "2mo"
 
 async def ingest_market_data ():
+    """
+    Fetch stock metadata and historical prices,
+    then persist new records into the database.
+    """
     print(f"starting ingestion pipeline for : {', '.join(TARGET_SYMBOLS)}")
 
     async with async_session_maker() as session:
