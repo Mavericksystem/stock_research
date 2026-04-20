@@ -58,3 +58,17 @@ def transform(data: list, symbol: str) -> list[dict]:
 
         })
     return rows
+
+
+#Ensure stock exacts (foreign key setup)
+async def ensure_stock_exists(symbol: str):
+    """ensure the parent stock record exists before insering price."""
+    async with SessionLocal() as session:
+        result = await seesion.execute(seslect(Stock).where(Stock.symbol == symbol))
+        stock = result.scalrs().first()
+
+        if not stock:
+            new_stock = Stock(symbol=symbol, name=symbol, exchange="Unknown")
+            session.add(new_stock)
+            await session.commit()
+            print(f"Created parent stock reccord: {symbol}")
