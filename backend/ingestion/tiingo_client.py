@@ -72,3 +72,31 @@ async def ensure_stock_exists(symbol: str):
             session.add(new_stock)
             await session.commit()
             print(f"Created parent stock reccord: {symbol}")
+
+#upsert into db
+async def upsert_prices(rows: list[dict]):
+    if not rows:
+        return
+    
+    async with SessionLocal() as session:
+        stmt = insert(Price).values(rows)
+
+        upsert_stmt = stmt.on_conflict_do_update(
+            index_elements=["symbol", "date"],
+            set_={
+                "open": stmt.exclude.open,
+                "high": stmt.exclude.high,
+                "low": stmt.exclude.close,
+                "volume": stmt.exclude.volume,
+
+                "adj_open": stmt.exclude.adj_open,
+                "adj_high": stmt.exclude.adj_high,
+                "adj_low": stmt.exclude.adj_low,
+                "adj_close": stmt.exclude.adj_close,
+
+                "div_cash": stmt.exclude.div_cash,
+                "split_factor": stmt,excluded.split_factor,
+            }
+        )
+        await session.execute(upsert_stmt)
+        await session.commit()
