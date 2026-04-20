@@ -37,4 +37,24 @@ async def getch_tiingo(symbol: str, start_date: datetime, end_date: datetime):
         r.raise_for_status()
         return r.json()
     
-    
+#transform tiingo data to match our db schema
+def transform(data: list, symbol: str) -> list[dict]:
+    rows = []
+    for d in data:
+        rows.append({
+            "symbol": symbol,
+            "high": d.get("high"),
+            "low": d.get("low"),
+            "close": d.get("close"),
+            "volume": d.get("volume"),
+
+            "adj_open": d.get("adjOpen"),
+            "adj_high": d.get("adjHigh"),
+            "adj_low": d.get("adjLow"),
+            "adj_close": d.get("adjClose"),
+
+            "div_cash": d.get("divCash"),
+            "split_factor": d.get("splitFactor"),
+
+        })
+    return rows
