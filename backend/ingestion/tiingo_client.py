@@ -11,15 +11,15 @@ import sys
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from backend.db.models import Stock, Price
-from backend.db.connection import Base
+from backend.db.connection import engine
 
 load_dotenv()
 
 TIINGO_API_KEY = os.getenv("TIINGO_API_KEY")
-sessionLocal = async_sessionmaker(engine, expire_on_commit=False)
+SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
 #fetching data from tiingo (async)
-async def getch_tiingo(symbol: str, start_date: datetime, end_date: datetime):
+async def fetch_tiingo(symbol: str, start_date: str, end_date: str):
     url = f"https://api.tiingo.com/tiingo/daily/{symbol}/prices"
 
     headers = {
@@ -43,6 +43,8 @@ def transform(data: list, symbol: str) -> list[dict]:
     for d in data:
         rows.append({
             "symbol": symbol,
+            "date": datetime.fromisoformat(d["date"].replace("Z", "+00:00")).date(),
+            "open": d.get("open"),
             "high": d.get("high"),
             "low": d.get("low"),
             "close": d.get("close"),
@@ -64,8 +66,8 @@ def transform(data: list, symbol: str) -> list[dict]:
 async def ensure_stock_exists(symbol: str):
     """ensure the parent stock record exists before insering price."""
     async with SessionLocal() as session:
-        result = await seesion.execute(seslect(Stock).where(Stock.symbol == symbol))
-        stock = result.scalrs().first()
+        result = await session.execute(select(Stock).where(Stock.symbol == symbol))
+        stock = result.scalars().first()
 
         if not stock:
             new_stock = Stock(symbol=symbol, name=symbol, exchange="Unknown")
@@ -84,19 +86,57 @@ async def upsert_prices(rows: list[dict]):
         upsert_stmt = stmt.on_conflict_do_update(
             index_elements=["symbol", "date"],
             set_={
-                "open": stmt.exclude.open,
-                "high": stmt.exclude.high,
-                "low": stmt.exclude.close,
-                "volume": stmt.exclude.volume,
+                "open": stmt.excluded.open,
+                "high": stmt.excluded.high,
+                "low": stmt.excluded.low,
+                "close": stmt.excluded.close,
+                "volume": stmt.excluded.volume,
 
-                "adj_open": stmt.exclude.adj_open,
-                "adj_high": stmt.exclude.adj_high,
-                "adj_low": stmt.exclude.adj_low,
-                "adj_close": stmt.exclude.adj_close,
+                "adj_open": stmt.excluded.adj_open,
+                "adj_high": stmt.excluded.adj_high,
+                "adj_low": stmt.excluded.adj_low,
+                "adj_close": stmt.excluded.adj_close,
 
-                "div_cash": stmt.exclude.div_cash,
-                "split_factor": stmt,excluded.split_factor,
+                "div_cash": stmt.excluded.div_cash,
+                "split_factor": stmt.excluded.split_factor,
             }
         )
         await session.execute(upsert_stmt)
         await session.commit()
+
+#main pipeline function
+async def run(symbol: str):
+    await ensure_stock_exists(symbol)
+
+    end = datetime.utcnow().date()
+    start = end - timedelta(days=365)
+
+    print(f"Fetching {symbol} from {start} to {end}")
+
+    data = await fetch_tiingo(symbol, start.isoformat(), end.isoformat())
+
+    if not data:
+        print("No daily price data returned from tiingo")
+        return
+    
+    rows = transform(data, symbol)
+    print(f"Transformed {len(rows)} rows for insertion")
+
+    await upsert_prices(rows)
+    print("Ingestion complete")
+
+if __name__ == "__main__":
+    import asyncio
+    
+    async def main():
+        top_10_stocks = [
+            "AAPL", "MSFT", "NVDA", "GOOGL", "AMZN", 
+            "META", "TSLA", "JPM", "V", "WMT"
+        ]
+        for symbol in top_10_stocks:
+            try:
+                await run(symbol)
+            except Exception as e:
+                print(f"Error processing {symbol}: {e}")
+                
+    asyncio.run(main())
