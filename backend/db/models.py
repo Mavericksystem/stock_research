@@ -1,11 +1,9 @@
 from datetime import datetime
 from sqlalchemy import(
     Column, String, Numeric, Date, DateTime, Boolean, ForeignKey, UniqueConstraint, Index
-
 )
-from sqlalchemy.orm import declarative_base, relationship
-
-Base = declarative_base()
+from sqlalchemy.orm import relationship
+from backend.db.connection import Base
 
 class Stock(Base):
     __tablename__ = 'stocks'
