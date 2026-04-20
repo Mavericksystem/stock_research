@@ -16,9 +16,9 @@ class Stock(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    prices = relationship("StockPrice", back_populates="stock")
+    prices = relationship("Price", back_populates="stock")
 
-class StockPrice(Base):
+class Price(Base):
     __tablename__ = "prices"
     
     symbol = Column(String(20), ForeignKey("stocks.symbol"), primary_key=True)
