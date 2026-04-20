@@ -30,3 +30,7 @@ class StockPrice(Base):
     close = Column(Numeric)
     volume = Column(Numeric)
 
+    adj_open = Column(Numeric)
+    adj_high = Column(Numeric)
+    adj_low = Column(Numeric)
+    adj_close = Column(Numeric)
