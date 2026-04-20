@@ -1,58 +1,32 @@
-from sqlalchemy import Column, Integer, String, Date, Numeric, BigInteger, DateTime, ForeignKey
-from sqlalchemy.orm import relationship
-from .connection import Base
+from datetime import datetime
+from sqlalchemy import(
+    Column, String, Numeric, Date, DateTime, Boolean, ForeignKey, UniqueConstraint, Index
 
+)
+from sqlalchemy.orm import declarative_base, relationship
+
+Base = declarative_base()
 
 class Stock(Base):
     __tablename__ = 'stocks'
 
-    id = Column(Integer, primary_key=True, index=True)
-    symbol = Column(String, unique=True, index=True, nullable=False)
-    name = Column(String)
-    sector = Column(String)
+    symbol = Column(String, primary_key=True)
+    name = Column(String((255)))
+    exchange = Column(String((50)))
+    is_active = Column(Boolean, default=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
 
-    prices = relationship("Price", back_populates="stock", cascade="all, delete-orphan")
-    indicators = relationship("Indicator", back_populates="stock", cascade="all, delete-orphan")
-    news = relationship("News", back_populates="stock", cascade="all, delete-orphan")
+    prices = relationship("StockPrice", back_populates="stock")
 
-
-class Price(Base):
+class StockPrice(Base):
     __tablename__ = "prices"
+    
+    symbol = Column(string(20), Foreignkey("stocks.symbol"), primary_key=True)
+    date = Column(Date, primary_key=True)
 
-    id = Column(Integer, primary_key=True, index=True)
-    stock_id = Column(Integer, ForeignKey("stocks.id"), nullable=False, index=True)
-    date = Column(Date, nullable=False, index=True)
     open = Column(Numeric)
     high = Column(Numeric)
     low = Column(Numeric)
     close = Column(Numeric)
-    volume = Column(BigInteger)
+    volume = Column(Numeric)
 
-    stock = relationship("Stock", back_populates="prices")
-
-
-class Indicator(Base):
-    __tablename__ = "indicators"
-
-    id = Column(Integer, primary_key=True, index=True)
-    stock_id = Column(Integer, ForeignKey("stocks.id"), nullable=False, index=True)
-    date = Column(Date, nullable=False, index=True)
-    rsi = Column(Numeric)
-    sma_20 = Column(Numeric)
-    sma_50 = Column(Numeric)
-    volatility = Column(Numeric)
-
-    stock = relationship("Stock", back_populates="indicators")
-
-
-class News(Base):
-    __tablename__ = "news"
-
-    id = Column(Integer, primary_key=True, index=True)
-    stock_id = Column(Integer, ForeignKey("stocks.id"), nullable=False, index=True)
-    title = Column(String)
-    content = Column(String)
-    source = Column(String)
-    published_at = Column(DateTime)
-    
-    stock = relationship("Stock", back_populates="news")
