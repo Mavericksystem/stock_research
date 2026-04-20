@@ -9,13 +9,13 @@ def fetch_stock_prices(symbol: str, period: str = "1mo") -> Optional[pd.DataFram
     """
     try:
         ticker = yf.Ticker(symbol)
-        df = ticker.history
+        df = ticker.history(period=period)
 
         if df.empty:
             print(f"No data found for symbol: {symbol}")
             return None
         
-        df.index = pd.to_datetime(df.index).date
+        df.index = pd.to_datetime(df.index).tz_localize(None).date
         df.index.name = "date"
 
         df.columns = [c.lower() for c in df.columns]
@@ -37,7 +37,7 @@ def fetch_stock_info(symbol: str) -> dict:
         info = ticker.info
         return {
             "symbol": symbol,
-            "name": info.get("shortName", symbol)
+            "name": info.get("shortName", symbol),
             "sector": info.get("sector", "Unknown")
         }
 

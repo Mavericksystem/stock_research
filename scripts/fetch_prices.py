@@ -5,7 +5,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from sqlalchemy.future import select
-from baackend.db.connection import async_session_maker
+from backend.db.connection import async_session_maker
 from backend.db.models import Stock, Price
 from backend.ingestion.yfinance_client import fetch_stock_prices, fetch_stock_info
 
@@ -27,7 +27,7 @@ async def ingest_market_data ():
 
             if not stock:
                 print(f"Adding new stock: {symbol} to database.")
-                stock = stock(symbol=symbol, name=info["name"], sector=info["sector"])
+                stock = Stock(symbol=symbol, name=info["name"], sector=info["sector"])
                 session.add(stock)
                 await session.commit()
                 await session.refresh(stock)
@@ -46,7 +46,7 @@ async def ingest_market_data ():
             existing_dates_res = await session.execute(existing_dates_stmt)
             existing_dates = set(existing_dates_res.scalars().all())
 
-            nwe_prices = []
+            new_prices = []
             for date_obj, row in df.iterrows():
                 if date_obj not in existing_dates:
                     new_price = Price(
@@ -58,12 +58,12 @@ async def ingest_market_data ():
                         close=row.get("close"),
                         volume=row.get("volume")
                     )
-                    nwe_prices.append(new_price)
+                    new_prices.append(new_price)
 
-            if nwe_prices:
-                session.add_all(nwe_prices)
+            if new_prices:
+                session.add_all(new_prices)
                 await session.commit()
-                print(f"SUCCESS: Added {len(nwe_prices)} new price records for {symbol}.")
+                print(f"SUCCESS: Added {len(new_prices)} new price records for {symbol}.")
             else:
                 print(f"INFO: Database is already up to date for {symbol}.")
 
