@@ -82,3 +82,11 @@ async def detect_events(symbol: str, date: datetime, lookahead: int = 30):
             print(f"[{symbol}] Created {events_created} new events.")
         else:
             print(f"[{symbol}] No new events detected.")
+
+if __name__ == "__main__":
+    import asyncio
+    symbols = ["AAPL", "MSFT", "NVDA", "GOOGL", "AMZN", "META", "TSLA", "JPM", "V", "WMT"]
+    for sym in symbols:
+        await detect_events(sym)
+
+    asyncio.run(main())
