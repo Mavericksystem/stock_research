@@ -36,3 +36,18 @@ async def detect_events(symbol: str, date: datetime, lookahead: int = 30):
             print(f"No recent signals found to scan for{symbol}")
             return
         events_created = 0
+
+        # 2. Scan each days signal for anamalies
+        for sig in signals:
+            if sig.daily_return is None:
+                continue
+
+        daily_return = float(sig.daily_return)
+        event_type = None
+
+        if daily_return >= SPIKE_THRESHOLD:
+            event_type = "PRICE_SPIKE"
+        elif daily_return <= DROP_THRESHOLD:
+            event_type = "PRICE_DROP"
+
+            
