@@ -1,50 +1,9 @@
 from datetime import datetime
-from sqlalchemy import(
-    Column, String, Numeric, Date, DateTime, Boolean, ForeignKey, UniqueConstraint, Index
+from sqlalchemy import (
+    Column, String, Numeric, Date, DateTime, Boolean, ForeignKey, UniqueConstraint, Index, Integer, JSON
 )
 from sqlalchemy.orm import relationship
 from backend.db.connection import Base
-from sqlalchemy import JSON
-
-class TechnicalIndicator(Base):
-    __tablename__ = "technical_indicators"
-    id = Column(String, primary_key=True, autoincrement=True)
-    symbol = Column(String(20), ForeignKey("stocks.symbol"), nullable=False, index=True)
-    date = Column(Date, nullable=False, index=True)
-
-    daily_return = Column(Numeric)
-    return_7d = Column(Numeric)
-    SMA_20 = Column(Numeric)
-    sma_50 = Column(Numeric)
-    rsi_14 = Column(Numeric)
-    volatality_20d = Column(Numeric)
-
-    created_at = Column(DateTime, default=datetime.utcnow)
-
-    stock = relationship("Stock", back_populates="indicators")
-
-    __tables_args__ = (
-        UniqueConstraint("symbol", "date", name="uix_symbol_date_indicator"),
-    )
-
-class Event(Base):
-    __tablename__= "events"
-
-    id = Column(Integer, primary_key=True, autoincrement=True)
-    symbol = Column(String(20), ForeignKey("stocks.symbol"), nullable=False, index=True)
-    date = Column(Date, nullable=False, index=True)
-
-    event_type = Column(String(50), nullable=False)
-    magnitude = Column(Numeric)
-    context = Column(JSON, nullable=True)
-
-    resolved = Column(Boolean, default=False)
-    explanation = Column(String, nullable=True)
-
-    created_at = Column(DateTime, default=datetime.utcnow)
-
-    stock = relationship("Stock", back_populates="events")
-
 
 class Stock(Base):
     __tablename__ = 'stocks'
@@ -56,6 +15,8 @@ class Stock(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     prices = relationship("Price", back_populates="stock")
+    indicators = relationship("TechnicalIndicator", back_populates="stock")
+    events = relationship("Event", back_populates="stock")
 
 class Price(Base):
     __tablename__ = "prices"
@@ -84,3 +45,43 @@ class Price(Base):
         UniqueConstraint("symbol", "date", name="uix_symbol_date"),
         Index("idx_symbol_date", "symbol", "date")
     )
+
+class TechnicalIndicator(Base):
+    __tablename__ = "technical_indicators"
+    
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    symbol = Column(String(20), ForeignKey("stocks.symbol"), nullable=False, index=True)
+    date = Column(Date, nullable=False, index=True)
+
+    daily_return = Column(Numeric)
+    return_7d = Column(Numeric)
+    sma_20 = Column(Numeric)
+    sma_50 = Column(Numeric)
+    rsi_14 = Column(Numeric)
+    volatility_20d = Column(Numeric)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    stock = relationship("Stock", back_populates="indicators")
+
+    __table_args__ = (
+        UniqueConstraint("symbol", "date", name="uix_symbol_date_indicator"),
+    )
+
+class Event(Base):
+    __tablename__ = "events"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    symbol = Column(String(20), ForeignKey("stocks.symbol"), nullable=False, index=True)
+    date = Column(Date, nullable=False, index=True)
+
+    event_type = Column(String(50), nullable=False)
+    magnitude = Column(Numeric)
+    context = Column(JSON, nullable=True)
+
+    resolved = Column(Boolean, default=False)
+    explanation = Column(String, nullable=True)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    stock = relationship("Stock", back_populates="events")
