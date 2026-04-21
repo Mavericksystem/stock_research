@@ -8,7 +8,10 @@ from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy import select
 
 import sys
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Ensure project root is on sys.path so `import backend...` works when running this file directly
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
 
 from backend.db.models import Stock, Price
 from backend.db.connection import engine
