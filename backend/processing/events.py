@@ -50,4 +50,15 @@ async def detect_events(symbol: str, date: datetime, lookahead: int = 30):
         elif daily_return <= DROP_THRESHOLD:
             event_type = "PRICE_DROP"
 
-            
+        # 3. If we found an anomaly, check if we already recorded it 
+        if event_type:
+            # Check if this exact event type + date + symbol already exists
+            exists_stmt = select(exists().where(
+                and_(
+                    Event.symbol == symbol,
+                    Event.date == sig.date,
+                    Event.event_type == event_type
+                )
+            ))
+
+            already_exists = await session.scalar(exists_stmt)
