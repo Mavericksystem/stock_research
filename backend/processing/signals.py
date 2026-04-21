@@ -24,3 +24,12 @@ async def compute_signal(symbol: str):
             return 
         
         #2. Convert to Dataframe
+        data = [{
+            "date": p.date,
+            "cose": float(p.adj_close) if p.adj_close is not None else float(p.close)
+        } for p in prices]
+
+        df = pd.DataFrame(data)
+        df.set_index("date", inplace=True)
+
+        
