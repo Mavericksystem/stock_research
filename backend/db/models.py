@@ -4,6 +4,17 @@ from sqlalchemy import(
 )
 from sqlalchemy.orm import relationship
 from backend.db.connection import Base
+from sqlalchemy import JSON
+
+class TechnicalIndicator(Base):
+    __tablename__ = "technical_indicators"
+    id = Column(String, primary_key=True, autoincrement=True)
+    symbol = Column(String(20), ForeignKey("stocks.symbol"), nullable=False, index=True)
+    date = Column(Date, nullable=False, index=True)
+
+    
+
+
 
 class Stock(Base):
     __tablename__ = 'stocks'
