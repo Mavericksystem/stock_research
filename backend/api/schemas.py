@@ -12,3 +12,12 @@ class APIResponse(BaseModel):
     meta: Meta = Meta()
 
 # --- Domain Schema ===
+class StockBase(BaseModel):
+    symbol: str
+    name: Optional[str]
+    exchange: Optional[str]
+
+class StockResponse(StockBase):
+    is_active: bool
+    model_config = ConfigDict(from_attributes=True)
+
