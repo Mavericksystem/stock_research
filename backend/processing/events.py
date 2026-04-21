@@ -62,3 +62,23 @@ async def detect_events(symbol: str, date: datetime, lookahead: int = 30):
             ))
 
             already_exists = await session.scalar(exists_stmt)
+
+            # 4. If new. inser it into the events table
+            if not already_exists:
+                new_event = Event(
+                    symbol=symbol,
+                    date=sig.date,
+                    event_type=event_type,
+                    magnitude=sig.daily_return,
+                    context={"rsi_at_time": float(sig.rsi_14) if sig.rsi_14 else None,
+                             "volatility_at_time": float(sig.volatility_20d) if sig.colatility_20d else None},
+                    resolved=False,
+                    explanation=None
+                )
+                session.add(new_event)
+                events_created += 1
+        if events_created > 0:
+            await session.commit()
+            print(f"[{symbol}] Created {events_created} new events.")
+        else:
+            print(f"[{symbol}] No new events detected.")
