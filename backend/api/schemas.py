@@ -21,3 +21,18 @@ class StockResponse(StockBase):
     is_active: bool
     model_config = ConfigDict(from_attributes=True)
 
+class PriceResponse(BaseModel):
+    date: date
+    close: float
+    adj_close: float
+    volume: float
+    model_config = ConfigDict(from_attributes=True)
+
+class EventResponse(BaseModel):
+    date: date
+    event_type: str
+    magnitude: Optional[float]
+    context: Optional[Dict[str, Any]]
+    resolved: bool
+    explanation: Optional[str]
+    model_config = ConfigDict(from_attributes=True)
