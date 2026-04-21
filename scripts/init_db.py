@@ -5,6 +5,7 @@ import os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from backend.db.connection import engine, Base
+
 from backend.db.models import Stock, Price
 
 async def init_models():
