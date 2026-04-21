@@ -12,8 +12,22 @@ class TechnicalIndicator(Base):
     symbol = Column(String(20), ForeignKey("stocks.symbol"), nullable=False, index=True)
     date = Column(Date, nullable=False, index=True)
 
-    
+    daily_return = Column(Numeric)
+    return_7d = Column(Numeric)
+    SMA_20 = Column(Numeric)
+    sma_50 = Column(Numeric)
+    rsi_14 = Column(Numeric)
+    volatality_20d = Column(Numeric)
 
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    stock = relationship("Stock", back_populates="indicators")
+
+    __tables_args__ = (
+        UniqueConstraint("symbol", "date", name="uix_symbol_date_indicator"),
+    )
+
+    
 
 
 class Stock(Base):
