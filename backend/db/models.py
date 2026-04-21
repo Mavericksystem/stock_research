@@ -27,7 +27,23 @@ class TechnicalIndicator(Base):
         UniqueConstraint("symbol", "date", name="uix_symbol_date_indicator"),
     )
 
-    
+class Event(Base):
+    __tablename__= "events"
+
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    symbol = Column(String(20), ForeignKey("stocks.symbol"), nullable=False, index=True)
+    date = Column(Date, nullable=False, index=True)
+
+    event_type = Column(String(50), nullable=False)
+    magnitude = Column(Numeric)
+    context = Column(JSON, nullable=True)
+
+    resolved = Column(Boolean, default=False)
+    explanation = Column(String, nullable=True)
+
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    stock = relationship("Stock", back_populates="events")
 
 
 class Stock(Base):
