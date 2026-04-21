@@ -2,31 +2,34 @@ import sys
 import os 
 import pandas as pd
 import pandas_ta as ta
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.dialects.postgresql import insert
 
-sys.path.append(os.path.dirname(os.dirname(os.path.abspath(__file__))))
+# Fix os.dirname to os.path.dirname, and go up 3 levels to reach root
+sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
 
+from backend.db.models import Price, TechnicalIndicator
 from backend.db.connection import engine
 
 SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
-async def compute_signal(symbol: str):
+async def compute_signals(symbol: str):
     """fetch prices, compute signals via pandas_ta, and upsert to database"""
     async with SessionLocal() as session:
         #1. fetch prices from db
-        stmt = select(Prices).where(Price.symbol == symbol).order_by(Price.data.asc())
+        stmt = select(Price).where(Price.symbol == symbol).order_by(Price.date.asc())
         result = await session.execute(stmt)
         prices = result.scalars().all()
 
         if not prices:
-            print(f"No prices found for {symbil}")
+            print(f"No prices found for {symbol}")
             return 
         
         #2. Convert to Dataframe
         data = [{
             "date": p.date,
-            "cose": float(p.adj_close) if p.adj_close is not None else float(p.close)
+            "close": float(p.adj_close) if p.adj_close is not None else float(p.close)
         } for p in prices]
 
         df = pd.DataFrame(data)
@@ -66,7 +69,7 @@ async def compute_signal(symbol: str):
                 "volatility_20d": round(row['volatility_20d'], 4) if pd.notna(row['volatility_20d']) else None
             })
 
-        insert_stmt = insert(TechicalIndicator).values(rows)
+        insert_stmt = insert(TechnicalIndicator).values(rows)
         upsert_stmt = insert_stmt.on_conflict_do_update(
             index_elements=["symbol", "date"],
             set_={
@@ -82,13 +85,13 @@ async def compute_signal(symbol: str):
         await session.execute(upsert_stmt)
         await session.commit()
 
-        print(f"Computed and saved signals for{symbols}")
+        print(f"Computed and saved signals for {symbol}")
 
 if __name__ == "__main__":
     import asyncio
 
-    asyncio def main():
-        symbols = ["AAPL", "MSFT", "GOOFL", "AMZN", "META", "TSLA", "JPM", "V", "WMT", "NVDA"]
+    async def main():
+        symbols = ["AAPL", "MSFT", "GOOGL", "AMZN", "META", "TSLA", "JPM", "V", "WMT", "NVDA"]
         for sym in symbols:
             await compute_signals(sym)
 
