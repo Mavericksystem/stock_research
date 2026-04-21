@@ -66,17 +66,30 @@ async def compute_signal(symbol: str):
                 "volatility_20d": round(row['volatility_20d'], 4) if pd.notna(row['volatility_20d']) else None
             })
 
-        insert_stmt = inser(TechicalIndicator).values(rows)
+        insert_stmt = insert(TechicalIndicator).values(rows)
         upsert_stmt = insert_stmt.on_conflict_do_update(
-            index_elsements=["sybol", "date"](
-                set_={
-                    "dily_return": insert_stmt.excluded.daily_return,
-                    "return_7d": insert_stmt.excluded.return_7d,
-                    "sma_20": insert_stmt.excluded.sma_20,
-                    "sma_50": insert_stmt.excluded.sma_50,
-                    "rsi_14": insert_stmt.excluded.rsi_14,
-                    "colatility_20d": insert_stmt.excluded.volatility_20d,
-                }
-            )
+            index_elements=["symbol", "date"],
+            set_={
+                "daily_return": insert_stmt.excluded.daily_return,
+                "return_7d": insert_stmt.excluded.return_7d,
+                "sma_20": insert_stmt.excluded.sma_20,
+                "sma_50": insert_stmt.excluded.sma_50,
+                "rsi_14": insert_stmt.excluded.rsi_14,
+                "volatility_20d": insert_stmt.excluded.volatility_20d,
+            }
+        )
 
-            
+        await session.execute(upsert_stmt)
+        await session.commit()
+
+        print(f"Computed and saved signals for{symbols}")
+
+if __name__ == "__main__":
+    import asyncio
+
+    asyncio def main():
+        symbols = ["AAPL", "MSFT", "GOOFL", "AMZN", "META", "TSLA", "JPM", "V", "WMT", "NVDA"]
+        for sym in symbols:
+            await compute_signals(sym)
+
+    asyncio.run(main())
