@@ -19,4 +19,20 @@ class AnalysisService:
             TechnicalIndicator.date == target_event.start_date
         )
         result = await session.execute(stmt)
-        matvhed_signal = result.scalars().first()
+        matched_signal = result.scalars().first()
+
+        # 3. Base Intelligence Generation
+        insight = "Neutral"
+        if matched_signal:
+            if matched_signal.rsi_14 and float(matched_signal.rsi_14) > 70:
+                insight = "Technically overbought during event."
+            elif matched_signal.rsi_14 and float(matched_signal.rsi_14) < 30:
+                insight = "Technically oversold during event."
+        
+        return {
+            "symbol": symbol,
+            "event_type": target_event,
+            "state_at_envent": insight,
+            "initial_isight": insight,
+            "explanation": target_event.explanation
+        }
