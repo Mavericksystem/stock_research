@@ -17,4 +17,8 @@ class StockService:
     
     @staticmethod
     async def get_signals(session: AsyncSession, symbol: str, limit: int = 30):
-        result)
+        result = await session.execute(
+            select(TechnicalIndicator).where(TechnicalIndicator.symbol == symbol).order_by(
+                TechnicalIndicator.date.desc()).limit(limit)
+        )
+        return result.scalars().all()
