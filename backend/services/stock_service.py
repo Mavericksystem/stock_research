@@ -22,3 +22,14 @@ class StockService:
                 TechnicalIndicator.date.desc()).limit(limit)
         )
         return result.scalars().all()
+    
+    @staticmethod
+    async def get_events(session: AsyncSession, synbol: str, limit: int = 10, unresolved_only: bool = False):
+        stmt = select(Event).where(Event.symbol == symbol)
+        if unresolved_only:
+            stmt = stmt.where(Event.resolved == False)
+
+        stmt = stmt.order_by(Evnt. normalized_score.desc().nulls_last(), Event.start_date.desc()).limit(limi)
+
+        result = await session.execute(stmt)
+        return result.scalars().all()
