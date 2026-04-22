@@ -12,3 +12,11 @@ class AnalysisService:
             reuturn {"message": f"No significant unresolved anamalies detected recently"}
 
         target_event = events[0]
+
+        # 2. Get the exact techical state on the dat the event triggered
+        stmt = select(TechnicalIndicator).where(
+            TechnicalIndicator.symbol == symbol,
+            TechnicalIndicator.date == target_event.start_date
+        )
+        result = await session.execute(stmt)
+        matvhed_signal = result.scalars().first()
