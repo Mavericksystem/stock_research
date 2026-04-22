@@ -14,9 +14,9 @@ class Stock(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
-    prices = relationship("Price", back_populates="stock")
-    indicators = relationship("TechnicalIndicator", back_populates="stock")
-    events = relationship("Event", back_populates="stock")
+    prices = relationship("Price", back_populates="stock", cascade="all, delete-orphan")
+    indicators = relationship("TechnicalIndicator", back_populates="stock", cascade="all, delete-orphan")
+    events = relationship("Event", back_populates="stock", cascade="all, delete-orphan")
 
 class Price(Base):
     __tablename__ = "prices"
@@ -53,12 +53,15 @@ class TechnicalIndicator(Base):
     symbol = Column(String(20), ForeignKey("stocks.symbol"), nullable=False, index=True)
     date = Column(Date, nullable=False, index=True)
 
-    daily_return = Column(Numeric)
-    return_7d = Column(Numeric)
-    sma_20 = Column(Numeric)
-    sma_50 = Column(Numeric)
-    rsi_14 = Column(Numeric)
-    volatility_20d = Column(Numeric)
+    daily_return = Column(Numeric(12, 6))
+    return_7d = Column(Numeric(12, 6))
+    sma_20 = Column(Numeric(12, 6))
+    sma_50 = Column(Numeric(12, 6))
+    rsi_14 = Column(Numeric(12, 6))
+    volatility_20d = Column(Numeric(12, 6))
+    
+    price_vs_sma_20 = Column(Numeric(12, 6))
+    price_vs_sma_50 = Column(Numeric(12, 6))
 
     created_at = Column(DateTime, default=datetime.utcnow)
 
@@ -66,6 +69,7 @@ class TechnicalIndicator(Base):
 
     __table_args__ = (
         UniqueConstraint("symbol", "date", name="uix_symbol_date_indicator"),
+        Index("idx_symbol_date_indicator", "symbol", "date")
     )
 
 class Event(Base):
@@ -73,11 +77,18 @@ class Event(Base):
 
     id = Column(Integer, primary_key=True, autoincrement=True)
     symbol = Column(String(20), ForeignKey("stocks.symbol"), nullable=False, index=True)
-    date = Column(Date, nullable=False, index=True)
+    
+    start_date = Column(Date, nullable=False, index=True)
+    end_date = Column(Date, nullable=False, index=True)
 
     event_type = Column(String(50), nullable=False)
-    magnitude = Column(Numeric)
-    context = Column(JSON, nullable=True)
+    source = Column(String(50), nullable=False, default="price") # price, news, volume
+    
+    magnitude = Column(Numeric(12, 6))
+    normalized_score = Column(Numeric(12, 6), nullable=True) # z-score for ranking across stocks
+    confidence = Column(Numeric(5, 4), nullable=True) # how sure are we this matters?
+    
+    context = Column(JSON, nullable=True) # {rsi: float, trend: str, price_vs_sma: float}
 
     resolved = Column(Boolean, default=False)
     explanation = Column(String, nullable=True)
@@ -85,3 +96,7 @@ class Event(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     stock = relationship("Stock", back_populates="events")
+
+    __table_args__ = (
+        Index("idx_symbol_date_event", "symbol", "start_date", "end_date"),
+    )
