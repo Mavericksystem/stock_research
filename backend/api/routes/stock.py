@@ -22,3 +22,8 @@ async def get_stock_prices(symbol: str, limit: int = Query(30, le=100), session:
 async def get_stock_signals(symbol: str, limit: int = Query(30, le=100), session: AsyncSession = Depends(get_db)):
     signals = await StockService.get_signals(session, symbol.upper(), limit)
     return APIResponse(data={"signals": [SignalResponse.model_validate(s) for s in signals]})
+
+@router.get("/{symbol}/events", response_model=APIResponse)
+async def get_stock_events(symbol: str, limit: int = Query(10, le=50), session: AsyncSession = Depends(get_db)):
+    events = await StockService.get_events(session, symbol.upper(), limit=limit)
+    return APIResponse(data=[EventResponse.model_validate(e) for e in events])
