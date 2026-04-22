@@ -12,11 +12,11 @@ from backend.db.connection import engine
 
 SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
-SPIKE_THRESHOLD = 3.0
-DROP_THRESHOLD = -3.0
+# Instead of a fixed 3%, we use Z-Score 2.0 (meaning a move > 2 standard deviations)
+Z_THRESHOLD = 2.0
 
 async def detect_events(symbol: str, days_lookback: int = 30):
-    """Scan recent technical indicators for anomalies and create Event records."""
+    """Scan recent technical indicators for statistical anomalies and create Event records."""
 
     cutoff_date = datetime.utcnow().date() - timedelta(days=days_lookback)
 
@@ -35,48 +35,77 @@ async def detect_events(symbol: str, days_lookback: int = 30):
         if not signals:
             print(f"No recent signals found to scan for {symbol}")
             return
+        
+        # 2. Batch fetch existing events to avoid N+1 query loop
+        existing_stmt = select(Event.symbol, Event.start_date, Event.event_type).where(
+            and_(
+                Event.symbol == symbol,
+                Event.start_date >= cutoff_date
+            )
+        )
+        existing_result = await session.execute(existing_stmt)
+        # Store as a set of tuples for O(1) lookup
+        existing_events = set(existing_result.all())
+
         events_created = 0
 
-        # 2. Scan each days signal for anomalies
+        # 3. Scan each day's signal for statistical anomalies
         for sig in signals:
-            if sig.daily_return is None:
+            if sig.daily_return is None or sig.volatility_20d is None:
                 continue
 
             daily_return = float(sig.daily_return)
+            volatility = float(sig.volatility_20d)
+
+            # Avoid division by zero on flat stocks
+            if volatility == 0:
+                continue
+
+            # Calculate the z-score (how many standard deviations was this move?)
+            z_score = daily_return / volatility
+            
             event_type = None
 
-            if daily_return >= SPIKE_THRESHOLD:
+            if z_score >= Z_THRESHOLD:
                 event_type = "PRICE_SPIKE"
-            elif daily_return <= DROP_THRESHOLD:
+            elif z_score <= -Z_THRESHOLD:
                 event_type = "PRICE_DROP"
 
-            # 3. If we found an anomaly, check if we already recorded it 
+            # 4. If we found an anomaly, check our pre-fetched set 
             if event_type:
-                # Check if this exact event type + date + symbol already exists
-                exists_stmt = select(exists().where(
-                    and_(
-                        Event.symbol == symbol,
-                        Event.date == sig.date,
-                        Event.event_type == event_type
-                    )
-                ))
+                key = (symbol, sig.date, event_type)
+                
+                # Check for existing
+                if key in existing_events:
+                    continue
 
-                already_exists = await session.scalar(exists_stmt)
+                # 5. Determine trend context using our derived signals
+                # If price_vs_sma_20 > 0, it means it closed above the 20-day trend.
+                above_sma_20 = None
+                if getattr(sig, 'price_vs_sma_20', None) is not None:
+                     above_sma_20 = float(sig.price_vs_sma_20) > 0
 
-                # 4. If new. inser it into the events table
-                if not already_exists:
-                    new_event = Event(
-                        symbol=symbol,
-                        date=sig.date,
-                        event_type=event_type,
-                        magnitude=sig.daily_return,
-                        context={"rsi_at_time": float(sig.rsi_14) if sig.rsi_14 else None,
-                                 "volatility_at_time": float(sig.volatility_20d) if sig.volatility_20d else None},
-                        resolved=False,
-                        explanation=None
-                    )
-                    session.add(new_event)
-                    events_created += 1
+                # 6. Insert new event
+                new_event = Event(
+                    symbol=symbol,
+                    start_date=sig.date,
+                    end_date=sig.date, # Single day event for now, can be expanded
+                    event_type=event_type,
+                    source="price",
+                    magnitude=daily_return,
+                    normalized_score=z_score,
+                    confidence=0.90, # Placeholder until multi-signal validation exists
+                    context={
+                        "rsi": float(sig.rsi_14) if sig.rsi_14 else None,
+                        "volatility": volatility,
+                        "z_score": z_score,
+                        "above_sma_20": above_sma_20
+                    },
+                    resolved=False,
+                    explanation=None
+                )
+                session.add(new_event)
+                events_created += 1
                     
         if events_created > 0:
             await session.commit()
@@ -89,7 +118,7 @@ if __name__ == "__main__":
     
     async def main():
         symbols = ["AAPL", "MSFT", "NVDA", "GOOGL", "AMZN", "META", "TSLA", "JPM", "V", "WMT"]
-        for sym in symbols:
-            await detect_events(sym)
+        import asyncio
+        await asyncio.gather(*(detect_events(sym) for sym in symbols))
 
     asyncio.run(main())
