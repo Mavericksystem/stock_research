@@ -6,7 +6,7 @@ from backend.api.schemas import APIResponse, EventResponse, SignalResponse
 
 router = APIRouter()
 
-@router.get("/{symbol}/analysis", response_model=APIResponse)
+@router.get("/{symbol}", response_model=APIResponse)
 async def analyze_stock(symbol: str, session: AsyncSession = Depends(get_db)):
     # Logic extracted cleanly to service
     analysis_data = await AnalysisService.analyze_stock(session, symbol.upper())

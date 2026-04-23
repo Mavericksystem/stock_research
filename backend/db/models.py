@@ -19,7 +19,7 @@ class Stock(Base):
     events = relationship("Event", back_populates="stock", cascade="all, delete-orphan")
 
 class Price(Base):
-    __tablename__ = "prices"
+    __tablename__ = "Prices"
     
     symbol = Column(String(20), ForeignKey("stocks.symbol"), primary_key=True)
     date = Column(Date, primary_key=True)
