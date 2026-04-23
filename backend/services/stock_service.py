@@ -1,6 +1,6 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from backend.db.models import Stock, Prices, TechnicalIndicator, Event
+from backend.db.models import Stock, Price, TechnicalIndicator, Event
 
 class StockService:
     @staticmethod
@@ -11,7 +11,7 @@ class StockService:
     @staticmethod
     async def get_prices(session: AsyncSession, symbol: str, limit: int = 30):
         result = await session.execute(
-            select(Prices).where(Prices.symbol == symbol).order_by(Prices.date.desc()).limit(limit)
+            select(Price).where(Price.symbol == symbol).order_by(Price.date.desc()).limit(limit)
         )
         return result.scalars().all()
     
@@ -24,12 +24,12 @@ class StockService:
         return result.scalars().all()
     
     @staticmethod
-    async def get_events(session: AsyncSession, synbol: str, limit: int = 10, unresolved_only: bool = False):
+    async def get_events(session: AsyncSession, symbol: str, limit: int = 10, unresolved_only: bool = False):
         stmt = select(Event).where(Event.symbol == symbol)
         if unresolved_only:
             stmt = stmt.where(Event.resolved == False)
 
-        stmt = stmt.order_by(Evnt. normalized_score.desc().nulls_last(), Event.start_date.desc()).limit(limi)
+        stmt = stmt.order_by(Event.normalized_score.desc().nulls_last(), Event.start_date.desc()).limit(limit)
 
         result = await session.execute(stmt)
         return result.scalars().all()

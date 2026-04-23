@@ -1,7 +1,7 @@
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-from.backend.db.models import Event, TechnicalIndicator
-from backend.sevices.stock_service import StockService
+from backend.db.models import Event, TechnicalIndicator
+from backend.services.stock_service import StockService
 
 class AnalysisService:
     @staticmethod
@@ -9,7 +9,7 @@ class AnalysisService:
         # 1. Get most significant unresolved event
         events = await StockService.get_events(session, symbol, limit=1, unresolved_only=True)
         if not events:
-            reuturn {"message": f"No significant unresolved anamalies detected recently"}
+            return {"message": f"No significant unresolved anomalies detected recently"}
 
         target_event = events[0]
 
@@ -31,8 +31,8 @@ class AnalysisService:
         
         return {
             "symbol": symbol,
-            "event_type": target_event,
-            "state_at_envent": insight,
-            "initial_isight": insight,
+            "target_event": target_event,
+            "state_at_event": matched_signal,
+            "initial_insight": insight,
             "explanation": target_event.explanation
         }
