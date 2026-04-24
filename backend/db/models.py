@@ -4,6 +4,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 from backend.db.connection import Base
+from sqlalchemy.import Text
 
 class Stock(Base):
     __tablename__ = 'stocks'
@@ -100,3 +101,14 @@ class Event(Base):
     __table_args__ = (
         Index("idx_symbol_date_event", "symbol", "start_date", "end_date"),
     )
+
+class News(Base):
+    __tablename__ = "news"
+
+    id = Column(Integer, primary_key=True, autoincrements=True)
+
+    # v1: event-centeric assumption (one symbol per row). ok for phase 3
+    symbol = Column(String(20), ForeignKey("stocks.symbol"), nullable=False, index=True)
+
+    title = Column(String, nullable=True)
+    content = Column(Text, nullable=True)
