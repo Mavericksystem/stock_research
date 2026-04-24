@@ -126,4 +126,13 @@ class News(Base):
 class EventNewsLink(Base):
     __tablename__ = "event_news_link"
 
-    id = Co
+    id = Column(Integer, ForeignKey("events.id", ondelete="CASCADE"), nullable=False, index=True)
+    news_id = Column(Integer, ForeignKey("news.id", ondelete="CASCADE"), nullable=False, index=True, index=True)
+
+    relevence_score = Column(Numeric(12, 6), nullable=False, default=0)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        UniqueConstraint("event_id", "news_id", name="uix_event_news_lik"),
+        Index("idx_event_news_event_score", "event_id", "relevence_score"),
+    )
