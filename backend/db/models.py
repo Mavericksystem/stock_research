@@ -105,10 +105,25 @@ class Event(Base):
 class News(Base):
     __tablename__ = "news"
 
-    id = Column(Integer, primary_key=True, autoincrements=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
 
     # v1: event-centeric assumption (one symbol per row). ok for phase 3
     symbol = Column(String(20), ForeignKey("stocks.symbol"), nullable=False, index=True)
 
     title = Column(String, nullable=True)
     content = Column(Text, nullable=True)
+
+    source = Column(String(50), nullable=False)
+    url = Column(String, nullable=False, unique=True)
+
+    published_at = Column(DateTime, nullable=False, index=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    __table_args__ = (
+        Index("idx_news_symbol_published_at", symbol, "published_at"),
+    )
+
+class EventNewsLink(Base):
+    __tablename__ = "event_news_link"
+
+    id = Co
