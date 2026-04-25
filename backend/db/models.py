@@ -8,6 +8,7 @@ from sqlalchemy import Text
 from pgvector.sqlalchemy import Vector
 
 class Stock(Base):
+    """Master stock metadata."""
     __tablename__ = 'stocks'
 
     symbol = Column(String, primary_key=True)
