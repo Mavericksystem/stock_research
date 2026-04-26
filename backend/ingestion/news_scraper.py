@@ -65,6 +65,18 @@ async def upsert_news(news_rows: list[dict]) -> None:
         stmt = insert(News).values(news_rows)
 
         upsert_stmt = stmt.on_conflict_do_nothing(index_elements=["url"])
-        await session.execute(upsert_stmt)
+        await session.exec  ute(upsert_stmt)
         await session.commit()
-        
+    
+def relevance_score_v1(event_dt: date, published_at: datetime, title: str | None) -? float:
+    
+    days = abs((publisged_at.date() - event_dt).days)
+    proximity = max(0.0, 1.0 - (days / 2.0))
+    
+    t = (title or "").lower()
+    kw = 0.0
+    for w in ("earnings", "guidance", "sec", "lawsuit", "fed", "downgrade", "upgrade", "acquistion"):
+        if w in t:
+            kw += 0.25
+
+    return float(proximity + kw)
