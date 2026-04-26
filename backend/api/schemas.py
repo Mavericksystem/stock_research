@@ -53,3 +53,10 @@ class EventResponse(BaseModel):
     resolved: bool = False
     explanation: Optional[str] = None
     model_config = ConfigDict(from_attributes=True)
+
+class ContextItemResponse(VaseModel):
+    title: Optional[str] = None
+    source: Optional[str] = None
+    url: Optional[str] = None
+    published_at: Optional[datetime] = None
+    relecvance_scroe: Oprional[float] = None
