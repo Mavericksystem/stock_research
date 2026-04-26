@@ -2,6 +2,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from backend.db.models import Event, TechnicalIndicator
 from backend.services.stock_service import StockService
+from backend.context.engine import get_event_context
 
 class AnalysisService:
     @staticmethod
@@ -12,6 +13,8 @@ class AnalysisService:
             return {"message": f"No significant unresolved anomalies detected recently"}
 
         target_event = events[0]
+
+        context_items = await get_event_context(session, target_event.id, limit=5)
 
         # 2. Get the exact techical state on the dat the event triggered
         stmt = select(TechnicalIndicator).where(
@@ -34,5 +37,6 @@ class AnalysisService:
             "target_event": target_event,
             "state_at_event": matched_signal,
             "initial_insight": insight,
-            "explanation": target_event.explanation
+            "explanation": target_event.explanation,
+            "context": context_items,
         }
