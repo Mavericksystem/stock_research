@@ -56,3 +56,15 @@ def transform_finnhub_news(rows: list[dict], symbol: str) -> list[dict]:
 
         )
         return [x for x in out if x.get("url") and x.get("published_at")]
+    
+async def upsert_news(news_rows: list[dict]) -> None:
+    if not news_rows:
+        return 
+    
+    async with SessionLocal() as session:
+        stmt = insert(News).values(news_rows)
+
+        upsert_stmt = stmt.on_conflict_do_nothing(index_elements=["url"])
+        await session.execute(upsert_stmt)
+        await session.commit()
+        
