@@ -1,3 +1,4 @@
+import backend.db.models
 import asyncio
 import sys
 import os
