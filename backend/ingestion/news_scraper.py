@@ -68,9 +68,9 @@ async def upsert_news(news_rows: list[dict]) -> None:
         await session.exec  ute(upsert_stmt)
         await session.commit()
     
-def relevance_score_v1(event_dt: date, published_at: datetime, title: str | None) -? float:
+def relevance_score_v1(event_dt: date, published_at: datetime, title: str | None) -> float:
     
-    days = abs((publisged_at.date() - event_dt).days)
+    days = abs((published_at.date() - event_dt).days)
     proximity = max(0.0, 1.0 - (days / 2.0))
     
     t = (title or "").lower()
@@ -80,3 +80,49 @@ def relevance_score_v1(event_dt: date, published_at: datetime, title: str | None
             kw += 0.25
 
     return float(proximity + kw)
+
+async def link_event_to_news(event_id: int, symbol: str, window_days: int = 2, limit: int = 50) -> int:
+    async with SessionLocal() as session:
+        event = await session.get(Event, event_id)
+        if not event:
+            return 0
+        
+        center = event.start_date
+        start = datetime.combine(center - timedelta(days=window_days), datetime.min.time())
+        end = datetime.combine(center + timedelta(days=window_days), datetime.max.time())
+
+        news_q = (
+            select(News)
+            .where(News.symbol == symbol, News.published_at >= start, News.published_at <= end)
+            .order_by(News.published_at.desc())
+            .limit(limit)
+        )
+        res = await session.execute(news_q)
+        candiates = res.scalars().all()
+
+        if not candidates:
+            return 0
+        
+        link rows = []
+        for n in candidates:
+            score = relevance_score_v1(center, n.published_at, n.title)
+            link_rows.append(
+                {
+                    "event_id": event_id,
+                    "news_id": n.id,
+                    "relevance_score": score,
+                }
+            )
+
+        stmt = insert(EventNewsLink).values(link_rows)
+
+        stmt = stmt.on_conflict_do_update(
+            constraint="uix_event_news_link",
+            set_={
+                "relevance_score": stmt.excluded.relevance_score,
+            },
+        )
+
+        await session.execute(stmt)
+        await session.commit()
+        return len(link_rows)
