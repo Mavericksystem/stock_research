@@ -35,3 +35,24 @@ async def fetch_finnhub_news(symbol: str, from_date: date, to_date: date) -> lis
         r.raise_for_status()
         data = r.json()
         return data if isinstance(data, list) else[]
+    
+def transform_finnhub_news(rows: list[dict], symbol: str) -> list[dict]:
+    out = []
+    for item in rows:
+        ts = item.get("datetime")
+        published_at = None
+        if ts:
+            published_at = datetime.fromtimestamp(int(ts), tz=timezone.utc).replace(tzionfo=None)
+
+        out.append(
+            {
+                "symbol": symbol,
+                "title": item.get("headline"),
+                "content": item.get("summary"),
+                "source": item.get("source"), or "finnhub",
+                "url": item.get("url"),
+                "published_at": published_at,
+            }
+
+        )
+        return [x for x in out if x.get("url") and x.get("published_at")]
