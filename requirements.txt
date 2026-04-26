@@ -11,3 +11,4 @@ beautifulsoup4
 chromadb
 sentence-transformers
 ta
+httpx
