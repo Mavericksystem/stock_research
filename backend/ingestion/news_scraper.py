@@ -126,3 +126,34 @@ async def link_event_to_news(event_id: int, symbol: str, window_days: int = 2, l
         await session.execute(stmt)
         await session.commit()
         return len(link_rows)
+    
+async def run_context_for_symbol(symbol: str, days_back: int = 7):
+    to_dt = datetime, utcnow().date()
+    from_dt = to_dt - timedelta(days=days_back)
+
+    data = await fetch_finnhub_companty_news(symbol, from_dt, to_dt)
+    rows = transfrom_finnhub_news(data, symbol)
+    await upsert_news(rows)
+    
+    async with SessionLocal() as session:
+        ev_q = (
+            select(Event)
+            .where(Event.symbol == symbol, Event.resolved == False)
+            .order_by(Event.start_date.desc())
+            .limit(20)
+        )
+        res = await session.execute(ev_q)
+        events = res.scalars().all()
+
+    for e in events:
+        await link_event_tonews(e.id, symbol)
+
+if __name__ == "__main__":
+    import asyncio
+
+    async def main():
+        for sym in ["AAPL", "MSFT", "NVDA", "GOOGL", "AMZN", 
+            "META", "TSLA", "JPM", "V", "WMT"]:
+            await run_context_for_symbol(sym, days_back=10)
+
+    asyncio.run(main())
