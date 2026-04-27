@@ -1,4 +1,3 @@
-import backend.db.models
 import asyncio
 import sys
 import os
@@ -7,7 +6,10 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from backend.db.connection import engine, Base
 
-from backend.db.models import Stock, Price
+# Ensure all models are registered in Base.metadata before create_all()
+import backend.db.models as db_models
+
+_REGISTERED_MODELS = db_models
 
 async def init_models():
     print("Creating database tables...")
