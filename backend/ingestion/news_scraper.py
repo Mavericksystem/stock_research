@@ -1,14 +1,15 @@
 import os
 import sys
 from datetime import datetime, timedelta, date, timezone
+from typing import Any, cast
 
 import httpx
 from dotenv import load_dotenv
 from sqlalchemy.dialects.postgresql import insert
-from sqlalvhemy import select
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker
 
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 from backend.db.connection import engine
@@ -18,9 +19,9 @@ load_dotenv()
 FINNHUB_API_KEY = os.getenv("FINNHUB_API_KEY")
 SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
-async def fetch_finnhub_news(symbol: str, from_date: date, to_date: date) -> list[dict]:
+async def fetch_finnhub_news(symbol: str, from_date: date, to_date: date) -> list[dict[str, Any]]:
     if not FINNHUB_API_KEY:
-        raise ValueError("FINNHUB_API_KEY not set ")
+        raise ValueError("FINNHUB_API_KEY not set")
     url = "https://finnhub.io/api/v1/company-news"
     params = {
         "symbol": symbol,
@@ -34,30 +35,31 @@ async def fetch_finnhub_news(symbol: str, from_date: date, to_date: date) -> lis
         r = await client.get(url, params=params)
         r.raise_for_status()
         data = r.json()
-        return data if isinstance(data, list) else[]
+        if not isinstance(data, list):
+            return []
+        return cast(list[dict[str, Any]], data)
     
-def transform_finnhub_news(rows: list[dict], symbol: str) -> list[dict]:
-    out = []
+def transform_finnhub_news(rows: list[dict[str, Any]], symbol: str) -> list[dict[str, Any]]:
+    out: list[dict[str, Any]] = []
     for item in rows:
         ts = item.get("datetime")
         published_at = None
         if ts:
-            published_at = datetime.fromtimestamp(int(ts), tz=timezone.utc).replace(tzionfo=None)
+            published_at = datetime.fromtimestamp(int(ts), tz=timezone.utc).replace(tzinfo=None)
 
-        out.append(
-            {
-                "symbol": symbol,
-                "title": item.get("headline"),
-                "content": item.get("summary"),
-                "source": item.get("source"), or "finnhub",
-                "url": item.get("url"),
-                "published_at": published_at,
-            }
+        transformed: dict[str, Any] = {
+            "symbol": symbol,
+            "title": item.get("headline"),
+            "content": item.get("summary"),
+            "source": item.get("source") or "finnhub",
+            "url": item.get("url"),
+            "published_at": published_at,
+        }
+        out.append(transformed)
 
-        )
-        return [x for x in out if x.get("url") and x.get("published_at")]
+    return [x for x in out if x.get("url") and x.get("published_at")]
     
-async def upsert_news(news_rows: list[dict]) -> None:
+async def upsert_news(news_rows: list[dict[str, Any]]) -> None:
     if not news_rows:
         return 
     
@@ -65,7 +67,7 @@ async def upsert_news(news_rows: list[dict]) -> None:
         stmt = insert(News).values(news_rows)
 
         upsert_stmt = stmt.on_conflict_do_nothing(index_elements=["url"])
-        await session.exec  ute(upsert_stmt)
+        await session.execute(upsert_stmt)
         await session.commit()
     
 def relevance_score_v1(event_dt: date, published_at: datetime, title: str | None) -> float:
@@ -75,7 +77,7 @@ def relevance_score_v1(event_dt: date, published_at: datetime, title: str | None
     
     t = (title or "").lower()
     kw = 0.0
-    for w in ("earnings", "guidance", "sec", "lawsuit", "fed", "downgrade", "upgrade", "acquistion"):
+    for w in ("earnings", "guidance", "sec", "lawsuit", "fed", "downgrade", "upgrade", "acquisition"):
         if w in t:
             kw += 0.25
 
@@ -87,7 +89,7 @@ async def link_event_to_news(event_id: int, symbol: str, window_days: int = 2, l
         if not event:
             return 0
         
-        center = event.start_date
+        center = cast(date, event.start_date)
         start = datetime.combine(center - timedelta(days=window_days), datetime.min.time())
         end = datetime.combine(center + timedelta(days=window_days), datetime.max.time())
 
@@ -98,14 +100,18 @@ async def link_event_to_news(event_id: int, symbol: str, window_days: int = 2, l
             .limit(limit)
         )
         res = await session.execute(news_q)
-        candiates = res.scalars().all()
+        candidates = res.scalars().all()
 
         if not candidates:
             return 0
         
-        link rows = []
+        link_rows: list[dict[str, Any]] = []
         for n in candidates:
-            score = relevance_score_v1(center, n.published_at, n.title)
+            score = relevance_score_v1(
+                center,
+                cast(datetime, n.published_at),
+                cast(str | None, n.title),
+            )
             link_rows.append(
                 {
                     "event_id": event_id,
@@ -128,11 +134,11 @@ async def link_event_to_news(event_id: int, symbol: str, window_days: int = 2, l
         return len(link_rows)
     
 async def run_context_for_symbol(symbol: str, days_back: int = 7):
-    to_dt = datetime, utcnow().date()
+    to_dt = datetime.now(timezone.utc).date()
     from_dt = to_dt - timedelta(days=days_back)
 
-    data = await fetch_finnhub_companty_news(symbol, from_dt, to_dt)
-    rows = transfrom_finnhub_news(data, symbol)
+    data = await fetch_finnhub_news(symbol, from_dt, to_dt)
+    rows = transform_finnhub_news(data, symbol)
     await upsert_news(rows)
     
     async with SessionLocal() as session:
@@ -146,7 +152,7 @@ async def run_context_for_symbol(symbol: str, days_back: int = 7):
         events = res.scalars().all()
 
     for e in events:
-        await link_event_tonews(e.id, symbol)
+        await link_event_to_news(cast(int, e.id), symbol)
 
 if __name__ == "__main__":
     import asyncio
