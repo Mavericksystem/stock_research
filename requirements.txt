@@ -7,6 +7,8 @@ psycopg2-binary
 fastapi
 uvicorn
 python-dotenv
+httpx
+pydantic-settings
 beautifulsoup4
 chromadb
 sentence-transformers
