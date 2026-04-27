@@ -4,7 +4,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 from backend.db.connection import Base
-from sqlalchemy.import Text
+from sqlalchemy import Text
 
 class Stock(Base):
     __tablename__ = 'stocks'
@@ -20,7 +20,7 @@ class Stock(Base):
     events = relationship("Event", back_populates="stock", cascade="all, delete-orphan")
 
 class Price(Base):
-    __tablename__ = "Prices"
+    __tablename__ = "prices"
     
     symbol = Column(String(20), ForeignKey("stocks.symbol"), primary_key=True)
     date = Column(Date, primary_key=True)
@@ -120,19 +120,20 @@ class News(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     __table_args__ = (
-        Index("idx_news_symbol_published_at", symbol, "published_at"),
+        Index("idx_news_symbol_published_at", "symbol", "published_at"),
     )
 
 class EventNewsLink(Base):
     __tablename__ = "event_news_link"
 
-    id = Column(Integer, ForeignKey("events.id", ondelete="CASCADE"), nullable=False, index=True)
-    news_id = Column(Integer, ForeignKey("news.id", ondelete="CASCADE"), nullable=False, index=True, index=True)
+    id = Column(Integer, primary_key=True, autoincrement=True)
+    event_id = Column(Integer, ForeignKey("events.id", ondelete="CASCADE"), nullable=False, index=True)
+    news_id = Column(Integer, ForeignKey("news.id", ondelete="CASCADE"), nullable=False, index=True)
 
-    relevence_score = Column(Numeric(12, 6), nullable=False, default=0)
+    relevance_score = Column(Numeric(12, 6), nullable=False, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
 
     __table_args__ = (
-        UniqueConstraint("event_id", "news_id", name="uix_event_news_lik"),
-        Index("idx_event_news_event_score", "event_id", "relevence_score"),
+        UniqueConstraint("event_id", "news_id", name="uix_event_news_link"),
+        Index("idx_event_news_event_score", "event_id", "relevance_score"),
     )
