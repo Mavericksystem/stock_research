@@ -1,9 +1,9 @@
 from pydantic import BaseModel, ConfigDict
 from typing import Any, Optional, Dict
-from datetime import datetime, date
+from datetime import datetime, date, timezone
 
 class Meta(BaseModel):
-    timestamp: datetime = datetime.utcnow()
+    timestamp: datetime = datetime.now(timezone.utc).replace(tzinfo=None)
     version: str = "v1"
 
 class APIResponse(BaseModel):
@@ -54,9 +54,9 @@ class EventResponse(BaseModel):
     explanation: Optional[str] = None
     model_config = ConfigDict(from_attributes=True)
 
-class ContextItemResponse(VaseModel):
+class ContextItemResponse(BaseModel):
     title: Optional[str] = None
     source: Optional[str] = None
     url: Optional[str] = None
     published_at: Optional[datetime] = None
-    relecvance_scroe: Oprional[float] = None
+    relevance_score: Optional[float] = None
