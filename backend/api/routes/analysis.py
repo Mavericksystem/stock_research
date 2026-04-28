@@ -9,6 +9,10 @@ router = APIRouter()
 
 @router.get("/{symbol}", response_model=APIResponse)
 async def analyze_stock(symbol: str, session: AsyncSession = Depends(get_db)):
+    """
+    Analyze a stock symbol and return event context,
+    signals, and LLM-generated explanation.
+    """
     # Logic extracted cleanly to service
     analysis_data: Dict[str, Any] = cast(
         Dict[str, Any],
