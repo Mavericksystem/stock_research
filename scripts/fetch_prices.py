@@ -9,7 +9,8 @@ from backend.db.connection import async_session_maker
 from backend.db.models import Stock, Price
 from backend.ingestion.yfinance_client import fetch_stock_prices, fetch_stock_info
 
-TARGET_SYMBOLS = ["AAPL", "TSLA", "MSFT"]
+TARGET_SYMBOLS = ["AAPL", "MSFT", "NVDA", "GOOGL", "AMZN", 
+            "META", "TSLA", "JPM", "V", "WMT"]
 PERIOD = "1mo"
 
 async def ingest_market_data ():
@@ -27,14 +28,14 @@ async def ingest_market_data ():
 
             if not stock:
                 print(f"Adding new stock: {symbol} to database.")
-                stock = Stock(symbol=symbol, name=info["name"], sector=info["sector"])
+                stock = Stock(symbol=symbol, name=info.get("name", symbol), exchange=info.get("sector", "Unknown"))
                 session.add(stock)
                 await session.commit()
                 await session.refresh(stock)
             else:
                 print(f"stock {symbol } found in database.")
-                stock.name = info["name"]
-                stock.sector = info["sector"]
+                stock.name = info.get("name", symbol)
+                stock.exchange = info.get("sector", "Unknown")
                 await session.commit()
 
             df = fetch_stock_prices(symbol, period=PERIOD)
@@ -42,7 +43,7 @@ async def ingest_market_data ():
                 print(f"Warning: No valid price data for {symbol}.")
                 continue
 
-            existing_dates_stmt = select(Price.date).where(Price.stock_id == stock.id)
+            existing_dates_stmt = select(Price.date).where(Price.symbol == stock.symbol)
             existing_dates_res = await session.execute(existing_dates_stmt)
             existing_dates = set(existing_dates_res.scalars().all())
 
@@ -50,7 +51,7 @@ async def ingest_market_data ():
             for date_obj, row in df.iterrows():
                 if date_obj not in existing_dates:
                     new_price = Price(
-                        stock_id=stock.id,
+                        symbol=stock.symbol,
                         date=date_obj,
                         open=row.get("open"),
                         high=row.get("high"),
