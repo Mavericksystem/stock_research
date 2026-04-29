@@ -70,18 +70,65 @@ async def upsert_news(news_rows: list[dict[str, Any]]) -> None:
         await session.execute(upsert_stmt)
         await session.commit()
     
-def relevance_score_v1(event_dt: date, published_at: datetime, title: str | None) -> float:
-    
-    days = abs((published_at.date() - event_dt).days)
-    proximity = max(0.0, 1.0 - (days / 2.0))
-    
-    t = (title or "").lower()
-    kw = 0.0
-    for w in ("earnings", "guidance", "sec", "lawsuit", "fed", "downgrade", "upgrade", "acquisition"):
-        if w in t:
-            kw += 0.25
+STRONG_KEYWORDS = [
+    "earnings", "revenue", "profit", "guidance",
+    "downgrade", "upgrade", "rating",
+    "acquisition", "merger",
+    "lawsuit", "sec", "investigation",
+]
 
-    return float(proximity + kw)
+WEAK_KEYWORDS = [
+    "ai", "stock", "market", "investment",
+    "crypto", "portfolio"
+]
+
+NEGATIVE_KEYWORDS = [
+    "crypto", "bitcoin", "etf", "macro", "inflation"
+]
+
+def time_score(event_date: date, published_at: datetime) -> float:
+    days = abs((published_at.date() - event_date).days)
+    if days == 0:
+        return 1.0
+    elif days == 1:
+        return 0.7
+    elif days == 2:
+        return 0.4
+    else:
+        return 0.0
+
+def title_score(title: str | None) -> float:
+    t = (title or "").lower()
+    score = 0.0
+    for w in STRONG_KEYWORDS:
+        if w in t:
+            score += 1.0
+    for w in WEAK_KEYWORDS:
+        if w in t:
+            score += 0.2
+    return min(score, 2.0)
+
+def entity_score(title: str | None, symbol: str) -> float:
+    t = (title or "").lower()
+    if symbol.lower() in t:
+        return 1.0
+    return 0.3
+
+def penalty(title: str | None) -> float:
+    t = (title or "").lower()
+    for w in NEGATIVE_KEYWORDS:
+        if w in t:
+            return -0.5
+    return 0.0
+
+def relevance_score_v2(event_dt: date, published_at: datetime, title: str | None, symbol: str) -> float:
+    t_score = time_score(event_dt, published_at)
+    title_s = title_score(title)
+    entity_s = entity_score(title, symbol)
+    p = penalty(title)
+
+    final = (t_score * 0.5) + (title_s * 0.3) + (entity_s * 0.2) + p
+    return float(round(final, 4))
 
 async def link_event_to_news(event_id: int, symbol: str, window_days: int = 2, limit: int = 50) -> int:
     async with SessionLocal() as session:
@@ -107,18 +154,27 @@ async def link_event_to_news(event_id: int, symbol: str, window_days: int = 2, l
         
         link_rows: list[dict[str, Any]] = []
         for n in candidates:
-            score = relevance_score_v1(
+            score = relevance_score_v2(
                 center,
                 cast(datetime, n.published_at),
                 cast(str | None, n.title),
+                symbol
             )
-            link_rows.append(
-                {
-                    "event_id": event_id,
-                    "news_id": n.id,
-                    "relevance_score": score,
-                }
-            )
+            if score >= 0.8:
+                link_rows.append(
+                    {
+                        "event_id": event_id,
+                        "news_id": n.id,
+                        "relevance_score": score,
+                    }
+                )
+
+        if not link_rows:
+            return 0
+
+        # Sort by score descending and keep only the top 7 highest-signal articles
+        link_rows.sort(key=lambda x: x["relevance_score"], reverse=True)
+        link_rows = link_rows[:7]
 
         stmt = insert(EventNewsLink).values(link_rows)
 
