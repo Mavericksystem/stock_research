@@ -60,7 +60,22 @@ def transform_finnhub_news(rows: list[dict[str, Any]], symbol: str) -> list[dict
         out.append(transformed)
 
     return [x for x in out if x.get("url") and x.get("published_at")]
-    
+
+SYMBOL_TO_NAME = {
+    "AAPL": "Apple",
+    "MSFT": "Microsoft",
+    "NVDA": "NVIDIA",
+    "GOOGL": "Google",
+    "AMZN": "Amazon",
+    "META": "Meta",
+    "TSLA": "Tesla",
+    "JPM": "JP Morgan",
+    "V": "Visa",
+    "WMT": "Walmart",
+}
+
+
+
 async def upsert_news(news_rows: list[dict[str, Any]]) -> None:
     if not news_rows:
         return 
