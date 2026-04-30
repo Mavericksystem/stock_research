@@ -74,16 +74,100 @@ SYMBOL_TO_NAME = {
     "WMT": "Walmart",
 }
 
+def build_event_text(event: Event) -> str:
+    symbol = cast(str, event.symbol)
+    name = SYMBOL_TO_NAME.get(symbol, symbol)
 
+    ctx = cast(dict[str, Any] | None, event.context) or {}
+    rsi = ctx.get("rsi")
+    volatility = ctx.get("volatility")
+    above_sma_20 = ctx.get("above_sma_20")
+    z_score = ctx.get("z_score")
+
+    parts: list[str] = [name, symbol]
+
+    et = (event.event_type or "").upper()
+    if "DROP" in et:
+        parts += ["stock drop"]
+    elif "SPIKE" in et:
+        parts += ["stock surge"]
+    else:
+        parts += ["stock move"]
+    
+    if isinstance(rsi, (int, float)):
+        if rsi < 30:
+            parts += ["oversold"]
+        elif rsi > 70:
+            parts += ["overbought"]
+
+    if isinstance(volatility, (int, float)) and volatility >= 0.03:
+        parts += ["high volatility"]
+
+    if above_sma_20 is True:
+        parts += ["above trend"]
+    elif above_sma_20 is False:
+        parts += ["below trend"]
+    
+    return " ".join(parts)
 
 async def upsert_news(news_rows: list[dict[str, Any]]) -> None:
     if not news_rows:
-        return 
-    
+        return
+
+    urls = [cast(str, r.get("url")) for r in news_rows if r.get("url")]
+    if not urls:
+        return
+
     async with SessionLocal() as session:
+        existing_q = select(News.url).where(News.url.in_(urls), News.embedding.isnot(None))
+        existing_res = await session.execute(existing_q)
+        embedded_urls = set(existing_res.scalars().all())
+
+        texts_to_embed: list[str] = []
+        row_indices: list[int] = []
+
+        for i, row in enumerate(news_rows):
+            url = row.get("url")
+            if not url or url in embedded_urls:
+                continue
+
+            title = cast(str | None, row.get("title"))
+            content = cast(str | None, row.get("content"))
+            text = " ".join([x for x in [title, content] if x]).strip()
+            if not text:
+                continue
+
+            texts_to_embed.append(text)
+            row_indices.append(i)
+
+        BATCH = 20
+        for start in range(0, len(texts_to_embed), BATCH):
+            batch_texts = texts_to_embed[start : start + BATCH]
+            batch_vecs = embed_texts(batch_texts)
+            now = datetime.now(timezone.utc)
+
+            for j, vec in enumerate(batch_vecs):
+                row_i = row_indices[start + j]
+                news_rows[row_i]["embedding"] = vec
+                news_rows[row_i]["embedding_model"] = MODEL_NAME
+                news_rows[row_i]["embedding_created_at"] = now
+
         stmt = insert(News).values(news_rows)
 
-        upsert_stmt = stmt.on_conflict_do_nothing(index_elements=["url"])
+        upsert_stmt = stmt.on_conflict_do_update(
+            index_elements=["url"],
+            set_={
+                "symbol": stmt.excluded.symbol,
+                "title": stmt.excluded.title,
+                "content": stmt.excluded.content,
+                "source": stmt.excluded.source,
+                "published_at": stmt.excluded.published_at,
+                "embedding": func.coalesce(News.embedding, stmt.excluded.embedding),
+                "embedding_model": func.coalesce(News.embedding_model, stmt.excluded.embedding_model),
+                "embedding_created_at": func.coalesce(News.embedding_created_at, stmt.excluded.embedding_created_at),
+            },
+        )
+
         await session.execute(upsert_stmt)
         await session.commit()
     
