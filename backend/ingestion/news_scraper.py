@@ -8,6 +8,8 @@ from dotenv import load_dotenv
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker
+from sqlalchemy import func
+from backend.ingestion.embeddings import MODEL_NAME, embed_texts, embed_text, embed_text, cosine_similarity
 
 PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 if PROJECT_ROOT not in sys.path:
