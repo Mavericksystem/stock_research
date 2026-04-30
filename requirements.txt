@@ -14,3 +14,6 @@ chromadb
 sentence-transformers
 ta
 httpx
+sentence-transformers
+numpy
+pgvector

@@ -5,6 +5,7 @@ from sqlalchemy import (
 from sqlalchemy.orm import relationship
 from backend.db.connection import Base
 from sqlalchemy import Text
+from pgvector.sqlalchemy import Vector
 
 class Stock(Base):
     __tablename__ = 'stocks'
@@ -119,6 +120,9 @@ class News(Base):
     published_at = Column(DateTime, nullable=False, index=True)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+    embedding = Column(Vector(384), nullable=True)
+    embedding_model = Column(String, nullable=True)
+    embedding_created_at = Column(DateTime,(timezone=True), nullable=True)
     __table_args__ = (
         Index("idx_news_symbol_published_at", "symbol", "published_at"),
     )
