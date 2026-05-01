@@ -626,8 +626,8 @@ async def upsert_news(news_rows: list[dict[str, Any]]) -> None:
         return
 
     # Deduplicate semantic duplicates across sources
-    seen_hashes = set()
-    deduped_rows = []
+    seen_hashes: set[str] = set()
+    deduped_rows: list[dict[str, Any]] = []
 
     for row in news_rows:
         symbol = str(row.get("symbol", "")).lower()
