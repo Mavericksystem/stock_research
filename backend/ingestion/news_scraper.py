@@ -26,6 +26,7 @@ SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
 
 def _symbol_scoped_url(url: str, symbol: str) -> str:
+    """Normalize provider URLs before persistence."""
     return (url or "").strip()
 
 # ---------------------------------------------------------------------------
