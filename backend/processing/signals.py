@@ -53,8 +53,11 @@ async def compute_signals(symbol: str):
         rs = avg_gain / avg_loss
         df['rsi_14'] = 100 - (100 / (1 + rs))
         
-        # volatility (Rolling standard deviation of return) - Annualized
-        df['volatility_20d'] = df['daily_return'].rolling(window=20).std() * (252 ** 0.5)
+        # volatility (Rolling standard deviation of DAILY returns)
+        # Keep the unit consistent with df['daily_return'] (percent).
+        # This is intentionally NOT annualized because `detect_events()` uses
+        # z_score = daily_return / volatility_20d.
+        df['volatility_20d'] = df['daily_return'].rolling(window=20).std()
 
         # Derived reasoning signals
         df['price_vs_sma_20'] = df['close'] - df['sma_20']
