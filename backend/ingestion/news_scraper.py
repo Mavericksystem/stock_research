@@ -3,17 +3,17 @@ import sys
 from datetime import datetime, timedelta, date, timezone
 from typing import Any, cast
 
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+if PROJECT_ROOT not in sys.path:
+    sys.path.insert(0, PROJECT_ROOT)
+
 import httpx
 from dotenv import load_dotenv
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy import func
-from backend.ingestion.embeddings import MODEL_NAME, embed_texts, embed_text, embed_text, cosine_similarity
-
-PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-if PROJECT_ROOT not in sys.path:
-    sys.path.insert(0, PROJECT_ROOT)
+from backend.ingestion.embeddings import MODEL_NAME, embed_texts, embed_text, cosine_similarity
 from backend.db.connection import engine
 from backend.db.models import News, Event, EventNewsLink
 
@@ -74,6 +74,36 @@ SYMBOL_TO_NAME = {
     "WMT": "Walmart",
 }
 
+GENERIC_TITLE_PHRASES = [
+    "what to watch",
+    "what to expect",
+    "futures",
+    "earnings season",
+    "earnings wave",
+    "week ahead",
+    "take the spotlight",
+    "stock market",
+    "dow jones futures",
+    "mag 7",
+]
+
+def generic_title_factor(title: str | None) -> float:
+    t = (title or "").lower()
+    hits = sum(1 for p in GENERIC_TITLE_PHRASES if p in t)
+    if hits <= 0:
+        return 1.0
+    if hits == 1:
+        return 0.88
+    return 0.80
+
+def entity_mention_factor(title: str | None, content: str | None, symbol: str, name: str) -> float:
+    t = (title or "").lower()
+    c = (content or "").lower()
+    sym = symbol.lower()
+    nm = name.lower()
+    mentioned = (sym in t) or (sym in c) or (nm in t) or (nm in c)
+    return 1.0 if mentioned else 0.78
+
 def build_event_text(event: Event) -> str:
     symbol = cast(str, event.symbol)
     name = SYMBOL_TO_NAME.get(symbol, symbol)
@@ -84,15 +114,27 @@ def build_event_text(event: Event) -> str:
     above_sma_20 = ctx.get("above_sma_20")
     z_score = ctx.get("z_score")
 
-    parts: list[str] = [name, symbol]
+    magnitude = getattr(event, "magnitude", None)
+
+    parts: list[str] = [name, symbol, "news catalyst", "possible cause"]
 
     et = (event.event_type or "").upper()
     if "DROP" in et:
-        parts += ["stock drop"]
+        parts += ["sharp", "sudden", "unusual", "stock drop", "selloff", "decline"]
     elif "SPIKE" in et:
-        parts += ["stock surge"]
+        parts += ["sharp", "sudden", "unusual", "stock surge", "spike", "rally"]
     else:
-        parts += ["stock move"]
+        parts += ["unusual", "stock move"]
+
+    # Encode magnitude explicitly when available (daily_return is fraction, e.g. -0.05)
+    if isinstance(magnitude, (int, float)):
+        pct = abs(float(magnitude)) * 100.0
+        if pct >= 7.0:
+            parts += ["very large move", f"{pct:.0f} percent move"]
+        elif pct >= 4.0:
+            parts += ["large move", f"{pct:.0f} percent move"]
+        elif pct >= 2.0:
+            parts += ["significant move", f"{pct:.0f} percent move"]
     
     if isinstance(rsi, (int, float)):
         if rsi < 30:
@@ -103,10 +145,25 @@ def build_event_text(event: Event) -> str:
     if isinstance(volatility, (int, float)) and volatility >= 0.03:
         parts += ["high volatility"]
 
+    if isinstance(z_score, (int, float)):
+        z = abs(float(z_score))
+        if z >= 3.0:
+            parts += ["extreme", "anomalous"]
+        elif z >= 2.0:
+            parts += ["anomalous"]
+
     if above_sma_20 is True:
         parts += ["above trend"]
     elif above_sma_20 is False:
         parts += ["below trend"]
+
+    # Light recency hint: models tend to prefer recent headlines.
+    today = datetime.now(timezone.utc).date()
+    event_day = cast(date, event.start_date)
+    if event_day == today:
+        parts += ["today", "latest news"]
+    else:
+        parts += ["recent news"]
     
     return " ".join(parts)
 
@@ -151,6 +208,14 @@ async def upsert_news(news_rows: list[dict[str, Any]]) -> None:
                 news_rows[row_i]["embedding"] = vec
                 news_rows[row_i]["embedding_model"] = MODEL_NAME
                 news_rows[row_i]["embedding_created_at"] = now
+
+        # Important for SQLAlchemy multi-row INSERT: ensure every row has an explicit
+        # Python-side value for these columns (None if missing), otherwise the compiler
+        # may generate internal boundparameters that pgvector's type cannot handle.
+        for row in news_rows:
+            row.setdefault("embedding", None)
+            row.setdefault("embedding_model", None)
+            row.setdefault("embedding_created_at", None)
 
         stmt = insert(News).values(news_rows)
 
@@ -252,38 +317,96 @@ async def link_event_to_news(event_id: int, symbol: str, window_days: int = 2, l
 
         if not candidates:
             return 0
-        
-        link_rows: list[dict[str, Any]] = []
+
+        # Step 1: candidate retrieval
+        # Keep a bounded window by time (SQL query already limits by `limit` and date window).
+        # Do not hard-gate on keywords; otherwise we over-select roundup/macro headlines.
+        scored: list[tuple[News, float]] = []
         for n in candidates:
-            score = relevance_score_v2(
+            kw = relevance_score_v2(
                 center,
                 cast(datetime, n.published_at),
                 cast(str | None, n.title),
-                symbol
+                symbol,
             )
-            if score >= 0.8:
-                link_rows.append(
-                    {
-                        "event_id": event_id,
-                        "news_id": n.id,
-                        "relevance_score": score,
-                    }
-                )
+            scored.append((n, kw))
 
-        if not link_rows:
-            return 0
+        scored.sort(key=lambda x: x[1], reverse=True)
 
-        # Sort by score descending and keep only the top 7 highest-signal articles
-        link_rows.sort(key=lambda x: x["relevance_score"], reverse=True)
-        link_rows = link_rows[:7]
+        # Step 2: compute event embedding once per event
+        event_vec: list[float] | None
+        try:
+            event_vec = embed_text(build_event_text(event))
+        except Exception:
+            event_vec = None
+
+        # Step 2.5: ensure candidate news have embeddings (so semantic ranking can apply)
+        if event_vec is not None:
+            to_embed_news: list[News] = []
+            to_embed_texts: list[str] = []
+            for n, _kw in scored:
+                if n.embedding is not None:
+                    continue
+                title = cast(str | None, n.title)
+                content = cast(str | None, n.content)
+                text = " ".join([x for x in [title, content] if x]).strip()
+                if not text:
+                    continue
+                to_embed_news.append(n)
+                to_embed_texts.append(text)
+
+            if to_embed_texts:
+                try:
+                    vecs = embed_texts(to_embed_texts)
+                    now = datetime.now(timezone.utc)
+                    for n, vec in zip(to_embed_news, vecs):
+                        n.embedding = vec
+                        n.embedding_model = MODEL_NAME
+                        n.embedding_created_at = now
+                    await session.commit()
+                except Exception:
+                    # If embedding fails, keep keyword-only fallback.
+                    await session.rollback()
+
+        # Step 3: per-item semantic score with fallback (never skip)
+        ranked: list[tuple[int, float]] = []
+        for n, kw in scored:
+            # Default fallback is normalized keyword score.
+            final_score = min(1.0, float(kw) / 1.3)
+            if event_vec is not None and n.embedding is not None:
+                try:
+                    final_score = cosine_similarity(event_vec, cast(list[float], n.embedding))
+                except Exception:
+                    final_score = min(1.0, float(kw) / 1.3)
+
+            # Prefer news closer to the event date.
+            try:
+                t = time_score(center, cast(datetime, n.published_at))
+                final_score *= (0.85 + 0.15 * t)
+            except Exception:
+                pass
+
+            # Penalize generic macro / roundup headlines a bit.
+            final_score *= generic_title_factor(cast(str | None, n.title))
+            final_score *= entity_mention_factor(
+                cast(str | None, n.title),
+                cast(str | None, n.content),
+                symbol,
+                SYMBOL_TO_NAME.get(symbol, symbol),
+            )
+            ranked.append((cast(int, n.id), float(round(final_score, 6))))
+
+        ranked.sort(key=lambda x: x[1], reverse=True)
+        ranked = ranked[:5]
+
+        link_rows = [{"event_id": event_id, "news_id": nid, "relevance_score": score} for nid, score in ranked]
+
+        print(f"[link] event_id={event_id} symbol={symbol} candidates={len(candidates)} reranked={len(scored)} top_scores={[s for _, s in ranked]}")
 
         stmt = insert(EventNewsLink).values(link_rows)
-
         stmt = stmt.on_conflict_do_update(
             constraint="uix_event_news_link",
-            set_={
-                "relevance_score": stmt.excluded.relevance_score,
-            },
+            set_={"relevance_score": stmt.excluded.relevance_score},
         )
 
         await session.execute(stmt)
