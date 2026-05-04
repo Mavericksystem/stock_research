@@ -122,7 +122,7 @@ class News(Base):
 
     embedding = Column(Vector(384), nullable=True)
     embedding_model = Column(String, nullable=True)
-    embedding_created_at = Column(DateTime,(timezone=True), nullable=True)
+    embedding_created_at = Column(DateTime(timezone=True), nullable=True)
     __table_args__ = (
         Index("idx_news_symbol_published_at", "symbol", "published_at"),
     )
