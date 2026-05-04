@@ -87,6 +87,98 @@ GENERIC_TITLE_PHRASES = [
     "mag 7",
 ]
 
+OPINION_TITLE_PHRASES = [
+    "buy",
+    "buy now",
+    "good stock",
+    "best stock",
+    "top stock",
+    "top stocks",
+    "should you",
+    "investors should",
+    "for beginner",
+    "beginner",
+    "portfolio",
+    "foundational asset",
+    "made me buy",
+]
+
+CAUSAL_TITLE_PHRASES = [
+    "why ",
+    "popped",
+    "plung",
+    "tumbled",
+    "dropped",
+    "surged",
+    "gains after",
+    "after earnings",
+    "ahead of earnings",
+    "price target",
+    "downgrade",
+    "upgrade",
+]
+
+def time_score_refined(event_date: date, published_at: datetime) -> float:
+    """Directional day-based recency score.
+
+    delta < 0  → article published BEFORE event (more likely causal)
+    delta == 0 → same day
+    delta > 0  → article published AFTER event (more likely reaction)
+    """
+    delta = (published_at.date() - event_date).days
+
+    if delta == 0:
+        return 1.0
+
+    if delta < 0:
+        days_before = abs(delta)
+        if days_before == 1:
+            return 0.85
+        if days_before == 2:
+            return 0.60
+        return 0.20
+
+    if delta == 1:
+        return 0.45
+    if delta == 2:
+        return 0.15
+    return 0.0
+
+def entity_score_refined(title: str | None, symbol: str, company_name: str) -> float:
+    t = (title or "").lower()
+    sym = symbol.lower()
+    nm = company_name.lower()
+
+    if sym and sym in t:
+        return 1.0
+    if nm and nm in t:
+        return 0.55
+    return 0.20
+
+def headline_signal_score(title: str | None) -> float:
+    """Score headline intent: causal proxy > neutral > opinion/listicle.
+
+    Returns a value in [0, 1] where:
+    - 1.0 is strongly causal
+    - 0.5 is neutral
+    - 0.0 is opinion/listicle
+    """
+    t = (title or "").lower()
+
+    has_causal = any(p in t for p in CAUSAL_TITLE_PHRASES)
+    has_opinion = any(p in t for p in OPINION_TITLE_PHRASES)
+    has_generic = any(p in t for p in GENERIC_TITLE_PHRASES)
+
+    if has_causal and has_opinion:
+        return 0.7
+    if has_causal:
+        return 1.0
+    if has_opinion:
+        return 0.0
+    if has_generic:
+        return 0.25
+    return 0.5
+
 def generic_title_factor(title: str | None) -> float:
     t = (title or "").lower()
     hits = sum(1 for p in GENERIC_TITLE_PHRASES if p in t)
@@ -95,6 +187,26 @@ def generic_title_factor(title: str | None) -> float:
     if hits == 1:
         return 0.88
     return 0.80
+
+def opinion_title_factor(title: str | None) -> float:
+    """Penalize listicles/opinion/investing-advice headlines (not causal signals)."""
+    t = (title or "").lower()
+    hits = sum(1 for p in OPINION_TITLE_PHRASES if p in t)
+    if hits <= 0:
+        return 1.0
+    if hits == 1:
+        return 0.70
+    return 0.62
+
+def causal_title_boost(title: str | None) -> float:
+    """Boost headlines that are often direct causal proxies ("why moved today", earnings, target cuts)."""
+    t = (title or "").lower()
+    hits = sum(1 for p in CAUSAL_TITLE_PHRASES if p in t)
+    if hits <= 0:
+        return 1.0
+    if hits == 1:
+        return 1.10
+    return 1.15
 
 def entity_mention_factor(title: str | None, content: str | None, symbol: str, name: str) -> float:
     t = (title or "").lower()
