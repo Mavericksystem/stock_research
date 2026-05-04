@@ -228,56 +228,63 @@ def build_event_text(event: Event) -> str:
 
     magnitude = getattr(event, "magnitude", None)
 
-    parts: list[str] = [name, symbol, "news catalyst", "possible cause"]
-
     et = (event.event_type or "").upper()
     if "DROP" in et:
-        parts += ["sharp", "sudden", "unusual", "stock drop", "selloff", "decline"]
+        direction_verb = "drop"
+        direction_noun = "decline"
+        market_word = "selloff"
     elif "SPIKE" in et:
-        parts += ["sharp", "sudden", "unusual", "stock surge", "spike", "rally"]
+        direction_verb = "surge"
+        direction_noun = "rally"
+        market_word = "spike"
     else:
-        parts += ["unusual", "stock move"]
+        direction_verb = "move"
+        direction_noun = "price move"
+        market_word = "move"
 
-    # Encode magnitude explicitly when available (daily_return is fraction, e.g. -0.05)
+    pct_phrase = "sharply"
     if isinstance(magnitude, (int, float)):
         pct = abs(float(magnitude)) * 100.0
-        if pct >= 7.0:
-            parts += ["very large move", f"{pct:.0f} percent move"]
-        elif pct >= 4.0:
-            parts += ["large move", f"{pct:.0f} percent move"]
-        elif pct >= 2.0:
-            parts += ["significant move", f"{pct:.0f} percent move"]
-    
+        if pct >= 1.0:
+            pct_phrase = f"{pct:.0f}%"
+
+    context_clauses: list[str] = []
+
     if isinstance(rsi, (int, float)):
         if rsi < 30:
-            parts += ["oversold"]
+            context_clauses.append("RSI oversold conditions")
         elif rsi > 70:
-            parts += ["overbought"]
+            context_clauses.append("RSI overbought conditions")
 
     if isinstance(volatility, (int, float)) and volatility >= 0.03:
-        parts += ["high volatility"]
+        context_clauses.append("high volatility environment")
 
     if isinstance(z_score, (int, float)):
         z = abs(float(z_score))
         if z >= 3.0:
-            parts += ["extreme", "anomalous"]
+            context_clauses.append("extreme anomalous trading activity")
         elif z >= 2.0:
-            parts += ["anomalous"]
+            context_clauses.append("anomalous trading activity")
 
     if above_sma_20 is True:
-        parts += ["above trend"]
+        context_clauses.append("stock trading above 20-day moving average")
     elif above_sma_20 is False:
-        parts += ["below trend"]
+        context_clauses.append("stock trading below 20-day moving average")
 
-    # Light recency hint: models tend to prefer recent headlines.
     today = datetime.now(timezone.utc).date()
     event_day = cast(date, event.start_date)
-    if event_day == today:
-        parts += ["today", "latest news"]
-    else:
-        parts += ["recent news"]
-    
-    return " ".join(parts)
+    recency = "today" if event_day == today else f"on {event_day.isoformat()}"
+
+    base = (
+        f"Why did {name} ({symbol}) stock {direction_verb} {pct_phrase} {recency}? "
+        f"What news catalyst caused the {name} {direction_noun}? "
+        f"{name} {symbol} {market_word} reason announcement earnings guidance."
+    )
+
+    if context_clauses:
+        base += " " + "; ".join(context_clauses) + "."
+
+    return base
 
 async def upsert_news(news_rows: list[dict[str, Any]]) -> None:
     if not news_rows:
@@ -408,6 +415,10 @@ def relevance_score_v2(event_dt: date, published_at: datetime, title: str | None
     final = (t_score * 0.5) + (title_s * 0.3) + (entity_s * 0.2) + p
     return float(round(final, 4))
 
+
+OPINION_SCORE_CAP = 0.35
+OFFTOPIC_SCORE_CAP = 0.40
+
 async def link_event_to_news(event_id: int, symbol: str, window_days: int = 2, limit: int = 50) -> int:
     async with SessionLocal() as session:
         event = await session.get(Event, event_id)
@@ -430,9 +441,7 @@ async def link_event_to_news(event_id: int, symbol: str, window_days: int = 2, l
         if not candidates:
             return 0
 
-        # Step 1: candidate retrieval
-        # Keep a bounded window by time (SQL query already limits by `limit` and date window).
-        # Do not hard-gate on keywords; otherwise we over-select roundup/macro headlines.
+        # Step 1: candidate retrieval (bounded window by time via SQL + `limit`)
         scored: list[tuple[News, float]] = []
         for n in candidates:
             kw = relevance_score_v2(
@@ -444,6 +453,13 @@ async def link_event_to_news(event_id: int, symbol: str, window_days: int = 2, l
             scored.append((n, kw))
 
         scored.sort(key=lambda x: x[1], reverse=True)
+
+        # Loose keyword floor (lets semantic layer work but avoids pure garbage).
+        # If too few survive, fall back to top-N by keyword.
+        kw_floor = 0.6
+        filtered = [(n, kw) for n, kw in scored if kw >= kw_floor]
+        if len(filtered) >= 10:
+            scored = filtered
 
         # Step 2: compute event embedding once per event
         event_vec: list[float] | None
@@ -480,40 +496,79 @@ async def link_event_to_news(event_id: int, symbol: str, window_days: int = 2, l
                     # If embedding fails, keep keyword-only fallback.
                     await session.rollback()
 
-        # Step 3: per-item semantic score with fallback (never skip)
-        ranked: list[tuple[int, float]] = []
+        # Step 3: weighted ranking (semantic + time + entity + headline intent)
+        # final_score = semantic*0.45 + time*0.20 + entity*0.10 + headline*0.25
+        ranked: list[tuple[int, float, dict[str, float], str]] = []
+        company_name = SYMBOL_TO_NAME.get(symbol, symbol)
         for n, kw in scored:
-            # Default fallback is normalized keyword score.
-            final_score = min(1.0, float(kw) / 1.3)
+            kw_norm = min(1.0, float(kw) / 1.3)
+
+            # Semantic score with fallback (never skip).
+            semantic = kw_norm
             if event_vec is not None and n.embedding is not None:
                 try:
-                    final_score = cosine_similarity(event_vec, cast(list[float], n.embedding))
+                    semantic = float(cosine_similarity(event_vec, cast(list[float], n.embedding)))
                 except Exception:
-                    final_score = min(1.0, float(kw) / 1.3)
+                    semantic = kw_norm
 
-            # Prefer news closer to the event date.
-            try:
-                t = time_score(center, cast(datetime, n.published_at))
-                final_score *= (0.85 + 0.15 * t)
-            except Exception:
-                pass
+            title_str = cast(str | None, n.title)
+            tscore = time_score_refined(center, cast(datetime, n.published_at))
+            escore = entity_score_refined(title_str, symbol, company_name)
+            hscore = headline_signal_score(title_str)
 
-            # Penalize generic macro / roundup headlines a bit.
-            final_score *= generic_title_factor(cast(str | None, n.title))
-            final_score *= entity_mention_factor(
-                cast(str | None, n.title),
+            final_score = (
+                (semantic * 0.45)
+                + (tscore * 0.20)
+                + (escore * 0.10)
+                + (hscore * 0.25)
+            )
+
+            boost = causal_title_boost(title_str)
+            if boost > 1.0:
+                final_score = final_score * boost
+
+            final_score = float(min(1.0, max(0.0, final_score)))
+
+            # Guardrail: Finnhub "company-news" frequently includes adjacent-market headlines.
+            # If the article doesn't mention the symbol/company in title or content, cap it.
+            mentioned = entity_mention_factor(
+                title_str,
                 cast(str | None, n.content),
                 symbol,
-                SYMBOL_TO_NAME.get(symbol, symbol),
+                company_name,
             )
-            ranked.append((cast(int, n.id), float(round(final_score, 6))))
+            if mentioned < 1.0:
+                final_score = min(final_score, OFFTOPIC_SCORE_CAP)
+
+            is_opinion = hscore == 0.0
+            if is_opinion:
+                final_score = min(final_score, OPINION_SCORE_CAP)
+
+            components = {
+                "semantic": float(round(semantic, 6)),
+                "time": float(round(tscore, 6)),
+                "entity": float(round(escore, 6)),
+                "headline": float(round(hscore, 6)),
+            }
+            ranked.append((cast(int, n.id), float(round(final_score, 6)), components, cast(str, n.title or "")))
 
         ranked.sort(key=lambda x: x[1], reverse=True)
-        ranked = ranked[:5]
+        top = ranked[:5]
 
-        link_rows = [{"event_id": event_id, "news_id": nid, "relevance_score": score} for nid, score in ranked]
+        link_rows = [{"event_id": event_id, "news_id": nid, "relevance_score": score} for nid, score, _c, _t in top]
 
-        print(f"[link] event_id={event_id} symbol={symbol} candidates={len(candidates)} reranked={len(scored)} top_scores={[s for _, s in ranked]}")
+        print(
+            f"[link] event_id={event_id} symbol={symbol} candidates={len(candidates)} reranked={len(scored)} "
+            f"top_scores={[s for _, s, _c, _t in top]}"
+        )
+
+        if os.getenv("DEBUG_RANKING") in {"1", "true", "TRUE", "yes", "YES"}:
+            for nid, score, comp, title in top:
+                print(
+                    f"  - news_id={nid} score={score} "
+                    f"semantic={comp['semantic']} time={comp['time']} entity={comp['entity']} headline={comp['headline']} "
+                    f"title={title[:90]}"
+                )
 
         stmt = insert(EventNewsLink).values(link_rows)
         stmt = stmt.on_conflict_do_update(
