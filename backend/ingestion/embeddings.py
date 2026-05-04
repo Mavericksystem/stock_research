@@ -13,7 +13,7 @@ EMBED_DIM = 384
 def get_model() -> SentenceTransformer:
     return SentenceTransformer(MODEL_NAME)
 
-def embed_texts(texts: list[str]) -> list[[float]]:
+def embed_texts(texts: list[str]) -> list[list[float]]:
     if not texts:
         return []
     model = get_model()
