@@ -11,7 +11,7 @@ from backend.ingestion.yfinance_client import fetch_stock_prices, fetch_stock_in
 
 TARGET_SYMBOLS = ["AAPL", "MSFT", "NVDA", "GOOGL", "AMZN", 
             "META", "TSLA", "JPM", "V", "WMT"]
-PERIOD = "1mo"
+PERIOD = "2mo"
 
 async def ingest_market_data ():
     print(f"starting ingestion pipeline for : {', '.join(TARGET_SYMBOLS)}")
