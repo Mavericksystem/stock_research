@@ -396,7 +396,6 @@ OPINION_TITLE_PHRASES = [
 ]
 
 CAUSAL_TITLE_PHRASES = [
-    "why ",
     "popped",
     "plung",
     "tumbled",
