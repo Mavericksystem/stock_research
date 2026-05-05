@@ -258,6 +258,101 @@ def transform_finnhub_news(rows: list[dict[str, Any]], symbol: str) -> list[dict
     return [x for x in out if x.get("url") and x.get("published_at")]
 
 
+# ---------------------------------------------------------------------------
+# Alpha Vantage News & Sentiment (Phase 5A structured candidates)
+# ---------------------------------------------------------------------------
+
+
+async def fetch_alpha_vantage_news(symbol: str, from_date: date, to_date: date) -> list[dict[str, Any]]:
+    """Fetch news with sentiment scores from Alpha Vantage."""
+    if not ALPHA_VANTAGE_API_KEY:
+        return []
+
+    time_from = from_date.strftime("%Y%m%dT0000")
+    time_to = to_date.strftime("%Y%m%dT2359")
+
+    params = {
+        "function": "NEWS_SENTIMENT",
+        "tickers": symbol,
+        "time_from": time_from,
+        "time_to": time_to,
+        "limit": "50",
+        "sort": "RELEVANCE",
+        "apikey": ALPHA_VANTAGE_API_KEY,
+    }
+
+    async with httpx.AsyncClient(timeout=20.0) as client:
+        r = await client.get("https://www.alphavantage.co/query", params=params)
+        r.raise_for_status()
+        data = r.json()
+
+    if isinstance(data, dict) and ("Information" in data or "Note" in data):
+        msg = data.get("Information") or data.get("Note") or "unknown"
+        print(f"[alpha_vantage] {symbol}: API limit or key issue — {msg}")
+        return []
+
+    feed = data.get("feed") if isinstance(data, dict) else None
+    if not isinstance(feed, list):
+        return []
+
+    return cast(list[dict[str, Any]], feed)
+
+
+def transform_alpha_vantage_news(rows: list[dict[str, Any]], symbol: str) -> list[dict[str, Any]]:
+    """Convert Alpha Vantage feed items into News-compatible dicts.
+
+    Strict per-ticker filtering: we keep an article only if the target symbol is
+    present in ticker_sentiment and has relevance_score >= 0.3.
+    """
+    out: list[dict[str, Any]] = []
+
+    for item in rows:
+        ticker_sentiments = item.get("ticker_sentiment")
+        if not isinstance(ticker_sentiments, list):
+            continue
+
+        ticker_entry = next(
+            (t for t in ticker_sentiments if isinstance(t, dict) and t.get("ticker") == symbol),
+            None,
+        )
+        if ticker_entry is None:
+            continue
+
+        try:
+            if float(ticker_entry.get("relevance_score", 0.0)) < 0.3:
+                continue
+        except (TypeError, ValueError):
+            continue
+
+        time_str = cast(str, item.get("time_published") or "")
+        published_at: datetime | None = None
+        if time_str:
+            for fmt in ("%Y%m%dT%H%M%S", "%Y%m%dT%H%M"):
+                try:
+                    published_at = datetime.strptime(time_str[:15], fmt)
+                    break
+                except ValueError:
+                    continue
+
+        url = cast(str, item.get("url") or "")
+        if not url or published_at is None:
+            continue
+
+        out.append(
+            {
+                "symbol": symbol,
+                "title": item.get("title"),
+                "content": item.get("summary"),
+                # Keep a stable classification token for Phase 5A routing.
+                "source": "alpha_vantage",
+                "url": _symbol_scoped_url(url, symbol),
+                "published_at": published_at,
+            }
+        )
+
+    return out
+
+
 SYMBOL_TO_NAME = {
     "AAPL": "Apple",
     "MSFT": "Microsoft",
