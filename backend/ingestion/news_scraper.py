@@ -19,7 +19,204 @@ from backend.db.models import News, Event, EventNewsLink
 
 load_dotenv()
 FINNHUB_API_KEY = os.getenv("FINNHUB_API_KEY")
+ALPHA_VANTAGE_API_KEY = os.getenv("ALPHA_VANTAGE_API_KEY")
+EDGAR_USER_AGENT = os.getenv("EDGAR_USER_AGENT") or "FinanceResearchApp contact@example.com"
 SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
+
+
+def _symbol_scoped_url(url: str, symbol: str) -> str:
+    """Make URL unique per symbol without changing the request target.
+
+    Our schema enforces unique(news.url) but we store one symbol per row.
+    Sources like Alpha Vantage can return the same URL for multiple tickers.
+    A fragment suffix avoids cross-symbol overwrites while keeping URLs clickable.
+    """
+    u = (url or "").strip()
+    if not u:
+        return u
+    suffix = f"sym={symbol}"
+    if "#" in u:
+        return f"{u}|{suffix}"
+    return f"{u}#{suffix}"
+
+# ---------------------------------------------------------------------------
+# SEC EDGAR (Phase 5A input)
+# ---------------------------------------------------------------------------
+
+# Optional fast-path for common tickers; fallback CIK lookup covers others.
+SYMBOL_TO_CIK: dict[str, str] = {
+    "AAPL": "320193",
+    "MSFT": "789019",
+    "NVDA": "1045810",
+    "GOOGL": "1652044",
+    "AMZN": "1018724",
+    "META": "1326801",
+    "TSLA": "1318605",
+    "JPM": "19617",
+    "V": "1403161",
+    "WMT": "104169",
+}
+
+EDGAR_ITEM_LABELS: dict[str, str] = {
+    "1.01": "Entry into Material Definitive Agreement",
+    "1.02": "Termination of Material Definitive Agreement",
+    "1.03": "Bankruptcy or Receivership",
+    "2.01": "Completion of Acquisition or Disposition of Assets",
+    "2.02": "Results of Operations and Financial Condition",
+    "2.03": "Creation of Direct Financial Obligation",
+    "2.05": "Costs Associated with Exit or Disposal Activities",
+    "2.06": "Material Impairments",
+    "3.01": "Notice of Delisting or Failure to Satisfy Listing Rule",
+    "4.01": "Changes in Registrant Certifying Accountant",
+    "5.02": "Departure or Election of Directors or Principal Officers",
+    "5.03": "Amendments to Articles of Incorporation or Bylaws",
+    "7.01": "Regulation FD Disclosure",
+    "8.01": "Other Events",
+    "9.01": "Financial Statements and Exhibits",
+}
+
+_CIK_LOOKUP_CACHE: dict[str, str] | None = None
+
+
+async def _load_cik_lookup() -> dict[str, str]:
+    """Load SEC symbol->CIK mapping once per process.
+
+    Uses the SEC-provided company tickers file.
+    """
+    global _CIK_LOOKUP_CACHE
+    if _CIK_LOOKUP_CACHE is not None:
+        return _CIK_LOOKUP_CACHE
+
+    url = "https://www.sec.gov/files/company_tickers.json"
+    headers = {"User-Agent": EDGAR_USER_AGENT, "Accept-Encoding": "gzip, deflate"}
+
+    async with httpx.AsyncClient(timeout=20.0) as client:
+        r = await client.get(url, headers=headers)
+        r.raise_for_status()
+        data = r.json()
+
+    lookup: dict[str, str] = {}
+    if isinstance(data, dict):
+        for _k, v in data.items():
+            if not isinstance(v, dict):
+                continue
+            ticker = str(v.get("ticker") or "").upper().strip()
+            cik = v.get("cik_str")
+            if not ticker:
+                continue
+            if isinstance(cik, int):
+                lookup[ticker] = str(cik)
+            elif isinstance(cik, str) and cik.isdigit():
+                lookup[ticker] = cik
+
+    _CIK_LOOKUP_CACHE = lookup
+    return lookup
+
+
+async def _get_cik_for_symbol(symbol: str) -> str | None:
+    sym = symbol.upper().strip()
+    if sym in SYMBOL_TO_CIK:
+        return SYMBOL_TO_CIK[sym]
+
+    try:
+        lookup = await _load_cik_lookup()
+        return lookup.get(sym)
+    except Exception:
+        return None
+
+
+async def fetch_edgar_filings(symbol: str, from_date: date, to_date: date) -> list[dict[str, Any]]:
+    """Fetch recent 8-K filings for a symbol from SEC EDGAR submissions API."""
+    cik = await _get_cik_for_symbol(symbol)
+    if not cik:
+        return []
+
+    cik_padded = cik.zfill(10)
+    url = f"https://data.sec.gov/submissions/CIK{cik_padded}.json"
+    headers = {"User-Agent": EDGAR_USER_AGENT, "Accept-Encoding": "gzip, deflate"}
+
+    async with httpx.AsyncClient(timeout=20.0) as client:
+        r = await client.get(url, headers=headers)
+        r.raise_for_status()
+        data = r.json()
+
+    recent = data.get("filings", {}).get("recent", {}) if isinstance(data, dict) else {}
+    forms: list[str] = recent.get("form", [])
+    filing_dates: list[str] = recent.get("filingDate", [])
+    accessions: list[str] = recent.get("accessionNumber", [])
+    items_col: list[str] = recent.get("items", [])
+
+    out: list[dict[str, Any]] = []
+    for form, filing_date_str, accession, items in zip(forms, filing_dates, accessions, items_col):
+        if form not in ("8-K", "8-K/A"):
+            continue
+        try:
+            filing_date = date.fromisoformat(filing_date_str)
+        except ValueError:
+            continue
+        if not (from_date <= filing_date <= to_date):
+            continue
+        out.append(
+            {
+                "form": form,
+                "filing_date": filing_date_str,
+                "accession": accession,
+                "items": items,
+                "cik": cik,
+            }
+        )
+
+    return out
+
+
+def transform_edgar_filings(rows: list[dict[str, Any]], symbol: str) -> list[dict[str, Any]]:
+    """Convert raw EDGAR filing metadata into News-compatible dicts."""
+    out: list[dict[str, Any]] = []
+    name = SYMBOL_TO_NAME.get(symbol, symbol)
+
+    for row in rows:
+        accession = cast(str, row.get("accession") or "")
+        cik = cast(str, row.get("cik") or "")
+        filing_date = cast(str, row.get("filing_date") or "")
+        items_str = cast(str, (row.get("items") or "")).strip()
+        if not accession or not cik or not filing_date:
+            continue
+
+        item_codes = [x.strip() for x in items_str.split(",") if x.strip()]
+        item_labels = [EDGAR_ITEM_LABELS.get(c, f"Item {c}") for c in item_codes]
+        if item_labels:
+            title = f"{name} ({symbol}) 8-K: {'; '.join(item_labels)}"
+        else:
+            title = f"{name} ({symbol}) SEC 8-K Filing"
+
+        accession_nodash = accession.replace("-", "")
+        filing_url = (
+            f"https://www.sec.gov/Archives/edgar/data/{int(cik)}"
+            f"/{accession_nodash}/{accession}-index.htm"
+        )
+
+        try:
+            published_at = datetime.strptime(filing_date, "%Y-%m-%d").replace(hour=9, minute=0, second=0)
+        except ValueError:
+            continue
+
+        content = (
+            f"SEC Form 8-K filed by {name} ({symbol}) on {filing_date}. "
+            f"Items reported: {items_str or 'see filing'}."
+        )
+
+        out.append(
+            {
+                "symbol": symbol,
+                "title": title,
+                "content": content,
+                "source": "sec_edgar",
+                "url": filing_url,
+                "published_at": published_at,
+            }
+        )
+
+    return out
 
 async def fetch_finnhub_news(symbol: str, from_date: date, to_date: date) -> list[dict[str, Any]]:
     if not FINNHUB_API_KEY:
@@ -53,7 +250,7 @@ def transform_finnhub_news(rows: list[dict[str, Any]], symbol: str) -> list[dict
             "title": item.get("headline"),
             "content": item.get("summary"),
             "source": item.get("source") or "finnhub",
-            "url": item.get("url"),
+            "url": _symbol_scoped_url(cast(str, item.get("url") or ""), symbol),
             "published_at": published_at,
         }
         out.append(transformed)
