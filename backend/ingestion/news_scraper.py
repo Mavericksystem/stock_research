@@ -768,6 +768,19 @@ OFFTOPIC_SCORE_CAP = 0.40
 EDGAR_THRESHOLD = 0.55
 
 
+def is_edgar_causally_valid(filing_date: datetime | date, event_date: date, tolerance_days: int = 2) -> bool:
+    """Validate that an EDGAR filing can causally explain an event.
+    
+    Rules:
+    - Future filings (after event) are never causal
+    - Past filings within tolerance window are valid anchors
+    - Example: event 2026-04-15, filing 2026-04-13 → valid (within tolerance)
+              event 2026-04-15, filing 2026-04-20 → invalid (post-event)
+    """
+    filing_dt = filing_date if isinstance(filing_date, date) else filing_date.date()
+    return filing_dt <= event_date and (event_date - filing_dt).days <= tolerance_days
+
+
 async def link_event_to_news(event_id: int, symbol: str, window_days: int = 2, limit: int = 50) -> int:
     async with SessionLocal() as session:
         event = await session.get(Event, event_id)
