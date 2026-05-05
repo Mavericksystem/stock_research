@@ -1071,6 +1071,6 @@ if __name__ == "__main__":
     async def main():
         for sym in ["AAPL", "MSFT", "NVDA", "GOOGL", "AMZN",
                     "META", "TSLA", "JPM", "V", "WMT"]:
-            await run_context_for_symbol(sym, days_back=10)
+            await run_context_for_symbol(sym, days_back=20)
 
     asyncio.run(main())
