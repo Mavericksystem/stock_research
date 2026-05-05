@@ -1040,7 +1040,29 @@ async def run_context_for_symbol(symbol: str, days_back: int = 7):
         events = res.scalars().all()
 
     for e in events:
-        await link_event_to_news(cast(int, e.id), symbol)
+        await run_context_for_event(e)
+
+
+async def run_context_for_event(event: Event) -> None:
+    symbol = cast(str, event.symbol)
+    center = cast(date, event.start_date)
+    from_dt = center - timedelta(days=3)
+    to_dt = center + timedelta(days=3)
+
+    finnhub_data = await fetch_finnhub_news(symbol, from_dt, to_dt)
+    finnhub_rows = transform_finnhub_news(finnhub_data, symbol)
+
+    edgar_data = await fetch_edgar_filings(symbol, from_dt, to_dt)
+    edgar_rows = transform_edgar_filings(edgar_data, symbol)
+
+    av_data = await fetch_alpha_vantage_news(symbol, from_dt, to_dt)
+    av_rows = transform_alpha_vantage_news(av_data, symbol)
+
+    all_rows = finnhub_rows + edgar_rows + av_rows
+    print(f"[event_ingest] {symbol} {center}: total={len(all_rows)}")
+    await upsert_news(all_rows)
+
+    await link_event_to_news(cast(int, event.id), symbol)
 
 
 if __name__ == "__main__":
