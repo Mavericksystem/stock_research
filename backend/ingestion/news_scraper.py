@@ -842,6 +842,9 @@ async def link_event_to_news(event_id: int, symbol: str, window_days: int = 2, l
         if edgar:
             edgar_scored: list[tuple[News, float]] = []
             for e in edgar:
+                # Filter: only consider EDGAR filings that are causally valid (published before/at event)
+                if not is_edgar_causally_valid(cast(datetime, e.published_at), center):
+                    continue
                 sim = edgar_relevance(e, event_vec)
                 edgar_scored.append((e, sim))
             edgar_scored.sort(key=lambda x: x[1], reverse=True)
