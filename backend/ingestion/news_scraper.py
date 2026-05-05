@@ -473,6 +473,9 @@ OPINION_SCORE_CAP = 0.35
 # content, cap it (Finnhub company-news often includes adjacent-market items).
 OFFTOPIC_SCORE_CAP = 0.40
 
+# Phase 5A: validated EDGAR causal anchor threshold.
+EDGAR_THRESHOLD = 0.55
+
 
 async def link_event_to_news(event_id: int, symbol: str, window_days: int = 2, limit: int = 50) -> int:
     async with SessionLocal() as session:
@@ -496,9 +499,61 @@ async def link_event_to_news(event_id: int, symbol: str, window_days: int = 2, l
         if not candidates:
             return 0
 
-        # Step 1: candidate retrieval — keyword pre-filter
-        scored: list[tuple[News, float]] = []
+        # Step 0 (Phase 5A): split candidates by source so EDGAR doesn't
+        # compete with narrative news during ranking.
+        edgar: list[News] = []
+        structured: list[News] = []
+        weak: list[News] = []
         for n in candidates:
+            if getattr(n, "source", None) == "sec_edgar":
+                edgar.append(n)
+            elif getattr(n, "source", None) == "alpha_vantage":
+                structured.append(n)
+            else:
+                weak.append(n)
+
+        # Step 2: compute event embedding once per event
+        # Fix 1 pays off here: the natural-language event text produces a
+        # tighter, more specific embedding vector.
+        event_vec: list[float] | None
+        try:
+            event_vec = embed_text(build_event_text(event))
+        except Exception:
+            event_vec = None
+
+        # Step 3 (Phase 5A): validate EDGAR candidates against the event vector
+        # and select an EDGAR primary anchor if it clears the threshold.
+        def edgar_relevance(edgar_item: News, ev: list[float] | None) -> float:
+            if ev is None:
+                return 0.0
+            if edgar_item.embedding is None:
+                return 0.0
+            try:
+                return float(cosine_similarity(ev, cast(list[float], edgar_item.embedding)))
+            except Exception:
+                return 0.0
+
+        primary: News | None = None
+        primary_sim = 0.0
+        if edgar:
+            edgar_scored: list[tuple[News, float]] = []
+            for e in edgar:
+                sim = edgar_relevance(e, event_vec)
+                edgar_scored.append((e, sim))
+            edgar_scored.sort(key=lambda x: x[1], reverse=True)
+
+            if edgar_scored and edgar_scored[0][1] >= EDGAR_THRESHOLD:
+                primary = edgar_scored[0][0]
+                primary_sim = float(edgar_scored[0][1])
+
+        # Step 1: candidate retrieval — keyword pre-filter
+        # Ranking logic remains unchanged, but only runs on the pool:
+        # - if primary EDGAR exists: structured + weak
+        # - else: edgar + structured + weak
+        pool: list[News] = (structured + weak) if primary else (edgar + structured + weak)
+
+        scored: list[tuple[News, float]] = []
+        for n in pool:
             kw = relevance_score_v2(
                 center,
                 cast(datetime, n.published_at),
@@ -513,15 +568,6 @@ async def link_event_to_news(event_id: int, symbol: str, window_days: int = 2, l
         filtered = [(n, kw) for n, kw in scored if kw >= kw_floor]
         if len(filtered) >= 10:
             scored = filtered
-
-        # Step 2: compute event embedding once per event
-        # Fix 1 pays off here: the natural-language event text produces a
-        # tighter, more specific embedding vector.
-        event_vec: list[float] | None
-        try:
-            event_vec = embed_text(build_event_text(event))
-        except Exception:
-            event_vec = None
 
         # Step 2.5: ensure candidate news have embeddings
         if event_vec is not None:
@@ -627,20 +673,33 @@ async def link_event_to_news(event_id: int, symbol: str, window_days: int = 2, l
             ranked.append((cast(int, n.id), float(round(final_score, 6)), components, cast(str, n.title or "")))
 
         ranked.sort(key=lambda x: x[1], reverse=True)
-        top = ranked[:5]
 
-        link_rows = [
-            {"event_id": event_id, "news_id": nid, "relevance_score": score}
-            for nid, score, _c, _t in top
-        ]
+        # Phase 5A: final selection = [primary EDGAR] + top ranked support
+        # (without changing ranking logic).
+        top_ranked = ranked[:5]
+
+        final_rows: list[dict[str, Any]] = []
+        if primary is not None:
+            final_rows.append(
+                {
+                    "event_id": event_id,
+                    "news_id": cast(int, primary.id),
+                    "relevance_score": float(round(primary_sim, 6)),
+                }
+            )
+
+        support_slots = 5 - len(final_rows)
+        top_support = top_ranked[:support_slots]
+        for nid, score, _c, _t in top_support:
+            final_rows.append({"event_id": event_id, "news_id": nid, "relevance_score": score})
 
         print(
             f"[link] event_id={event_id} symbol={symbol} candidates={len(candidates)} "
-            f"reranked={len(scored)} top_scores={[s for _, s, _c, _t in top]}"
+            f"reranked={len(scored)} top_scores={[s for _, s, _c, _t in top_support]}"
         )
 
         if os.getenv("DEBUG_RANKING") in {"1", "true", "TRUE", "yes", "YES"}:
-            for nid, score, comp, title in top:
+            for nid, score, comp, title in top_support:
                 print(
                     f"  - news_id={nid} score={score} "
                     f"semantic={comp['semantic']} time={comp['time']} "
@@ -648,7 +707,7 @@ async def link_event_to_news(event_id: int, symbol: str, window_days: int = 2, l
                     f"title={title[:90]}"
                 )
 
-        stmt = insert(EventNewsLink).values(link_rows)
+        stmt = insert(EventNewsLink).values(final_rows)
         stmt = stmt.on_conflict_do_update(
             constraint="uix_event_news_link",
             set_={"relevance_score": stmt.excluded.relevance_score},
@@ -656,7 +715,7 @@ async def link_event_to_news(event_id: int, symbol: str, window_days: int = 2, l
 
         await session.execute(stmt)
         await session.commit()
-        return len(link_rows)
+        return len(final_rows)
 
 
 async def run_context_for_symbol(symbol: str, days_back: int = 7):
