@@ -1029,10 +1029,6 @@ async def run_context_for_symbol(symbol: str, days_back: int = 7):
     to_dt = datetime.now(timezone.utc).date()
     from_dt = to_dt - timedelta(days=days_back)
 
-    data = await fetch_finnhub_news(symbol, from_dt, to_dt)
-    rows = transform_finnhub_news(data, symbol)
-    await upsert_news(rows)
-
     async with SessionLocal() as session:
         ev_q = (
             select(Event)
