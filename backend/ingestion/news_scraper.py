@@ -826,7 +826,7 @@ async def link_event_to_news(event_id: int, symbol: str, window_days: int = 2, l
             event_vec = None
 
         # Step 3 (Phase 5A): validate EDGAR candidates against the event vector
-        # and select an EDGAR primary anchor if it clears the threshold.
+        # and temporal causality, then select an EDGAR primary anchor if it clears both.
         def edgar_relevance(edgar_item: News, ev: list[float] | None) -> float:
             if ev is None:
                 return 0.0
