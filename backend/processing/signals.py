@@ -57,7 +57,12 @@ async def compute_signals(symbol: str):
         # Keep the unit consistent with df['daily_return'] (percent).
         # This is intentionally NOT annualized because `detect_events()` uses
         # z_score = daily_return / volatility_20d.
-        df['volatility_20d'] = df['daily_return'].rolling(window=20).std()
+        df['volatility_20d'] = (
+            df['daily_return']
+            .rolling(window=20)
+            .std()
+            .shift(1)
+        )
 
         # Derived reasoning signals
         df['price_vs_sma_20'] = df['close'] - df['sma_20']

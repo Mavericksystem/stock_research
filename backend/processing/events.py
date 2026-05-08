@@ -15,7 +15,7 @@ SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 # Instead of a fixed 3%, we use Z-Score 2.0 (meaning a move > 2 standard deviations)
 Z_THRESHOLD = 2.0
 
-async def detect_events(symbol: str, days_lookback: int = 30):
+async def detect_events(symbol: str, days_lookback: int = 180):
     """Scan recent technical indicators for statistical anomalies and create Event records."""
 
     cutoff_date = datetime.utcnow().date() - timedelta(days=days_lookback)
@@ -63,6 +63,14 @@ async def detect_events(symbol: str, days_lookback: int = 30):
 
             # Calculate the z-score (how many standard deviations was this move?)
             z_score = daily_return / volatility
+
+            # Observability: print key metrics per signal for debugging
+            print(
+                f"{symbol} | {sig.date} | "
+                f"return={daily_return:.2f}% | "
+                f"vol={volatility:.2f} | "
+                f"z={z_score:.2f}"
+            )
             
             event_type = None
 

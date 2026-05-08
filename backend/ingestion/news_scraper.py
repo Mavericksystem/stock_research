@@ -1,5 +1,6 @@
 import os
 import sys
+import hashlib
 from datetime import datetime, timedelta, date, timezone
 from typing import Any, cast
 
@@ -10,7 +11,7 @@ if PROJECT_ROOT not in sys.path:
 import httpx
 from dotenv import load_dotenv
 from sqlalchemy.dialects.postgresql import insert
-from sqlalchemy import select
+from sqlalchemy import select, DateTime
 from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy import func
 from backend.ingestion.embeddings import MODEL_NAME, embed_texts, embed_text, cosine_similarity
@@ -25,19 +26,7 @@ SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
 
 def _symbol_scoped_url(url: str, symbol: str) -> str:
-    """Make URL unique per symbol without changing the request target.
-
-    Our schema enforces unique(news.url) but we store one symbol per row.
-    Sources like Alpha Vantage can return the same URL for multiple tickers.
-    A fragment suffix avoids cross-symbol overwrites while keeping URLs clickable.
-    """
-    u = (url or "").strip()
-    if not u:
-        return u
-    suffix = f"sym={symbol}"
-    if "#" in u:
-        return f"{u}|{suffix}"
-    return f"{u}#{suffix}"
+    return (url or "").strip()
 
 # ---------------------------------------------------------------------------
 # SEC EDGAR (Phase 5A input)
@@ -377,6 +366,18 @@ GENERIC_TITLE_PHRASES = [
     "stock market",
     "dow jones futures",
     "mag 7",
+    "what moved markets",
+    "most active stock",
+    "s&p500",
+    "nasdaq",
+    "dow dividend",
+    "magnificent seven",
+    "ai enthusiasm",
+    "market this week",
+    "top stocks",
+    "horse race",
+    "ai stocks",
+    "earnings show split",
 ]
 
 OPINION_TITLE_PHRASES = [
@@ -624,6 +625,27 @@ async def upsert_news(news_rows: list[dict[str, Any]]) -> None:
     if not news_rows:
         return
 
+    # Deduplicate semantic duplicates across sources
+    seen_hashes = set()
+    deduped_rows = []
+
+    for row in news_rows:
+        symbol = str(row.get("symbol", "")).lower()
+        title = str(row.get("title", "")).strip().lower()
+        content = str(row.get("content", ""))[:200].strip().lower()
+
+        fingerprint = hashlib.md5(
+            f"{symbol}|{title}|{content}".encode()
+        ).hexdigest()
+
+        if fingerprint in seen_hashes:
+            continue
+
+        seen_hashes.add(fingerprint)
+        deduped_rows.append(row)
+
+    news_rows = deduped_rows
+
     urls = [cast(str, r.get("url")) for r in news_rows if r.get("url")]
     if not urls:
         return
@@ -743,7 +765,7 @@ def penalty(title: str | None) -> float:
 
 
 def relevance_score_v2(event_dt: date, published_at: datetime, title: str | None, symbol: str) -> float:
-    t_score = time_score(event_dt, published_at)
+    t_score = time_score_refined(event_dt, published_at)
     title_s = title_score(title)
     entity_s = entity_score(title, symbol)
     p = penalty(title)
@@ -777,11 +799,18 @@ def is_edgar_causally_valid(filing_date: datetime | date, event_date: date, tole
     - Example: event 2026-04-15, filing 2026-04-13 → valid (within tolerance)
               event 2026-04-15, filing 2026-04-20 → invalid (post-event)
     """
-    filing_dt = filing_date if isinstance(filing_date, date) else filing_date.date()
+    # Normalize filing_date to a date object (avoid datetime vs date comparison)
+    if isinstance(filing_date, datetime):
+        filing_dt = filing_date.date()
+    elif isinstance(filing_date, date):
+        filing_dt = filing_date
+    else:
+        return False
+
     return filing_dt <= event_date and (event_date - filing_dt).days <= tolerance_days
 
 
-async def link_event_to_news(event_id: int, symbol: str, window_days: int = 2, limit: int = 50) -> int:
+async def link_event_to_news(event_id: int, symbol: str, window_days: int = 3, limit: int = 50) -> int:
     async with SessionLocal() as session:
         event = await session.get(Event, event_id)
         if not event:
@@ -794,8 +823,13 @@ async def link_event_to_news(event_id: int, symbol: str, window_days: int = 2, l
         news_q = (
             select(News)
             .where(News.symbol == symbol, News.published_at >= start, News.published_at <= end)
-            .order_by(News.published_at.desc())
-            .limit(limit)
+            .order_by(
+                func.abs(
+                    func.extract('epoch', News.published_at) -
+                    func.extract('epoch', func.cast(center, DateTime))
+                )
+            )
+            .limit(500)
         )
         res = await session.execute(news_q)
         candidates = res.scalars().all()
@@ -859,7 +893,11 @@ async def link_event_to_news(event_id: int, symbol: str, window_days: int = 2, l
         # - else: edgar + structured + weak
         pool: list[News] = (structured + weak) if primary else (edgar + structured + weak)
 
-        scored: list[tuple[News, float]] = []
+        company_name = SYMBOL_TO_NAME.get(symbol, symbol)
+
+        primary_pool: list[tuple[News, float]] = []
+        secondary_pool: list[tuple[News, float]] = []
+
         for n in pool:
             kw = relevance_score_v2(
                 center,
@@ -867,8 +905,18 @@ async def link_event_to_news(event_id: int, symbol: str, window_days: int = 2, l
                 cast(str | None, n.title),
                 symbol,
             )
-            scored.append((n, kw))
 
+            title_lower = (n.title or "").lower()
+            symbol_lower = symbol.lower()
+            company_lower = company_name.lower()
+
+            if symbol_lower in title_lower or company_lower in title_lower:
+                primary_pool.append((n, kw))
+            else:
+                secondary_pool.append((n, kw * 0.5))
+
+        # IMPORTANT: must happen BEFORE kw_floor filtering
+        scored = primary_pool + secondary_pool
         scored.sort(key=lambda x: x[1], reverse=True)
 
         kw_floor = 0.6
@@ -962,6 +1010,10 @@ async def link_event_to_news(event_id: int, symbol: str, window_days: int = 2, l
             if mentioned < 1.0:
                 final_score = min(final_score, OFFTOPIC_SCORE_CAP)
 
+            # Step 6: apply generic-news penalty for non-causal, broad headlines
+            if any(p in title_lower for p in GENERIC_TITLE_PHRASES):
+                final_score = final_score * 0.35
+
             # Fix 6: opinion cap — demote pure listicle/opinion headlines that
             # carry no causal signal. A soft cap is used rather than a hard
             # filter so that an article containing both opinion language AND a
@@ -1046,7 +1098,7 @@ async def run_context_for_symbol(symbol: str, days_back: int = 7):
 async def run_context_for_event(event: Event) -> None:
     symbol = cast(str, event.symbol)
     center = cast(date, event.start_date)
-    from_dt = center - timedelta(days=3)
+    from_dt = center - timedelta(days=7)
     to_dt = center + timedelta(days=3)
 
     finnhub_data = await fetch_finnhub_news(symbol, from_dt, to_dt)
@@ -1055,14 +1107,12 @@ async def run_context_for_event(event: Event) -> None:
     edgar_data = await fetch_edgar_filings(symbol, from_dt, to_dt)
     edgar_rows = transform_edgar_filings(edgar_data, symbol)
 
-    av_data = await fetch_alpha_vantage_news(symbol, from_dt, to_dt)
-    av_rows = transform_alpha_vantage_news(av_data, symbol)
-
-    all_rows = finnhub_rows + edgar_rows + av_rows
+    # Alpha Vantage fetch intentionally skipped for now (reserved for premium)
+    all_rows = finnhub_rows + edgar_rows
     print(f"[event_ingest] {symbol} {center}: total={len(all_rows)}")
     await upsert_news(all_rows)
 
-    await link_event_to_news(cast(int, event.id), symbol)
+    await link_event_to_news(cast(int, event.id), symbol, window_days=7)
 
 
 if __name__ == "__main__":
@@ -1071,6 +1121,6 @@ if __name__ == "__main__":
     async def main():
         for sym in ["AAPL", "MSFT", "NVDA", "GOOGL", "AMZN",
                     "META", "TSLA", "JPM", "V", "WMT"]:
-            await run_context_for_symbol(sym, days_back=20)
+            await run_context_for_symbol(sym, days_back=30)
 
     asyncio.run(main())
