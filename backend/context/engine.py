@@ -12,6 +12,9 @@ from sqlalchemy import select, desc
 
 from backend.db.models import News, EventNewsLink
 
+# Fetch the most relevant news articles linked to a specific event,
+# ordered by relevance score and publication time.
+
 async def get_event_context(session: AsyncSession, event_id: int, limit: int = 5) -> list[dict[str, Any]]:
     stmt = (
         select(
