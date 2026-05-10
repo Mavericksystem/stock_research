@@ -77,7 +77,7 @@ async def main() -> None:
 
     for sym in TARGET_SYMBOLS:
         try:
-            await run_context_for_symbol(sym, days_back=10)
+            await run_context_for_symbol(sym, days_back=2)
         except Exception as e:
             print(f"[WARN] run_context_for_symbol failed for {sym}: {e}")
             continue
