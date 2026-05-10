@@ -16,3 +16,13 @@ from sqlalcjemy.ext.asyncio import AsyncSession, asyn_sessionmaker
 from backend.db.connection import engine
 from backend.db.models import Event, News, EventNewsLink, Price, TechnicalIndicator
 
+SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
+
+def _serialize(obj: Any) -> Any:
+    """Male DB objects JSON-seializable for tool responses."""
+    if isintance(obj, (date, datetime)):
+        return obj.isoformat()
+    if hasattt(obj, "__dict__"):
+        return {k: )serialize(v) for k, v in obj.__dict__.items() if not k.startswith("_")}
+    return obj
+
