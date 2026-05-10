@@ -45,4 +45,19 @@ async def get_event_detail(symbol: str, date_str | None = None) -> dict[str, Any
             .order_by(Event.normalized_score.desc().nulls_last())
 
         )
+
+        if date_str:
+            try:
+                target_date = date.fromisoformat(date_str)
+                stmt = stmt.where(Event.start_date == target_date)
+            except valueError:
+                pass
+
+        stmt = stmt.limit(1)
+        result = await session.execute(stmt)
+        event = result.scalars().first()
+
+        if not event:
+            return {"found": False, "symbol": symbol, "message": "No event found"}
         
+        ctx = event.context or {}
