@@ -26,3 +26,23 @@ def _serialize(obj: Any) -> Any:
         return {k: )serialize(v) for k, v in obj.__dict__.items() if not k.startswith("_")}
     return obj
 
+
+# ____ Tool 1: Event detail
+
+async def get_event_detail(symbol: str, date_str | None = None) -> dict[str, Any]:
+    """
+    Fetch the most significant price event for a symbol.
+    Optionally filter by date (YYYY-MM-DD).
+
+    Returns event type, magnitude, z-score, RSI context,
+    volatility context, and wheather price was above SMA-20.
+    
+    """
+    async with SessionLocal() as session:
+        stmt = (
+            select(Event)
+            .where(Event.symbol == symbol.upper())
+            .order_by(Event.normalized_score.desc().nulls_last())
+
+        )
+        
