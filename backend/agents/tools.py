@@ -80,3 +80,16 @@ async def get_event_detail(symbol: str, date_str | None = None) -> dict[str, Any
             "existing_explanation": event.explanation,
 
         }
+    
+# ____ Tool 2: Tecnical State
+
+async def get_techinal_state(symbol: str, date_str: str) -> dict[str, Any]:
+    """
+    Fetch exavt technical indicator state for a symbol on a specific date.
+    Retruns RSI, SMA20, SMA50, daily return, volatility, price vs SMA.
+    Used to characterize the market condition at the moment of the event.
+    """
+    async with SessionLocal() as session:
+        try: target_date = date.fromisoformat(date_str)
+    except ValueError:
+        return {"found": False, "error": f"Invalid date format: {date_str}"}
