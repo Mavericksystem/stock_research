@@ -142,53 +142,66 @@ async def get_technical_state(symbol: str, date_str: str) -> dict[str, Any]:
     
     # ----  Tool 3: News Context
 
-    async def get_news_context(event_id: int, limit: int = 5) -> dict[str, Any]:
-        """
-        Fetch top ranked news articles linkded to a specific evetn.
-        Returns titles, sources, publication timestamps, relevance scores.
-        and URLs. Orderd By relevance score descending.
-        This is the primary caussal evidence layer.
-        """
-        async with SessionLocal() as session:
-            stmt = (
-                select(
-                    News.id,
-                    News.title,
-                    News.source,
-                    News.url,
-                    News.published_at,
-                    News.content,
-                    EventNewsLink.relevance_score,
-                )
-                .join(EventNewsLink, EventNewsLink.news_id == News.id)
-                .where(EventNewsLink.event_id == event_id)
-                .order_by(desc(EventNewsLink.relevance_score), desc(News.published_at))
-                .limit(limit)
+async def get_news_context(event_id: int, limit: int = 5) -> dict[str, Any]:
+    """
+    Fetch top ranked news articles linkded to a specific evetn.
+    Returns titles, sources, publication timestamps, relevance scores.
+    and URLs. Orderd By relevance score descending.
+    This is the primary caussal evidence layer.
+    """
+    async with SessionLocal() as session:
+        stmt = (
+            select(
+                News.id,
+                News.title,
+                News.source,
+                News.url,
+                News.published_at,
+                News.content,
+                EventNewsLink.relevance_score,
             )
-            result = await sesssion.execute(stmt)
-            rows = result.all()
+            .join(EventNewsLink, EventNewsLink.news_id == News.id)
+            .where(EventNewsLink.event_id == event_id)
+            .order_by(desc(EventNewsLink.relevance_score), desc(News.published_at))
+            .limit(limit)
+        )
+        result = await sesssion.execute(stmt)
+        rows = result.all()
 
-            if not rows:
-                return{"found": False, "event_id": event_id, "articles": []}
-            
-            articles = []
-            for r in rows:
-                # Truncate content for token efficiency - first 300 chars enough for context
-                content_preview = (r.content or "")[:300].strip() if r.content else None
+        if not rows:
+            return{"found": False, "event_id": event_id, "articles": []}
+        
+        articles = []
+        for r in rows:
+            # Truncate content for token efficiency - first 300 chars enough for context
+            content_preview = (r.content or "")[:300].strip() if r.content else None
 
-                articles.append({
-                    "news_id": r.id,
-                    "title": r.title,
-                    "source": r.source,
-                    "url": r.url,
-                    "published_at": r.published_at.isoformat() if r.published_at else None,
-                    "relevance_score": float(r.relevance_score) if r.relevance_score else None,
-                    "content_preview": content_preview,
-                })
+            articles.append({
+                "news_id": r.id,
+                "title": r.title,
+                "source": r.source,
+                "url": r.url,
+                "published_at": r.published_at.isoformat() if r.published_at else None,
+                "relevance_score": float(r.relevance_score) if r.relevance_score else None,
+                "content_preview": content_preview,
+            })
 
-            return {
-                "found": True,
-                "event_id": event_id,
-                "article_count": len(articles),
-                "articles": articles,
-            }
+        return {
+            "found": True,
+            "event_id": event_id,
+            "article_count": len(articles),
+            "articles": articles,
+        }
+        
+    # --  Tools 4: Price History
+async def get_price_history(symbol: str, around_date: str, days: int = 5) -> divt[str, Any]:
+    """
+    Fetch price history around an event date.
+    Returns N days before and after the event date.
+    Used to show price monentum vontext around the event.
+    """
+    async with SessionLocal() as session:
+        try:
+            center = date.fromisofrmat(around_date)
+        except ValueError:
+            return {"found": False, "error": f"Invalid date: {around_date}"}
