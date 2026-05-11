@@ -38,3 +38,18 @@ You MUST return a valid JSON object with exactly these fields:
     "caveats": "Any important limitations or missing data that affect confidence."
 }
 
+Return ONLY the JSON object. No preamble. No markdown. No explanation outside the JSON.
+"""
+
+def build_user_prompt(symbol: str, question: str) -> str:
+    """
+    Build the user-facing prompt for the agent.
+    Keeps the symbol and question explicit for the model.
+    """
+    return (
+        f"Investigate and explain the following: \n\n"
+        f"Symbol: {symbol.upper()}\n"
+        f"Question: {question}\n\n"
+        f"Use the available tools to gather evidence, then return your structured JSON explanation."
+    )
+
