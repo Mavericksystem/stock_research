@@ -79,5 +79,21 @@ def _parser_explanation(raw: str) -> dict[str, Any]:
         "explanation": raw,
         "data_quality": "weak",
         "caveats": "LLM retrurned non-JSON response",
-        
+
     })
+
+async def _store_explanation(event_id: int, explanation_json: dict[str, Any]) -> None:
+    """
+    Persist explanation  back to events table.
+    Stores full JSON as string in events.explanation column.
+    Marks event as resolved.
+    """
+
+    async with SessionLocal() as session:
+        event = await session.get(Event, event_id)
+        if not event:
+            return
+        
+        event.explanation = json.dumps(explanation_json)
+        event.resolved = True
+        await session.commit()
