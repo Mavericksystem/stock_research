@@ -187,5 +187,8 @@ async def get_technical_state(symbol: str, date_str: str) -> dict[str, Any]:
                 })
 
             return {
-                
+                "found": True,
+                "event_id": event_id,
+                "article_count": len(articles),
+                "articles": articles,
             }
