@@ -22,4 +22,19 @@ available tools to gather evidence, then synthesizing a precise, evidence-baacke
 6. Analyst price target chages alone are reactions, not causes
 7. Earnings results, guidence changes, product announcements are causes
 
-##
+## Output Format
+
+You MUST return a valid JSON object with exactly these fields:
+
+{
+    "primary_cause": "One sentence. The main catalyst for the price movment.",
+    "confidence": 0.0,
+    "causal_type": "one of: earings | analyst_action | product_announcement | macro | regulatory | unknown",
+    "evidence": ["article title 1", "article title 2"],
+    "technical_context": "Plain English summary of RSI, tend, volatility at event time",
+    "price_context": "Brief description of price acrion around the event.",
+    "explanation": "2-3 paragraph human-readable aeplanation of why the stock moved.",
+    "data_quality": "one of: strong | moderate | weak,
+    "caveats": "Any important limitations or missing data that affect confidence."
+}
+
