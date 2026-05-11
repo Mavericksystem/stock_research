@@ -33,7 +33,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker
 from backend.db.connection import engine
 from backend.db.models import Event
 from backend.agents.tools import TOOL_DEFINITIONS, dispatch_tool
-from backend.agents.prompts import SYSTEM_PROMPT, buil_user_prompt
+from backend.agents.prompts import SYSTEM_PROMPT, buil_user_prompt, build_user_prompt
 from backend.settings imprt settings
 
 SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
@@ -97,3 +97,33 @@ async def _store_explanation(event_id: int, explanation_json: dict[str, Any]) ->
         event.explanation = json.dumps(explanation_json)
         event.resolved = True
         await session.commit()
+
+async def run_agent(
+        symbol: str, 
+        question: str,
+) -> dict[str, Any]:
+    """
+    Main agent entry point.
+    
+    Runs the full tool-calling loop:
+    1. Send system + user prompt to NIVIDIA NIM
+    2. If midel requests tool calls, dispatch them
+    3. Feed results back to model
+    4. Repeat untill model returns final answer
+    5. Parse and store structured explanation
+    6. Return to API layer
+    
+    Returns structured explanation dict.
+    """
+    client = _build_client()
+    symbol = symbol.upper()
+
+    # Build initial message history
+    messages: list[dict[str, Any]] = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": build_user_prompt(symbol, question)},
+    ]
+
+    tool_round = 0
+    tool_call_log: list[dict[str, Any]] = []
+    event_id: int | None = None
