@@ -257,6 +257,46 @@ TOOL_DEFINITIONS = [
                 "Retruns event type (PRICE_SPIKE or PRICE_DROP), magnitude percentage,"
                 "z-score, RSI, volatility, and trend context at the time of the event."
             ),
-        }
-    }
+            "parameters":{
+                "type": "object",
+                "properties": {
+                    "symbol": {
+                        "type": "string",
+                        "description": "Stock ticker symbol e.g. AAPL, MSFT, NVDA",
+                    },
+                    "date_str": {
+                        "type": "string",
+                        "description": "Optional date in YYYY-MM-DD format to filter by specific event date",
+                    },
+                },
+                "required": ["symbol"],
+            },
+        },
+    },
+    {
+        "type": "function",
+        "function": {
+            "name": "get_technical_state",
+            "description": (
+                "Get technical indicator state for a symbol on a specific date."
+                "Returns RSI (overbought/oversold), moving averages, volatility,"
+                "and daily return percentage. Use this to characterize market conditions."
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "symbol": {
+                        "type": "string",
+                        "description": "Stock ticker symbol",
+                    },
+                    "date_str": {
+                        "type": "string",
+                        "description": "Date in YYYY-MM-DD format",
+                    },
+                },
+                "required": ["symbol", "date_str"],
+            },
+        },
+    },
+    {}
 ]
