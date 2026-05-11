@@ -81,12 +81,12 @@ async def get_event_detail(symbol: str, date_str | None = None) -> dict[str, Any
 
         }
     
-# ____ Tool 2: Tecnical State
+# ____ Tool 2: Technical State
 
-async def get_techinal_state(symbol: str, date_str: str) -> dict[str, Any]:
+async def get_technical_state(symbol: str, date_str: str) -> dict[str, Any]:
     """
-    Fetch exavt technical indicator state for a symbol on a specific date.
-    Retruns RSI, SMA20, SMA50, daily return, volatility, price vs SMA.
+    Fetch exact technical indicator state for a symbol on a specific date.
+    Returns RSI, SMA20, SMA50, daily return, volatility, price vs SMA.
     Used to characterize the market condition at the moment of the event.
     """
     async with SessionLocal() as session:
