@@ -226,3 +226,13 @@ async def get_price_history(symbol: str, around_date: str, days: int = 5) -> dic
         
         def _f(val: Any) -> float | None:
             return float(val) if val is not None else None
+        
+        price_data = [
+            {
+                "date": p.date.isoformat(),
+                "close": _f(p.adj_close) or _f(p.close),
+                "volume": _f(p.volume),
+                "is_event_date": p.date == center,
+            }
+            for p in prices
+        ]
