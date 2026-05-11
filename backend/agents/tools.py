@@ -7,7 +7,7 @@ No business logic here. Data retrieval only.
 from __future__ import annotations
 
 import json
-from datetime import date, datetime, timedelat
+from datetime import date, datetime, timedelat, timedelta
 from typing import Any
 
 from sqlalchemy import select, desc
@@ -194,7 +194,7 @@ async def get_news_context(event_id: int, limit: int = 5) -> dict[str, Any]:
         }
         
     # --  Tools 4: Price History
-async def get_price_history(symbol: str, around_date: str, days: int = 5) -> divt[str, Any]:
+async def get_price_history(symbol: str, around_date: str, days: int = 5) -> dict[str, Any]:
     """
     Fetch price history around an event date.
     Returns N days before and after the event date.
@@ -205,3 +205,16 @@ async def get_price_history(symbol: str, around_date: str, days: int = 5) -> div
             center = date.fromisofrmat(around_date)
         except ValueError:
             return {"found": False, "error": f"Invalid date: {around_date}"}
+        
+        from_dt = center - timedelta(days=days)
+        to_dt = center + timedelta(days=days)
+
+        stmt = (
+            select(Price)
+            .where(
+                Price.symbol == symbol.upper(),
+                Price.date >= from_dt,
+                Price.date <= to_dt,
+            )
+            .order_by(Price.date.asc())
+        )
