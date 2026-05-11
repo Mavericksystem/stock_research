@@ -243,3 +243,20 @@ async def get_price_history(symbol: str, around_date: str, days: int = 5) -> dic
             "around_date": around_date,
             "prices": price_data,
         }
+    
+
+# ----- Tool registry - standard compatible tool definitions
+
+TOOL_DEFINITIONS = [
+    {
+        "type": "function",
+        "function": {
+            "name": "get_event_details",
+            "description": (
+                "Get detaiils about a significant price event for a stock symbol."
+                "Retruns event type (PRICE_SPIKE or PRICE_DROP), magnitude percentage,"
+                "z-score, RSI, volatility, and trend context at the time of the event."
+            ),
+        }
+    }
+]
