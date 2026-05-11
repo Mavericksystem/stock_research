@@ -161,4 +161,19 @@ async def get_technical_state(symbol: str, date_str: str) -> dict[str, Any]:
                     EventNewsLink.relevance_score,
                 )
                 .join(EventNewsLink, EventNewsLink.news_id == News.id)
+                .where(EventNewsLink.event_id == event_id)
+                .order_by(desc(EventNewsLink.relevance_score), desc(News.published_at))
+                .limit(limit)
             )
+            result = await sesssion.execute(stmt)
+            rows = result.all()
+
+            if not rows:
+                return{"found": False, "event_id": event_id, "articles": []}
+            
+            articles = []
+            for r in rows:
+                # Truncate content for token efficiency - first 300 chars enough for context
+                content_preview = (r.content or "")[:300].strip() if r.content else None
+
+                
