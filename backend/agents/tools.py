@@ -139,3 +139,26 @@ async def get_technical_state(symbol: str, date_str: str) -> dict[str, Any]:
                 else "mixed"
                 ),
         }
+    
+    # ----  Tool 3: News Context
+
+    async def get_news_context(event_id: int, limit: int = 5) -> dict[str, Any]:
+        """
+        Fetch top ranked news articles linkded to a specific evetn.
+        Returns titles, sources, publication timestamps, relevance scores.
+        and URLs. Orderd By relevance score descending.
+        This is the primary caussal evidence layer.
+        """
+        async with SessionLocal() as session:
+            stmt = (
+                select(
+                    News.id,
+                    News.title,
+                    News.source,
+                    News.url,
+                    News.published_at,
+                    News.content,
+                    EventNewsLink.relevance_score,
+                )
+                .join(EventNewsLink, EventNewsLink.news_id == News.id)
+            )
