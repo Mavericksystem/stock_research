@@ -218,3 +218,11 @@ async def get_price_history(symbol: str, around_date: str, days: int = 5) -> dic
             )
             .order_by(Price.date.asc())
         )
+        result = await session.execute(stmt)
+        prices = result.scalars().all()
+
+        if not prices:
+            return {"found": False, "symbol": symbol, "around_date": around_date}
+        
+        def _f(val: Any) -> float | None:
+            return float(val) if val is not None else None
