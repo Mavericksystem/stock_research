@@ -324,5 +324,34 @@ TOOL_DEFINITIONS = [
             },
         },
     },
-    {}
+    {
+        "type": "function",
+        "function": {
+            "name": "get_price_history",
+            "description": (
+                "Get price history for around an event date to show price momentum context."
+                "Returns close prices and volumes for N days before and after the event."
+
+            ),
+            "parameters": {
+                "type": "object",
+                "properties": {
+                    "symbol": {
+                        "type": "string",
+                        "description": "Stock ticker symbol",
+                    },
+                    "around_date": {
+                        "type": "string",
+                        "description": "Center date in YYYY-MM-DD format",
+                    },
+                    "days": {
+                        "type": "integer",
+                        "description": "Days before and after the center date (default 5)",
+                        "default": 5,
+                    },
+                },
+                "required": ["symbol", "around_date"],
+            },
+        },
+    },
 ]
