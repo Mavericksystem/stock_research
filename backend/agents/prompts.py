@@ -53,3 +53,24 @@ def build_user_prompt(symbol: str, question: str) -> str:
         f"Use the available tools to gather evidence, then return your structured JSON explanation."
     )
 
+def build_synthesis_prompt(
+        symbol: str,
+        question: str,
+        tool_results: list[dict],
+) -> str:
+    """
+    Fallback synthesis prompt used when tool results are passed directly
+    instead of via agent loop. Used for ecaluation and testing.
+    """
+    results_text = "\n\n".join([
+        f"[{r['tool_name']}]\n{r['result']}"
+        for r in tool_results
+    ])
+
+    return (
+        f"Symbol: {symbol.upper()}\n"
+        f"Question: {question}\n\n"
+        f"Evidence gatherd from tools:\n\n"
+        f"{results_text}\n\n"
+        f"Based on this evidence, return your structured JSON explanation."
+    )
