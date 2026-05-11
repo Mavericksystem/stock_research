@@ -236,3 +236,10 @@ async def get_price_history(symbol: str, around_date: str, days: int = 5) -> dic
             }
             for p in prices
         ]
+
+        return {
+            "found": True,
+            "symbol": symbol,
+            "around_date": around_date,
+            "prices": price_data,
+        }
