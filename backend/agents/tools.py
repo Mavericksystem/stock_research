@@ -355,3 +355,28 @@ TOOL_DEFINITIONS = [
         },
     },
 ]
+
+
+#  ------ Maps too name to actual async function
+
+TOOL_MAP: dict[str, Any] = {
+    "get_event_details": get_event_details,
+    "get_technical_state": get_technical_state,
+    "get_news_context": get_news_context,
+    "get_price_history": get_price_history,
+}
+
+async def dispatch_tool(tool_name: str, tool_args: dict[str, Any]) -> str:
+    """
+    Execute a tool call by name and return JSON string result.
+    Called by the orchestrator after the LLM requests a tool.
+    """
+    fn = TOOL_MAP.get(tool_name)
+    if not fn:
+        return json.dumps({"error": f"Unknown tool: {tool_name}"})
+    
+    try: 
+        result = await fn(**tool_args)
+        return json.dumps(result, default=str)
+    except Exception as e:
+        return json.dumps({"error": f"Tool execution failed: {str(e)}"})
