@@ -90,6 +90,24 @@ async def get_techinal_state(symbol: str, date_str: str) -> dict[str, Any]:
     Used to characterize the market condition at the moment of the event.
     """
     async with SessionLocal() as session:
-        try: target_date = date.fromisoformat(date_str)
-    except ValueError:
-        return {"found": False, "error": f"Invalid date format: {date_str}"}
+        try: 
+            target_date = date.fromisoformat(date_str)
+        except ValueError:
+            return {"found": False, "error": f"Invalid date format: {date_str}"}
+        
+        stmt = select(TechnicalIndicator).where(
+            TechnicalIndicator.symbol == symbol.upper(),
+            TechnicalIndicator.date == target_date,
+
+        )
+        result = await session.execute(stmt)
+        indicator = result.scalars().first()
+
+        if not indicator:
+            return {"found": False, "symbol": symbol, "date": date_str}
+        
+        def _f(val: Any) -> float | None:
+            return float(val) if val is not None else None
+        
+        
+        }
