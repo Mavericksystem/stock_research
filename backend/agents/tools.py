@@ -298,5 +298,31 @@ TOOL_DEFINITIONS = [
             },
         },
     },
+    {
+        "type": "function",
+        "function":{
+            "name": "get_news_context",
+            "description": (
+                "Get top ranked news articles linked to a specific event."
+                "Returns article titles, sources, publication times and relevance scores."
+                "Use this to identify the causal news catalyst for the price movment."
+            ).
+            "parametes": {
+                "type": "object".
+                "properties": {
+                    "event_id": {
+                        "type": "integer",
+                        "description": "The event ID from get_event_details",
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "description": "Number of articles to return (default 5, max 10)",
+                        "default": 5,
+                    },
+                },
+                "required": ["event_id"],
+            },
+        },
+    },
     {}
 ]
