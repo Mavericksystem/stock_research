@@ -176,4 +176,16 @@ async def get_technical_state(symbol: str, date_str: str) -> dict[str, Any]:
                 # Truncate content for token efficiency - first 300 chars enough for context
                 content_preview = (r.content or "")[:300].strip() if r.content else None
 
+                articles.append({
+                    "news_id": r.id,
+                    "title": r.title,
+                    "source": r.source,
+                    "url": r.url,
+                    "published_at": r.published_at.isoformat() if r.published_at else None,
+                    "relevance_score": float(r.relevance_score) if r.relevance_score else None,
+                    "content_preview": content_preview,
+                })
+
+            return {
                 
+            }
