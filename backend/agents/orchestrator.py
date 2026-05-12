@@ -165,3 +165,12 @@ async def run_agent(
                 "model": settings.NVIDIA_NIM_MODEL,
                 "generated_at": datetime.now(timezone.utc).isoformat(),
             }
+        # Process tool calls
+        for tool_call in message.tool_calls:
+            tool_name = tool_call.function.name
+            tool_args_raw = tool_call.function_arguments
+
+            try:
+                tools_args = json.loads(tool_args_raw)
+            except json.JSONDecodeError:
+                tools_args = {}
