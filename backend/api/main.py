@@ -1,5 +1,6 @@
 from fastapi import FastAPI
 from backend.api.routes import stock, analysis
+from backend.api.routes import stock, analysis, ask
 
 app = FastAPI(
     title="Market Explanation Engine - Intelligence API",
@@ -10,7 +11,7 @@ API_V1 = "/api/v1"
 
 app.include_router(stock.router, prefix=f"{API_V1}/stocks", tags=["Data & Signals"])
 app.include_router(analysis.router, prefix=f"{API_V1}/analysis", tags=["Reasoning Layer"])
-
+app.include_router(ask.router, prefix=f"{API_V1}/ask", tags=["Intelligence"])
 
 @app.get("/")
 async def root():

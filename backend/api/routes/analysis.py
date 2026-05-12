@@ -22,7 +22,6 @@ async def analyze_stock(symbol: str, session: AsyncSession = Depends(get_db)):
     
     return APIResponse(data={
         "symbol": analysis_data["symbol"],
-        "event_type": analysis_data["initial_insight"],
         "target_event": EventResponse.model_validate(analysis_data["target_event"]),
         "state_at_event": SignalResponse.model_validate(state_at_event) if state_at_event else None,
         "context": analysis_data.get("context", []),
