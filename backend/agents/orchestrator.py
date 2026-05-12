@@ -251,4 +251,23 @@ async def stream_agent(
 
     # Run tool loop to completion first
     result = await run_agent(symbol, question)
-    
+
+
+    # Stream the explanation field token by token
+    explanation_text = result["explanation"].get("explanation", "")
+
+    # Yields metadata first
+    yield f"data: {json.dumps({'type': 'metadata', 'symbol': symbol, 'model': result['model']})}\n\n"
+
+    # yields explanation chunks
+    words = explanation_text.split()
+    chunk = []
+    for i, word in enumerate(words):
+        chunk.append(word)
+        if len(chunk) >= 5 or i == len(words) - 1:
+            yield f"data: {json.dumps({'type': 'token', 'content': ' '.join(chunk)})}\n\n"
+            chunk = []
+
+    # Yields structured result at end
+    yield f"data: {json.dumps({'type': 'result', 'data': result})}\n\n"
+    yield "data: [DONE]\n\n"
