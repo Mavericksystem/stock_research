@@ -194,3 +194,12 @@ async def run_agent(
                 "args": tools_args,
                 "result": tool_result[:200],  # Truncate long results for logs
             })
+
+            # Feed tool result back into conversation
+            messages.append({
+                "role": "tool",
+                "tool_call_id": tool_call.id,
+                "content": tool_result,
+            })
+
+        tool_round += 1
