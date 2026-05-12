@@ -48,3 +48,22 @@ async def ask(request: AskRequest):
     causal type classification, and supporting evidence.
     """
     
+
+@router.post("/stream")
+async def ask_stream(request: AskStreamRequest):
+    """
+    Streaming version of /ask.
+    Returns Server=Sent Events (SSE).
+    Tool calls run first, then explanation streams token by token.
+
+    Client usage:
+    const es = new EventSource('/api/v1/ask/stream')
+    es.onmessage = (e) => console.log(JSON.parse(e.data))
+    """
+    try:
+        return StreamingResponse(
+            stream_agent(
+                symbol=request.symbol,
+                question=request.question
+            ),
+        )
