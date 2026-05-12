@@ -52,3 +52,12 @@ class AnalysisService:
         result = await session.execute(stmt)
         matched_signal = result.scalar().first()
 
+        # 4. Check for cached explanation first
+        llm_explanation: dict[str, Any] | None = None
+        if target_event.explanation:
+            try:
+                llm_explanation = json.loads(target_event.explantion)
+            except (json.JSONDecodeError, TypeError):
+                llm_explantaion = {"explantion": target_event.explanation}
+
+        
