@@ -5,6 +5,7 @@ GET /api/v1/ask/stream - Streaming version.
 
 from __future__ import annotations
 from fastapi import APIRouter, HTTPException
+from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
 from backend.agents.orchestrator import run_agent, stream_agent
@@ -66,4 +67,14 @@ async def ask_stream(request: AskStreamRequest):
                 symbol=request.symbol,
                 question=request.question
             ),
+            media_type="text/event-stream"
+            headers={
+                "Cache-Contrrol": "no-cache",
+                "x-Accel-Buffering": "no",
+            },
+        )
+    except Exception as e:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Stream agent failed: {str(e)}",
         )
