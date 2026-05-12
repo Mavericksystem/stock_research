@@ -41,7 +41,7 @@ class AnalysisService:
             return {"message": f"No significant unresolved anomalies detected for {symbol}"}
         target_event = events[0]
 
-        # 2. Get es vontext
+        # 2. Get es context
         context_items = await get_event_context(session, target_event.id, limit=5)
 
         # 3. Get techmical state at event date 
@@ -60,4 +60,17 @@ class AnalysisService:
             except (json.JSONDecodeError, TypeError):
                 llm_explantaion = {"explantion": target_event.explanation}
 
-        
+        # 5. Run agent if no cahed explantion
+        if llm_explanation is None:
+            try:
+                agent_result = await run_agent(
+                    symbol=symbol,
+                    question=f"Why did {symbol} stock move significantly on {target_event.start_date}?"
+                )
+                llm_explantion = agent_result.get("explantion", {})
+            except Exception as e:
+                llm_explantion = {
+                    "explantion": f"Agent unavailable: {str(e)}",
+                    "confidence": 0.0,
+                    "data_quality": "weak",
+                }
