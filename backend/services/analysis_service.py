@@ -40,4 +40,8 @@ class AnalysisService:
         if not events:
             return {"message": f"No significant unresolved anomalies detected for {symbol}"}
         target_event = events[0]
+
+        # 2. Get es vontext
+        context_items = await get_event_context(session, target_event.id, limit=5)
+
         
