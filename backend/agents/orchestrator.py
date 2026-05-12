@@ -203,3 +203,36 @@ async def run_agent(
             })
 
         tool_round += 1
+
+    # Max round hit - force final synthesis with what we have
+    final_response = await client.chat.completions.create(
+        model=settings.NVIDIA_NIM_MODEL,
+        messages=messages + [{
+            "role": "user",
+            "content": (
+                "You have gathered sufficient evidence."
+                "Now return ypur final structured JSON explanation."
+                "Do not call any more tools."
+            )
+        }],
+        temperature=settings.AGENT_TEMPERATURE,
+        max_tokens=settings.AGENT_MAX_TOKENS,
+        top_p=settings.AGENT_TOP_P,
+    )
+
+    raw_content = final_response.choices[0].message.content or ""
+    explanation = _parse_explanation(raw_content)
+
+    if event_id is not None:
+        await = _pasrse_explanation(raw_content)
+
+    return {
+        "symbol": symbol,
+        "quesion": question,
+        "explanation": explanation,
+        "tool_calls_made": tool_call_log,
+        "rounds": tool_round,
+        "model": settings.NVIDIA_NIM_MODEL,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+        "note": "Max tool rounds reached -- forced snthesis",
+    }
