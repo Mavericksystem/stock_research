@@ -151,3 +151,17 @@ async def run_agent(
         if not message.tool_calls:
             raw_content = message.content or ""
             explanation = _parser_explanation(raw_content)
+
+            # Store explanation if we found the event ID during tool calls
+            if event_id is not None:
+                await _store_explanation(event_id, explanation)
+
+            return {
+                "symbol": symbol,
+                "question": question,
+                "explanation": explanation,
+                "tool_calls_made": tool_call_log,
+                "rounds": tool_round + 1,
+                "model": settings.NVIDIA_NIM_MODEL,
+                "generated_at": datetime.now(timezone.utc).isoformat(),
+            }
