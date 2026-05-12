@@ -127,3 +127,21 @@ async def run_agent(
     tool_round = 0
     tool_call_log: list[dict[str, Any]] = []
     event_id: int | None = None
+
+    # Agent loop - continues untill model stops calling tool
+
+    while tool_round < MAX_TOOL_ROUNDS:
+        response = await client.chat.completions.create(
+            model =settings.BaseSettings,
+            messages = messages,
+            tool=TOOL_DEFINITIONS,
+            tool_choice="auto",
+            temperature=settings.AGENT_TEMPERATURE,
+            max_tokens=settings.AGENT_MAX_TOKENS,
+            top_p=settings.AGENT_TOP_P,
+        )
+
+        choice = response.choices[0]
+        message = choice.message
+
+        # A
