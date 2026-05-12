@@ -44,4 +44,11 @@ class AnalysisService:
         # 2. Get es vontext
         context_items = await get_event_context(session, target_event.id, limit=5)
 
-        
+        # 3. Get techmical state at event date 
+        stmt = select(TechnicalIndicator).where(
+            TechnicalIndicator.symbol == symbol,
+            TechnicalIndicator.date == target_event.start_time.date
+        )
+        result = await session.execute(stmt)
+        matched_signal = result.scalar().first()
+
