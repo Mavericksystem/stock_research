@@ -236,3 +236,19 @@ async def run_agent(
         "generated_at": datetime.now(timezone.utc).isoformat(),
         "note": "Max tool rounds reached -- forced snthesis",
     }
+
+async def stream_agent(
+        symbol: str,
+        question: str,
+) -> AsyncIterator[str]:
+    """
+    Streaming version of run_agent.
+    Runs tool loop first (non-streaming), then streams the synthesis.
+
+    Yields Server-Sent Events (SSE) formatted strings.
+    Used by the streaming endpoint.
+    """
+
+    # Run tool loop to completion first
+    result = await run_agent(symbol, question)
+    
