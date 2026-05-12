@@ -186,3 +186,11 @@ async def run_agent(
                         event_id = int(result_data["event_id"])
                 except (json.JSONDecodeError, KeyError, ValueError):
                     pass
+
+            # log the tool call for observability
+            tool_call_log.append({
+                "round": tool_round,
+                "tool": tool_name,
+                "args": tools_args,
+                "result": tool_result[:200],  # Truncate long results for logs
+            })
