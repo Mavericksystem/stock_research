@@ -74,3 +74,11 @@ class AnalysisService:
                     "confidence": 0.0,
                     "data_quality": "weak",
                 }
+
+            return {
+                "symbol": symbol,
+                "target_event": target_event,
+                "state_at_event": matched_signal,
+                "explanation": llm_explantion,
+                "context": context_items,
+            }
