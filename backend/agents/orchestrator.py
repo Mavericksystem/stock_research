@@ -144,4 +144,10 @@ async def run_agent(
         choice = response.choices[0]
         message = choice.message
 
-        # A
+        # Append assistant message to history
+        messages.append(message.model_dump(exclude_none=True))
+
+        # No tool calls midek is done, extract final answer
+        if not message.tool_calls:
+            raw_content = message.content or ""
+            explanation = _parser_explanation(raw_content)
