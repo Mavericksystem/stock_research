@@ -174,3 +174,15 @@ async def run_agent(
                 tools_args = json.loads(tool_args_raw)
             except json.JSONDecodeError:
                 tools_args = {}
+
+            # Execute tool 
+            tool_result = await dispatch_tool(tool_name, tools_args)
+
+            # Track event_id for later storage
+            if tool_name == "get_event_details":
+                try: 
+                    result_data = json.loads(tool_result)
+                    if result_data.get("found") and result_data.get("event_id"):
+                        event_id = int(result_data["event_id"])
+                except (json.JSONDecodeError, KeyError, ValueError):
+                    pass
