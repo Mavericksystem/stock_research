@@ -1,4 +1,4 @@
-from pydantic_settings import BaseSettings
+from pydantic_settings import BaseSettings, SettingsConfigDict
 from functools import lru_cache
 
 class Settings(BaseSettings):
@@ -15,18 +15,21 @@ class Settings(BaseSettings):
     NVIDIA_NIM_BASE_URL: str = "https://integrate.api.nvidia.com/v1"
     NVIDIA_NIM_MODEL: str = "nvidia/llama-3.3-nemotron-super-49b-v1"
 
-
     # Agent config
     AGENT_TEMPERATURE: float = 0.1
-    AGENT_MAX_TOKENS: int =1024
-    AGENT_TOP_p: float = 0.7
+    AGENT_MAX_TOKENS: int = 1024
+    AGENT_TOP_P: float = 0.7
 
-    class Config:
-        env_file = ".env"
-        case_sensitive = True
+    model_config = SettingsConfigDict(
+        env_file=".env",
+        case_sensitive=True,
+        extra="ignore",  # Ignore extra environment variables not defined in the model
+    )
+
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
     return Settings()
+
 
 settings = get_settings()
