@@ -278,9 +278,9 @@ TOOL_DEFINITIONS = [
         "function": {
             "name": "get_technical_state",
             "description": (
-                "Get technical indicator state for a symbol on a specific date."
-                "Returns RSI (overbought/oversold), moving averages, volatility,"
-                "and daily return percentage. Use this to characterize market conditions."
+                "Get technical indicators for a symbol on a date. "
+                "Parameters: symbol (string) and date_str (YYYY-MM-DD string). "
+                "Do NOT pass event_id to this tool."
             ),
             "parameters": {
                 "type": "object",
