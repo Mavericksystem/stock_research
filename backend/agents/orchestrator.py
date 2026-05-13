@@ -164,56 +164,64 @@ async def run_agent(
                 "model": settings.NVIDIA_NIM_MODEL,
                 "generated_at": datetime.now(timezone.utc).isoformat(),
             }
+
         # Process tool calls
         for tool_call in message.tool_calls:
             tool_name = tool_call.function.name
-            tool_args_raw = tool_call.function_arguments
+            tool_args_raw = tool_call.function.arguments
 
             try:
-                tools_args = json.loads(tool_args_raw)
+                tool_args = json.loads(tool_args_raw)
             except json.JSONDecodeError:
-                tools_args = {}
+                tool_args = {}
 
-            # Execute tool 
-            tool_result = await dispatch_tool(tool_name, tools_args)
+            # Execute tool
+            tool_result = await dispatch_tool(tool_name, tool_args)
 
             # Track event_id for later storage
             if tool_name == "get_event_details":
-                try: 
+                try:
                     result_data = json.loads(tool_result)
                     if result_data.get("found") and result_data.get("event_id"):
                         event_id = int(result_data["event_id"])
                 except (json.JSONDecodeError, KeyError, ValueError):
                     pass
 
-            # log the tool call for observability
-            tool_call_log.append({
-                "round": tool_round,
-                "tool": tool_name,
-                "args": tools_args,
-                "result": tool_result[:200],  # Truncate long results for logs
-            })
+            # Log the tool call for observability
+            tool_call_log.append(
+                {
+                    "round": tool_round,
+                    "tool": tool_name,
+                    "args": tool_args,
+                    "result": tool_result[:200],  # Truncate long results for logs
+                }
+            )
 
             # Feed tool result back into conversation
-            messages.append({
-                "role": "tool",
-                "tool_call_id": tool_call.id,
-                "content": tool_result,
-            })
+            messages.append(
+                {
+                    "role": "tool",
+                    "tool_call_id": tool_call.id,
+                    "content": tool_result,
+                }
+            )
 
         tool_round += 1
 
     # Max round hit - force final synthesis with what we have
     final_response = await client.chat.completions.create(
         model=settings.NVIDIA_NIM_MODEL,
-        messages=messages + [{
-            "role": "user",
-            "content": (
-                "You have gathered sufficient evidence."
-                "Now return ypur final structured JSON explanation."
-                "Do not call any more tools."
-            )
-        }],
+        messages=messages
+        + [
+            {
+                "role": "user",
+                "content": (
+                    "You have gathered sufficient evidence. "
+                    "Now return your final structured JSON explanation. "
+                    "Do not call any more tools."
+                ),
+            }
+        ],
         temperature=settings.AGENT_TEMPERATURE,
         max_tokens=settings.AGENT_MAX_TOKENS,
         top_p=settings.AGENT_TOP_P,
@@ -223,22 +231,23 @@ async def run_agent(
     explanation = _parse_explanation(raw_content)
 
     if event_id is not None:
-        await = _pasrse_explanation(raw_content)
+        await _store_explanation(event_id, explanation)
 
     return {
         "symbol": symbol,
-        "quesion": question,
+        "question": question,
         "explanation": explanation,
         "tool_calls_made": tool_call_log,
         "rounds": tool_round,
         "model": settings.NVIDIA_NIM_MODEL,
         "generated_at": datetime.now(timezone.utc).isoformat(),
-        "note": "Max tool rounds reached -- forced snthesis",
+        "note": "Max tool rounds reached -- forced synthesis",
     }
 
+
 async def stream_agent(
-        symbol: str,
-        question: str,
+    symbol: str,
+    question: str,
 ) -> AsyncIterator[str]:
     """
     Streaming version of run_agent.
@@ -247,18 +256,21 @@ async def stream_agent(
     Yields Server-Sent Events (SSE) formatted strings.
     Used by the streaming endpoint.
     """
-
     # Run tool loop to completion first
     result = await run_agent(symbol, question)
 
-
     # Stream the explanation field token by token
-    explanation_text = result["explanation"].get("explanation", "")
+    explanation_dict = result.get("explanation", {})
+    explanation_text = (
+        explanation_dict.get("explanation", "")
+        if isinstance(explanation_dict, dict)
+        else str(explanation_dict)
+    )
 
-    # Yields metadata first
+    # Yield metadata first
     yield f"data: {json.dumps({'type': 'metadata', 'symbol': symbol, 'model': result['model']})}\n\n"
 
-    # yields explanation chunks
+    # Yield explanation chunks
     words = explanation_text.split()
     chunk = []
     for i, word in enumerate(words):
@@ -267,6 +279,6 @@ async def stream_agent(
             yield f"data: {json.dumps({'type': 'token', 'content': ' '.join(chunk)})}\n\n"
             chunk = []
 
-    # Yields structured result at end
+    # Yield structured result at end
     yield f"data: {json.dumps({'type': 'result', 'data': result})}\n\n"
     yield "data: [DONE]\n\n"
