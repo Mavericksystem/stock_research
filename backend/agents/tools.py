@@ -202,7 +202,7 @@ async def get_price_history(symbol: str, around_date: str, days: int = 5) -> dic
     """
     async with SessionLocal() as session:
         try:
-            center = date.fromisofrmat(around_date)
+            center = date.fromisoformat(around_date)
         except ValueError:
             return {"found": False, "error": f"Invalid date: {around_date}"}
         
