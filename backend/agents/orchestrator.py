@@ -128,13 +128,12 @@ async def run_agent(
     tool_call_log: list[dict[str, Any]] = []
     event_id: int | None = None
 
-    # Agent loop - continues untill model stops calling tool
-
+    # Agent loop - continues until model stops calling tools
     while tool_round < MAX_TOOL_ROUNDS:
         response = await client.chat.completions.create(
-            model =settings.BaseSettings,
-            messages = messages,
-            tool=TOOL_DEFINITIONS,
+            model=settings.NVIDIA_NIM_MODEL,
+            messages=messages,
+            tools=TOOL_DEFINITIONS,
             tool_choice="auto",
             temperature=settings.AGENT_TEMPERATURE,
             max_tokens=settings.AGENT_MAX_TOKENS,
@@ -147,10 +146,10 @@ async def run_agent(
         # Append assistant message to history
         messages.append(message.model_dump(exclude_none=True))
 
-        # No tool calls midek is done, extract final answer
+        # No tool calls means model is done, extract final answer
         if not message.tool_calls:
             raw_content = message.content or ""
-            explanation = _parser_explanation(raw_content)
+            explanation = _parse_explanation(raw_content)
 
             # Store explanation if we found the event ID during tool calls
             if event_id is not None:
