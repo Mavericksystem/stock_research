@@ -120,7 +120,7 @@ async def get_technical_state(symbol: str, date_str: str) -> dict[str, Any]:
             "sma_20": _f(indicator.sma_20),
             "sma_50": _f(indicator.sma_50),
             "volatility_20d": _f(indicator.volatility_20d),
-            "price_vs_sma_20d": _f(indicator.price_vs_sma_20d),
+            "price_vs_sma_20": _f(indicator.price_vs_sma_20),
             "price_vs_sma_50": _f(indicator.price_vs_sma_50),
             "rsi_interpretation": (
                 "overbought" if indicator.rsi_14 and float(indicator.rsi_14) > 70
