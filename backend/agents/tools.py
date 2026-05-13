@@ -165,11 +165,11 @@ async def get_news_context(event_id: int, limit: int = 5) -> dict[str, Any]:
             .order_by(desc(EventNewsLink.relevance_score), desc(News.published_at))
             .limit(limit)
         )
-        result = await sesssion.execute(stmt)
+        result = await session.execute(stmt)
         rows = result.all()
 
         if not rows:
-            return{"found": False, "event_id": event_id, "articles": []}
+            return {"found": False, "event_id": event_id, "articles": []}
         
         articles = []
         for r in rows:
