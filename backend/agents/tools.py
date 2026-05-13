@@ -7,11 +7,12 @@ No business logic here. Data retrieval only.
 from __future__ import annotations
 
 import json
-from datetime import date, datetime, timedelat, timedelta
+import inspect
+from datetime import date, datetime, timedelta
 from typing import Any
 
 from sqlalchemy import select, desc
-from sqlalcjemy.ext.asyncio import AsyncSession, asyn_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from backend.db.connection import engine
 from backend.db.models import Event, News, EventNewsLink, Price, TechnicalIndicator
@@ -19,23 +20,23 @@ from backend.db.models import Event, News, EventNewsLink, Price, TechnicalIndica
 SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
 def _serialize(obj: Any) -> Any:
-    """Male DB objects JSON-seializable for tool responses."""
-    if isintance(obj, (date, datetime)):
+    """Make DB objects JSON-serializable for tool responses."""
+    if isinstance(obj, (date, datetime)):
         return obj.isoformat()
-    if hasattt(obj, "__dict__"):
-        return {k: )serialize(v) for k, v in obj.__dict__.items() if not k.startswith("_")}
+    if hasattr(obj, "__dict__"):
+        return {k: _serialize(v) for k, v in obj.__dict__.items() if not k.startswith("_")}
     return obj
 
 
 # ____ Tool 1: Event detail
 
-async def get_event_detail(symbol: str, date_str | None = None) -> dict[str, Any]:
+async def get_event_details(symbol: str, date_str: str | None = None) -> dict[str, Any]:
     """
     Fetch the most significant price event for a symbol.
     Optionally filter by date (YYYY-MM-DD).
 
     Returns event type, magnitude, z-score, RSI context,
-    volatility context, and wheather price was above SMA-20.
+    volatility context, and whether price was above SMA-20.
     
     """
     async with SessionLocal() as session:
@@ -119,7 +120,7 @@ async def get_technical_state(symbol: str, date_str: str) -> dict[str, Any]:
             "sma_20": _f(indicator.sma_20),
             "sma_50": _f(indicator.sma_50),
             "volatility_20d": _f(indicator.volatility_20d),
-            "price_vs_sma_20d": _f(indicator.price_vs_sma_20d),
+            "price_vs_sma_20": _f(indicator.price_vs_sma_20),
             "price_vs_sma_50": _f(indicator.price_vs_sma_50),
             "rsi_interpretation": (
                 "overbought" if indicator.rsi_14 and float(indicator.rsi_14) > 70
@@ -127,17 +128,16 @@ async def get_technical_state(symbol: str, date_str: str) -> dict[str, Any]:
                 else "neutral"
             ),
             "trend": (
-                "above_both_sma" if (
+                "above_both_smas" if (
                     indicator.price_vs_sma_20 and float(indicator.price_vs_sma_20) > 0
                     and indicator.price_vs_sma_50 and float(indicator.price_vs_sma_50) > 0
                 )
                 else "below_both_smas" if (
                     indicator.price_vs_sma_20 and float(indicator.price_vs_sma_20) < 0
                     and indicator.price_vs_sma_50 and float(indicator.price_vs_sma_50) < 0
-
                 )
                 else "mixed"
-                ),
+            ),
         }
     
     # ----  Tool 3: News Context
@@ -165,11 +165,11 @@ async def get_news_context(event_id: int, limit: int = 5) -> dict[str, Any]:
             .order_by(desc(EventNewsLink.relevance_score), desc(News.published_at))
             .limit(limit)
         )
-        result = await sesssion.execute(stmt)
+        result = await session.execute(stmt)
         rows = result.all()
 
         if not rows:
-            return{"found": False, "event_id": event_id, "articles": []}
+            return {"found": False, "event_id": event_id, "articles": []}
         
         articles = []
         for r in rows:
@@ -202,7 +202,7 @@ async def get_price_history(symbol: str, around_date: str, days: int = 5) -> dic
     """
     async with SessionLocal() as session:
         try:
-            center = date.fromisofrmat(around_date)
+            center = date.fromisoformat(around_date)
         except ValueError:
             return {"found": False, "error": f"Invalid date: {around_date}"}
         
@@ -278,9 +278,9 @@ TOOL_DEFINITIONS = [
         "function": {
             "name": "get_technical_state",
             "description": (
-                "Get technical indicator state for a symbol on a specific date."
-                "Returns RSI (overbought/oversold), moving averages, volatility,"
-                "and daily return percentage. Use this to characterize market conditions."
+                "Get technical indicators for a symbol on a date. "
+                "Parameters: symbol (string) and date_str (YYYY-MM-DD string). "
+                "Do NOT pass event_id to this tool."
             ),
             "parameters": {
                 "type": "object",
@@ -300,15 +300,15 @@ TOOL_DEFINITIONS = [
     },
     {
         "type": "function",
-        "function":{
+        "function": {
             "name": "get_news_context",
             "description": (
-                "Get top ranked news articles linked to a specific event."
-                "Returns article titles, sources, publication times and relevance scores."
-                "Use this to identify the causal news catalyst for the price movment."
-            ).
-            "parametes": {
-                "type": "object".
+                "Get top ranked news articles linked to a specific event. "
+                "Returns article titles, sources, publication times and relevance scores. "
+                "Use this to identify the causal news catalyst for the price movement."
+            ),
+            "parameters": {
+                "type": "object",
                 "properties": {
                     "event_id": {
                         "type": "integer",
@@ -329,8 +329,9 @@ TOOL_DEFINITIONS = [
         "function": {
             "name": "get_price_history",
             "description": (
-                "Get price history for around an event date to show price momentum context."
-                "Returns close prices and volumes for N days before and after the event."
+                "Get price history around an event date. "
+                "Parameters: symbol (string), around_date (YYYY-MM-DD string), days (int optional). "
+                "Do NOT pass start_date or end_date — only around_date."
 
             ),
             "parameters": {
@@ -357,7 +358,7 @@ TOOL_DEFINITIONS = [
 ]
 
 
-#  ------ Maps too name to actual async function
+# ------ Maps tool name to actual async function
 
 TOOL_MAP: dict[str, Any] = {
     "get_event_details": get_event_details,
@@ -374,6 +375,78 @@ async def dispatch_tool(tool_name: str, tool_args: dict[str, Any]) -> str:
     fn = TOOL_MAP.get(tool_name)
     if not fn:
         return json.dumps({"error": f"Unknown tool: {tool_name}"})
+
+    # Normalize common argument aliases produced by models.
+    if tool_name == "get_price_history":
+        if "around_date" not in tool_args and "date_str" in tool_args:
+            tool_args["around_date"] = tool_args.pop("date_str")
+
+        # Some models attempt a start/end date range even though the tool only
+        # accepts around_date (+ optional days). Normalize to avoid a failed
+        # tool call followed by a retry.
+        if "around_date" not in tool_args and ("start_date" in tool_args or "end_date" in tool_args):
+            start_raw = tool_args.get("start_date")
+            end_raw = tool_args.get("end_date")
+
+            def _parse_iso_date(val: Any) -> date | None:
+                if not isinstance(val, str):
+                    return None
+                try:
+                    return date.fromisoformat(val)
+                except ValueError:
+                    return None
+
+            start_dt = _parse_iso_date(start_raw)
+            end_dt = _parse_iso_date(end_raw)
+
+            if start_dt and end_dt and end_dt >= start_dt:
+                span_days = (end_dt - start_dt).days
+                center_dt = start_dt + timedelta(days=span_days // 2)
+                tool_args["around_date"] = center_dt.isoformat()
+                tool_args.setdefault("days", (span_days + 1) // 2)
+            elif end_dt:
+                tool_args["around_date"] = end_dt.isoformat()
+            elif start_dt:
+                tool_args["around_date"] = start_dt.isoformat()
+
+            tool_args.pop("start_date", None)
+            tool_args.pop("end_date", None)
+
+    if tool_name == "get_technical_state":
+        # Some models incorrectly pass only event_id. Resolve event_id to
+        # the event's (symbol, start_date) so the tool call can succeed
+        # without a costly fail-and-retry loop.
+        if ("symbol" not in tool_args or "date_str" not in tool_args) and "event_id" in tool_args:
+            try:
+                event_id = int(tool_args["event_id"])
+            except Exception:
+                event_id = None
+
+            if event_id is not None:
+                async with SessionLocal() as session:
+                    stmt = select(Event).where(Event.id == event_id).limit(1)
+                    result = await session.execute(stmt)
+                    event = result.scalars().first()
+
+                if event:
+                    tool_args.setdefault("symbol", event.symbol)
+                    tool_args.setdefault("date_str", event.start_date.isoformat() if event.start_date else None)
+
+    if tool_name == "get_news_context":
+        # Some models may pass strings; coerce where safe.
+        if "event_id" in tool_args:
+            try:
+                tool_args["event_id"] = int(tool_args["event_id"])
+            except Exception:
+                pass
+
+    # Filter out unexpected kwargs so tool calls don't fail on minor schema drift.
+    try:
+        allowed = set(inspect.signature(fn).parameters.keys())
+        tool_args = {k: v for k, v in tool_args.items() if k in allowed}
+    except Exception:
+        # If signature inspection fails for any reason, fall back to raw args.
+        pass
     
     try: 
         result = await fn(**tool_args)
