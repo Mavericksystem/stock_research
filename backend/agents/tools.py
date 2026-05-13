@@ -329,8 +329,9 @@ TOOL_DEFINITIONS = [
         "function": {
             "name": "get_price_history",
             "description": (
-                "Get price history for around an event date to show price momentum context."
-                "Returns close prices and volumes for N days before and after the event."
+                "Get price history around an event date. "
+                "Parameters: symbol (string), around_date (YYYY-MM-DD string), days (int optional). "
+                "Do NOT pass start_date or end_date — only around_date."
 
             ),
             "parameters": {
