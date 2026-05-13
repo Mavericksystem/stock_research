@@ -128,17 +128,16 @@ async def get_technical_state(symbol: str, date_str: str) -> dict[str, Any]:
                 else "neutral"
             ),
             "trend": (
-                "above_both_sma" if (
+                "above_both_smas" if (
                     indicator.price_vs_sma_20 and float(indicator.price_vs_sma_20) > 0
                     and indicator.price_vs_sma_50 and float(indicator.price_vs_sma_50) > 0
                 )
                 else "below_both_smas" if (
                     indicator.price_vs_sma_20 and float(indicator.price_vs_sma_20) < 0
                     and indicator.price_vs_sma_50 and float(indicator.price_vs_sma_50) < 0
-
                 )
                 else "mixed"
-                ),
+            ),
         }
     
     # ----  Tool 3: News Context
