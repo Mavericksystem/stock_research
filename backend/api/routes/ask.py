@@ -4,22 +4,25 @@ GET /api/v1/ask/stream - Streaming version.
 """
 
 from __future__ import annotations
+
+import logging
+
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel, Field
 
-from backend.agents.orchestrator import run_agent, stream_agent
-from backend.api.schemas import APIErrorResponse, APIErrorResponse, APIResponse
+from backend.api.schemas import APIResponse
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 class AskRequest(BaseModel):
     question: str = Field(
         ...,
-        min_length=5
+        min_length=5,
         max_length=500,
         description="Natural language question about a stock movement",
-        examples=["Why did visaa spike on April 29?"]
+        examples=["Why did V spike on April 29?"],
     )
 
     symbol: str = Field(
@@ -27,10 +30,10 @@ class AskRequest(BaseModel):
         min_length=1,
         max_length=10,
         description="Stock ticker symbol, e.g. AAPL",
-        examples=["AAPL", "TSLA", "GOOG"]
-        )
+        examples=["AAPL", "TSLA", "GOOG"],
+    )
     
-class AskStremsRequest(BaseModel):
+class AskStreamRequest(BaseModel):
     question: str = Field(..., min_length=5, max_length=500)
     symbol: str = Field(..., min_length=1, max_length=10)
 
@@ -48,7 +51,18 @@ async def ask(request: AskRequest):
     Returns a structured JSON explanation with confidence score,
     causal type classification, and supporting evidence.
     """
-    
+    try:
+        # Lazy import so app startup doesn't fail if the agent layer has issues.
+        from backend.agents.orchestrator import run_agent  # type: ignore
+
+        result = await run_agent(symbol=request.symbol, question=request.question)
+        return APIResponse(data=result)
+    except Exception as e:
+        logger.exception(f"Agent error for {request.symbol}: {e}")
+        raise HTTPException(
+            status_code=500,
+            detail=f"Agent error: {str(e)}"
+        )
 
 @router.post("/stream")
 async def ask_stream(request: AskStreamRequest):
@@ -63,14 +77,11 @@ async def ask_stream(request: AskStreamRequest):
     """
     try:
         return StreamingResponse(
-            stream_agent(
-                symbol=request.symbol,
-                question=request.question
-            ),
-            media_type="text/event-stream"
+            _get_stream_agent()(symbol=request.symbol, question=request.question),
+            media_type="text/event-stream",
             headers={
-                "Cache-Contrrol": "no-cache",
-                "x-Accel-Buffering": "no",
+                "Cache-Control": "no-cache",
+                "X-Accel-Buffering": "no",
             },
         )
     except Exception as e:
@@ -78,3 +89,10 @@ async def ask_stream(request: AskStreamRequest):
             status_code=500,
             detail=f"Stream agent failed: {str(e)}",
         )
+
+
+def _get_stream_agent():
+    """Import `stream_agent` lazily to avoid startup-time failures."""
+    from backend.agents.orchestrator import stream_agent  # type: ignore
+
+    return stream_agent
