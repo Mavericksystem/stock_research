@@ -358,7 +358,7 @@ TOOL_DEFINITIONS = [
 ]
 
 
-#  ------ Maps too name to actual async function
+# ------ Maps tool name to actual async function
 
 TOOL_MAP: dict[str, Any] = {
     "get_event_details": get_event_details,
