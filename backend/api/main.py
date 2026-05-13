@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-from backend.api.routes import stock, analysis
 from backend.api.routes import stock, analysis, ask
 
 app = FastAPI(
