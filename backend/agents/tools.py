@@ -300,15 +300,15 @@ TOOL_DEFINITIONS = [
     },
     {
         "type": "function",
-        "function":{
+        "function": {
             "name": "get_news_context",
             "description": (
-                "Get top ranked news articles linked to a specific event."
-                "Returns article titles, sources, publication times and relevance scores."
-                "Use this to identify the causal news catalyst for the price movment."
-            ).
-            "parametes": {
-                "type": "object".
+                "Get top ranked news articles linked to a specific event. "
+                "Returns article titles, sources, publication times and relevance scores. "
+                "Use this to identify the causal news catalyst for the price movement."
+            ),
+            "parameters": {
+                "type": "object",
                 "properties": {
                     "event_id": {
                         "type": "integer",
