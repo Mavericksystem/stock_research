@@ -1,20 +1,20 @@
-"""
-Analysis service - wires agent orchestrator into the existing analysis endpoit.
-Keeps backward compadibility with existing / analysis/{symbol} route.
+"""Analysis service.
+
+Wires the agent orchestrator into the existing analysis endpoint.
 """
 
-from __future__ import annotaions
+from __future__ import annotations
 
-import json 
+import json
 from typing import Any
 
-from sqlalchemy.ext.asyncio import AsuncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from backend.db.models import Event, TechmicalIndicator
-from backend.services.stock_service import StockService
 from backend.context.engine import get_event_context
-from backend.agents.orchestrator import run_agent
+from backend.db.models import TechnicalIndicator
+from backend.services.stock_service import StockService
+
 
 class AnalysisService:
 
@@ -41,44 +41,48 @@ class AnalysisService:
             return {"message": f"No significant unresolved anomalies detected for {symbol}"}
         target_event = events[0]
 
-        # 2. Get es context
+        # 2. Get event context
         context_items = await get_event_context(session, target_event.id, limit=5)
 
-        # 3. Get techmical state at event date 
+        # 3. Get technical state at event date
         stmt = select(TechnicalIndicator).where(
             TechnicalIndicator.symbol == symbol,
-            TechnicalIndicator.date == target_event.start_time.date
+            TechnicalIndicator.date == target_event.start_date,
         )
         result = await session.execute(stmt)
-        matched_signal = result.scalar().first()
+        matched_signal = result.scalars().first()
 
         # 4. Check for cached explanation first
         llm_explanation: dict[str, Any] | None = None
         if target_event.explanation:
             try:
-                llm_explanation = json.loads(target_event.explantion)
+                llm_explanation = json.loads(target_event.explanation)
             except (json.JSONDecodeError, TypeError):
-                llm_explantaion = {"explantion": target_event.explanation}
+                llm_explanation = {"explanation": target_event.explanation}
 
-        # 5. Run agent if no cahed explantion
+        # 5. Run agent if no cached explanation
         if llm_explanation is None:
             try:
+                # Lazy import so the API can boot even if the agent stack
+                # has optional deps or is temporarily broken.
+                from backend.agents.orchestrator import run_agent  # type: ignore
+
                 agent_result = await run_agent(
                     symbol=symbol,
                     question=f"Why did {symbol} stock move significantly on {target_event.start_date}?"
                 )
-                llm_explantion = agent_result.get("explantion", {})
+                llm_explanation = agent_result.get("explanation", agent_result)
             except Exception as e:
-                llm_explantion = {
-                    "explantion": f"Agent unavailable: {str(e)}",
+                llm_explanation = {
+                    "explanation": f"Agent unavailable: {str(e)}",
                     "confidence": 0.0,
                     "data_quality": "weak",
                 }
 
-            return {
-                "symbol": symbol,
-                "target_event": target_event,
-                "state_at_event": matched_signal,
-                "explanation": llm_explantion,
-                "context": context_items,
-            }
+        return {
+            "symbol": symbol,
+            "target_event": target_event,
+            "state_at_event": matched_signal,
+            "explanation": llm_explanation,
+            "context": context_items,
+        }
