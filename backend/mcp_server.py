@@ -124,3 +124,31 @@ async def list_tools() -> list[Tool]:
                 "required": ["event_id"],
             },
         ),
+        Tool(
+            name="get_price_history",
+            description=(
+                "Get price history around an event date to show momentum context. "
+                "Returns close prices and volumes for N days before and after "
+                "the specified date. Useful for understanding price action "
+                "leading into and following an event."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "symbol": {
+                        "type": "string",
+                        "description": "Stock ticker symbol",
+                    },
+                    "around_date": {
+                        "type": "string",
+                        "description": "Center date in YYYY-MM-DD format",
+                    },
+                    "days": {
+                        "type": "integer",
+                        "description": "Days before and after center date (default 5)",
+                        "default": 5,
+                    },
+                },
+                "required": ["symbol", "around_date"],
+            },
+        ),
