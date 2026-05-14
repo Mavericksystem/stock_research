@@ -216,4 +216,20 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> CallToolResult:
                 days=int(arguments.get("days", 5)),
             )
  
-        
+        elif name == "explain_stock_movement":
+            result = await run_agent(
+                symbol=arguments["symbol"],
+                question=arguments["question"],
+            )
+ 
+        else:
+            result = {"error": f"Unknown tool: {name}"}
+ 
+        return CallToolResult(
+            content=[
+                TextContent(
+                    type="text",
+                    text=json.dumps(result, indent=2, default=str),
+                )
+            ]
+        )
