@@ -152,3 +152,33 @@ async def list_tools() -> list[Tool]:
                 "required": ["symbol", "around_date"],
             },
         ),
+        Tool(
+            name="explain_stock_movement",
+            description=(
+                "Run the full AI agent pipeline to explain why a stock moved significantly. "
+                "Automatically calls all data tools, retrieves causal news evidence, "
+                "and synthesizes a structured explanation with confidence scoring. "
+                "Returns primary cause, causal type classification, supporting evidence, "
+                "technical context, and data quality rating. "
+                "Use this for complete end-to-end analysis."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "symbol": {
+                        "type": "string",
+                        "description": "Stock ticker symbol e.g. AAPL, V, NVDA",
+                    },
+                    "question": {
+                        "type": "string",
+                        "description": (
+                            "Natural language question about the stock movement. "
+                            "Include the date if known. "
+                            "Example: 'Why did Visa spike on 2026-04-29?'"
+                        ),
+                    },
+                },
+                "required": ["symbol", "question"],
+            },
+        ),
+    ]
