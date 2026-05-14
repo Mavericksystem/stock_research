@@ -279,4 +279,26 @@ async def score_ragas(
             "reason": "RAGAS not installed - run: pip install RAGAS langchain-openai datasets",
         }
     
-    
+    try:
+        # Wire RAGAS to NIVIDIA NIM  via Landgcahin openAI wrapper
+        nim_llm = ChatOpenAI(
+            model=os.getenv("NVIDIDA_NIM_MODEL", "nvidia/llama-3.3-nemotron-super-49b-v1"),
+            base_url=os.getenv("NVIDIA_NIM_URL", "http://integrate.api.nvidia.com/v1"),
+            api_key=os.getenv("NVIDIA_NIM_API_KEY", ""),
+            tempreature=0.0,
+        )
+
+        ragas_llm = LangchainLLMWrapper(nim_llm)
+
+        dataset = Dataset.from_dict({
+            "question": [question],
+            "answer": [answer],
+            "context": [contexts],
+        })
+
+        result = evaluate(
+            dataset=dataset,
+            metrics=[faithfulness, answer_relevancy],
+            llm=ragas_llm,
+            raise_exceptions=False,
+        )
