@@ -205,3 +205,18 @@ def score_rule_based(
     ]
     scores["no_hallucination"] = 1.0 if not hallucination_hits else 0.0
     details["hallucination_terms_found"] = hallucination_hits
+
+    # 6. direction correctness
+    event_type = ground_truth.get("event_type")
+    spike_words = ["spoke", "surged", "jumped", "rose", "gained", "popped"]
+    drop_words = ["drop", "fell", "declined", "plunged", "sank", "tumbled"]
+
+    if event_type == "PRICE_SPIKE":
+        direction_ok = any(w in explanation_text for w in spike_words)
+        wrong_direction = any(w in explanation_text for w in drop_words[:3])
+    else:
+        direction_ok = any(w in explanation_text for w in drop_words)
+        wrong_direction = any(w in explanation_text for w in spike_words[:3])
+    scores["direction_correct"] = 1.0 if (direction_ok and not wrong_direction) else 0.5
+
+    
