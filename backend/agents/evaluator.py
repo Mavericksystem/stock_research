@@ -120,3 +120,33 @@ GROUND_TRUTH: list[dict[str, Any]] = [
         "acceptable_causal_types": ["product_announcement", "macro", "unknown"],
     },
 ]
+
+
+
+#---- Rule based scorer = deteministic no LLM cost
+
+def score_rule_based(
+      ground_truth: dict[str, Any],
+      explanation: dict[str, Any],
+) -> dict[str, Any]:
+    """
+    
+    Score explanation against ground truth using deterministic rules,
+    
+    
+    Metrics:
+    - Keyword_hit_rate: % of expected keywords found in explanation text
+    - evidence_hit_rate: % of expected evidence keywords found in evidence titles
+    - causal_type_correct: 1.0 if causal_type matches, 0.0 of not 
+    - comfidence_adequate: 1.0 if comfidence >= min required, 0.0 if not
+    - no_hallucination: 1.0 if should_not_contain terms absent, 0.0 if present
+    - directon_correct: 1.0 of explanation desn't confuse spike/drop
+
+    Final score: weighted average of above metrics
+    
+    """ 
+    scores: dict[str, float] = {} 
+    details: dict[str, Any] = {}
+
+    # Combine all explantion text fro keyword search
+    
