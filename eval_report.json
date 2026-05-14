@@ -1,0 +1,271 @@
+{
+  "generated_at": "2026-05-14T10:37:40.283307+00:00",
+  "total_cases": 4,
+  "passed": 4,
+  "average_score": 0.9138,
+  "ragas_enabled": true,
+  "results": [
+    {
+      "symbol": "V",
+      "date": "2026-04-29",
+      "known_cause": "Visa Q2 2026 earnings beat \u2014 17% revenue growth to $11.2B",
+      "explanation": {
+        "primary_cause": "Visa posted robust Q2 2026 results, with GAAP net income of $6.0B and revenue up 17% to $11.2B, surpassing expectations.",
+        "confidence": 0.9,
+        "causal_type": "earnings",
+        "evidence": [
+          "Why Visa Is A Strong Buy After Posting Second Quarter 2026 Results (Ratings Upgrade)",
+          "Visa gains $50B in market value after earnings"
+        ],
+        "technical_context": "The stock was in an overbought state (RSI 73.62) with mixed trend signals, trading above its 20-day SMA, indicating potential for a pullback but instead saw a spike due to strong earnings.",
+        "price_context": "Visa's stock spiked 8.26% on April 29, 2026, with notably high volume (16,658,600 shares), following a period of stable prices around $309 in the preceding days.",
+        "explanation": [
+          "Visa's Q2 2026 earnings report, released on April 29, 2026, exceeded analyst expectations with a 17% revenue increase to $11.2B and $6.0B in GAAP net income, directly causing the price spike.",
+          "The stock's technical state, being overbought with an RSI of 73.62, did not hinder the upward movement driven by the strong earnings news.",
+          "Post-event reactions include an Oppenheimer analyst raising the price target to $403 and the stock adding roughly $50B in market value, but these are not causal factors."
+        ],
+        "data_quality": "strong",
+        "caveats": "Technical state tool initially failed but was successfully retried; no pre-event catalysts identified beyond the earnings anticipation."
+      },
+      "tool_calls": 4,
+      "rounds": 5,
+      "rule_based": {
+        "final_score": 0.91,
+        "component_scores": {
+          "keyword_hit_rate": 0.8,
+          "evidence_hit_rate": 0.8,
+          "causal_type_correct": 1.0,
+          "confidence_adequate": 1.0,
+          "no_hallucination": 1.0,
+          "direction_correct": 1.0,
+          "data_quality_score": 1.0
+        },
+        "details": {
+          "keyword_hits": [
+            "earnings",
+            "revenue",
+            "q2",
+            "results"
+          ],
+          "keyword_misses": [
+            "beat"
+          ],
+          "evidence_hits": [
+            "visa",
+            "earnings",
+            "market value",
+            "results"
+          ],
+          "evidence_misses": [
+            "popped"
+          ],
+          "expected_causal_type": "earnings",
+          "actual_causal_type": "earnings",
+          "expected_min_confidence": 0.8,
+          "actual_confidence": 0.9,
+          "hallucination_terms_found": []
+        },
+        "pass": true
+      },
+      "ragas": {
+        "skipped": true,
+        "reason": "RAGAS evaluation failed: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable."
+      }
+    },
+    {
+      "symbol": "GOOGL",
+      "date": "2026-04-30",
+      "known_cause": "Alphabet Q1 2026 \u2014 Google Cloud revenue grew 63% YoY",
+      "explanation": {
+        "primary_cause": "Google reported strong Q1 financial results, highlighted by 63% revenue growth in Google Cloud, which drove the stock price spike on April 30, 2026.",
+        "confidence": 0.9,
+        "causal_type": "earnings",
+        "evidence": [
+          "Stock Market Today, April 30: Alphabet Surges After Reporting Accelerating Google Cloud Growth",
+          "Google (GOOGL) 8-K: Results of Operations and Financial Condition; Financial Statements and Exhibits"
+        ],
+        "technical_context": "The stock was in an overbought state (RSI 83.78) with high volatility (1.56%) and had broken above its 20-day SMA, indicating strong upward momentum prior to the event.",
+        "price_context": "GOOGL closed at $384.80 on April 30, a 9.96% increase from the previous day, with significantly higher trading volume (72 million shares).",
+        "explanation": [
+          "On April 30, 2026, Alphabet Inc. (GOOGL) released its Q1 financial report, revealing a 63% year-over-year revenue surge in Google Cloud, significantly outperforming expectations. This announcement directly caused the stock price to spike by 9.96%.",
+          "Technically, GOOGL was already in an overbought position (RSI of 83.78) with elevated volatility, setting the stage for a strong reaction to positive news. The stock had also recently broken above its 20-day SMA, indicating a bullish trend.",
+          "While several analyst price target increases (e.g., Raymond James to $425, UBS to $410) were reported around the same time, these are considered reactions to the earnings report rather than primary causes."
+        ],
+        "data_quality": "strong",
+        "caveats": "No direct quote from the earnings call or detailed financial metrics beyond cloud revenue growth were available in the provided news articles, but the causal link to earnings is clear."
+      },
+      "tool_calls": 4,
+      "rounds": 5,
+      "rule_based": {
+        "final_score": 0.96,
+        "component_scores": {
+          "keyword_hit_rate": 1.0,
+          "evidence_hit_rate": 0.8,
+          "causal_type_correct": 1.0,
+          "confidence_adequate": 1.0,
+          "no_hallucination": 1.0,
+          "direction_correct": 1.0,
+          "data_quality_score": 1.0
+        },
+        "details": {
+          "keyword_hits": [
+            "cloud",
+            "earnings",
+            "revenue",
+            "alphabet",
+            "growth"
+          ],
+          "keyword_misses": [],
+          "evidence_hits": [
+            "alphabet",
+            "google",
+            "cloud",
+            "surges"
+          ],
+          "evidence_misses": [
+            "financial results"
+          ],
+          "expected_causal_type": "earnings",
+          "actual_causal_type": "earnings",
+          "expected_min_confidence": 0.8,
+          "actual_confidence": 0.9,
+          "hallucination_terms_found": []
+        },
+        "pass": true
+      },
+      "ragas": {
+        "skipped": true,
+        "reason": "RAGAS evaluation failed: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable."
+      }
+    },
+    {
+      "symbol": "META",
+      "date": "2026-04-30",
+      "known_cause": "JPMorgan downgrade + AI CapEx concerns despite Q1 earnings beat",
+      "explanation": {
+        "primary_cause": "Meta stock dropped on 2026-04-30 primarily due to JPMorgan's downgrade to Neutral and lowered price target to $725, driven by concerns over rising AI capital expenditures despite a strong Q1 2026 earnings report.",
+        "confidence": 0.92,
+        "causal_type": "analyst_action",
+        "evidence": [
+          "Why Meta Platforms Stock Just Dropped",
+          "Wall Street Resets Meta Price Targets After Earnings Shock",
+          "JPMorgan Downgrades Meta to Neutral: Are AI CapEx Concerns Finally Catching Up?",
+          "JP Morgan Downgrades Meta Platforms to Neutral, Lowers Price Target to $725"
+        ],
+        "technical_context": "At the time of the event, META had an RSI of 41.02 (neutral), was trading below its 20-day SMA by 33.43%, and exhibited moderate volatility (20-day volatility: 2.10%). The technical setup indicated a mixed trend but not extreme oversold conditions.",
+        "price_context": "META closed at $611.91 on the event date, down 8.55% from the previous day, with significantly higher volume (52.76M vs. recent averages). The drop followed a slight pre-event decline post-earnings.",
+        "explanation": [
+          "Meta's stock experienced a significant drop on April 30, 2026, primarily triggered by JPMorgan's downgrade from Overweight to Neutral, accompanied by a reduced price target from $825 to $725. This move reflected growing concerns over the company's increasing capital expenditures on artificial intelligence, despite Meta reporting a strong Q1 2026 earnings.",
+          "The downgrade and price target adjustment by a major analyst firm like JPMorgan carries substantial weight, influencing investor sentiment negatively. The focus on AI CapEx concerns highlighted a shift in analyst outlook, weighing on the stock's valuation.",
+          "Technically, META was already under its 20-day SMA and had a neutral RSI, indicating some vulnerability before the event. The high trading volume on the event day underscored the market's reaction to the news. While the earnings report was positive, the AI investment narrative overshadowed the short-term financial performance."
+        ],
+        "data_quality": "strong",
+        "caveats": "No direct quote from JPMorgan's report is provided in the news previews, but the consensus across multiple sources confirms the downgrade and price target change as the primary catalyst."
+      },
+      "tool_calls": 4,
+      "rounds": 5,
+      "rule_based": {
+        "final_score": 0.95,
+        "component_scores": {
+          "keyword_hit_rate": 0.8,
+          "evidence_hit_rate": 1.0,
+          "causal_type_correct": 1.0,
+          "confidence_adequate": 1.0,
+          "no_hallucination": 1.0,
+          "direction_correct": 1.0,
+          "data_quality_score": 1.0
+        },
+        "details": {
+          "keyword_hits": [
+            "jpmorgan",
+            "downgrade",
+            "capex",
+            "ai"
+          ],
+          "keyword_misses": [
+            "spending"
+          ],
+          "evidence_hits": [
+            "meta",
+            "dropped",
+            "price target",
+            "jpmorgan",
+            "earnings"
+          ],
+          "evidence_misses": [],
+          "expected_causal_type": "analyst_action",
+          "actual_causal_type": "analyst_action",
+          "expected_min_confidence": 0.75,
+          "actual_confidence": 0.92,
+          "hallucination_terms_found": []
+        },
+        "pass": true
+      },
+      "ragas": {
+        "skipped": true,
+        "reason": "RAGAS evaluation failed: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable."
+      }
+    },
+    {
+      "symbol": "TSLA",
+      "date": "2026-04-15",
+      "known_cause": "Elon Musk social media posts on chip advances + broader market rally",
+      "explanation": {
+        "primary_cause": "Tesla stock spiked on 2026-04-15 primarily due to CEO Elon Musk's social media posts highlighting advances in the company's latest chips.",
+        "confidence": 0.85,
+        "causal_type": "product_announcement",
+        "evidence": [
+          "Tesla's Stock Had One of Its Best Days in Months. Here's Why It Popped",
+          "Tesla Stock Is Up 7%. Are Tweets Driving the Gains?"
+        ],
+        "technical_context": "At the time of the event, TSLA had a neutral RSI of 58.96, indicating it was not overbought or oversold, with moderate volatility (20d volatility: 2.69%). The stock was trading above its 20-day SMA, suggesting a mixed trend but with recent upward momentum.",
+        "price_context": "TSLA showed a 7.62% price spike on the event day, following a 7-day return of 11.09%, indicating strong short-term momentum leading into and including the event.",
+        "explanation": "Tesla's stock experienced a significant spike on April 15, 2026, driven primarily by CEO Elon Musk's announcements on social media regarding advancements in the company's chip technology. This news, highlighted in multiple financial news outlets, directly correlated with the stock's 7.62% increase. Technically, the stock was in a neutral RSI state and trading above its 20-day SMA, with moderate volatility, supporting the price movement without indicating overbought conditions. The event occurred ahead of earnings, where market anticipation and Musk's statements on future technologies (like AI-trained robo-taxis) were anticipated to influence investor sentiment.",
+        "data_quality": "moderate",
+        "caveats": "While Musk's chip announcements are the primary cause, the upcoming earnings report and broader market sentiment also played a role in investor optimism, though direct evidence linking these to the spike is less clear."
+      },
+      "tool_calls": 4,
+      "rounds": 5,
+      "rule_based": {
+        "final_score": 0.835,
+        "component_scores": {
+          "keyword_hit_rate": 0.4,
+          "evidence_hit_rate": 1.0,
+          "causal_type_correct": 1.0,
+          "confidence_adequate": 1.0,
+          "no_hallucination": 1.0,
+          "direction_correct": 1.0,
+          "data_quality_score": 0.7
+        },
+        "details": {
+          "keyword_hits": [
+            "musk",
+            "chip"
+          ],
+          "keyword_misses": [
+            "tweet",
+            "rally",
+            "popped"
+          ],
+          "evidence_hits": [
+            "tesla",
+            "popped",
+            "stock",
+            "best days"
+          ],
+          "evidence_misses": [],
+          "expected_causal_type": "product_announcement",
+          "actual_causal_type": "product_announcement",
+          "expected_min_confidence": 0.7,
+          "actual_confidence": 0.85,
+          "hallucination_terms_found": []
+        },
+        "pass": true
+      },
+      "ragas": {
+        "skipped": true,
+        "reason": "RAGAS evaluation failed: Missing credentials. Please pass an `api_key`, `workload_identity`, `admin_api_key`, or set the `OPENAI_API_KEY` or `OPENAI_ADMIN_KEY` environment variable."
+      }
+    }
+  ]
+}
