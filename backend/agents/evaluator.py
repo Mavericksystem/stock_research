@@ -32,4 +32,30 @@ project_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(_
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
+#-----------------------------------------------------------------------------------
+# Ground truth - what we know happend for each event
+# These are facts verifiable from public earnings records and news
+
+GROUND_TRUTH: list[dict[str, Any]] = [
+    {
+        "symbol": "v",
+        "date": "2026-04-29",
+        "question": "Why did V spike on 2026-04-29?",
+        "event_type": "PRICE_SPIKE",
+        "expected_magnitude_pct": 8.26,
+        "expected_causal_type": "earnings",
+        "expected_keywords": [
+            "earnings", "revenue", "q2", "beat", "result",
+        ],
+        "expected_evidence_keywords": [
+            "visa", "earnings", "popped", "market valur", "results",
+        ],
+        "should_not_contain": [
+            "downgrade", "macro". "tariff",
+        ],
+        "known_cause": "visa Q2 2026 earnings beat - 17% revenue growth to $11.2B",
+        "min_confidence": 0.80
     
+    },
+    
+]
