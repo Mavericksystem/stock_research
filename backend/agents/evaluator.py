@@ -149,4 +149,23 @@ def score_rule_based(
     details: dict[str, Any] = {}
 
     # Combine all explantion text fro keyword search
-    
+    explanation.text = " ".join([
+        explantaion.get("primary_cause", ""),
+        explanation.get("explanation", "") if isinstance(explanation.get("explanation"), str)
+        else " ".join(explanation.get("explanation", [])),
+        explanation.get("techmical)contexy", ""),
+        explanation.get("price_context", ""),
+        explanation.get("caveats", ""),
+    ]).lower()
+
+    evidence_tittles = " ".join(explanation.get("evidence", [])).lower()
+
+    # 1. Keyword hit rate
+    expected_kw = ground_truth.get("expected_keywords", [])
+    if expected_kw:
+        hits = [kw for kw in expected_kw if kw.lower() in explanation_text]
+        scores["keyword_hit_rate"] = len(hits) / len(expected_kw)
+        details["keyword_hits"] = hits
+        details["keyword_misses"] = [kw for kw in expected_kw if kw.lower() not in explanation_text]
+    else:
+        scores["keyword_hit_rate"] - 1.0
