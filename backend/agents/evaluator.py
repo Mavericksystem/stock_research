@@ -228,4 +228,25 @@ def score_rule_based(
         "weak": 0.5,
     }.get(data_quality, 0.3)
 
-    
+    # Weighted final score
+    weights = {
+        "keyword_hit_rate": 0.25,
+        "evidence_hit_rate": 0.20,
+        "causal_type_correct": 0.20,
+        "confidence_adequate": 0.10,
+        "no_hallucination": 0.15,
+        "direction_correct": 0.05,
+        "data_quality_scores": 0.05,
+    }
+
+    final_score = sum(
+        scores[metric] * weight
+        for metric, weight in weights.items()
+    )
+
+    return {
+        "final_score": round(final_score, 4),
+        "component_scores": {k: round(v, 4) for k, v in scores.items()},
+        "details": details,
+        "pass": final_score >= 0.70,
+    }
