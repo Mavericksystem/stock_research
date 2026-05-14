@@ -57,5 +57,26 @@ GROUND_TRUTH: list[dict[str, Any]] = [
         "min_confidence": 0.80
     
     },
-    
+    {
+        "symbol": "GOOGL",
+        "date": 2026-04-30,
+        "question": "Why did google stock spike on 2026-04-30?",
+        "event_type": "PRICE_SPIKE",
+        "expected_magnitude_pct": 9.96,
+        "expected_causal_type": "earnings",
+        "expected_keywords": [
+            "cloud", "earnings", "revenue", "alphabet", "growth",
+        ],
+        "expected_evidence_keywords": [
+            "alphabet", "google", "cloud", "surges", "financial results",
+        ],
+        "should_not_contain": [
+            "downgrade", "macro",
+        ],
+        "should_not_contain": [
+            "downgrade", "macro",
+        ],
+        "known_cause": "Alphabet Q1 2026 - Google cloud revenue gre 63% YoY",
+        "min_confidence": 0.80
+    },
 ]
