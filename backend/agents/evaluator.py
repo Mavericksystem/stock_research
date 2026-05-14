@@ -179,3 +179,13 @@ def score_rule_based(
         details["evidence_misses"] = [kw for kw in expected_ev if kw.lower() not in evidence_titles]
     else:
         scores["evidence_hit_rate"] = 1.0
+
+    # 3. Causal type correctness 
+    expected_type = ground_truth.get("expected_causal_type")
+    acceptable_types = ground_truth.get(
+        "acceptable_causal_types", [expected_type]
+    )
+    actual_type = explanation.get("causal_type", "")
+    scores["causal_type_correct"] = 1.0 if actual_type in acceptable_types else 0.0
+    details["expected_causal_type"] = expected_type
+    details["actual_causal_type"] = actual_type
