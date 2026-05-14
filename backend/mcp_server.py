@@ -203,4 +203,17 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> CallToolResult:
                 date_str=arguments["date_str"],
             )
  
+        elif name == "get_news_context":
+            result = await get_news_context(
+                event_id=int(arguments["event_id"]),
+                limit=int(arguments.get("limit", 5)),
+            )
+ 
+        elif name == "get_price_history":
+            result = await get_price_history(
+                symbol=arguments["symbol"],
+                around_date=arguments["around_date"],
+                days=int(arguments.get("days", 5)),
+            )
+ 
         
