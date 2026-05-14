@@ -149,7 +149,7 @@ def score_rule_based(
     details: dict[str, Any] = {}
 
     # Combine all explanation text for keyword search
-    explanation.text = " ".join([
+    explanation_text = " ".join([
         explanation.get("primary_cause", ""),
         explanation.get("explanation", "") if isinstance(explanation.get("explanation"), str)
         else " ".join(explanation.get("explanation", [])),
@@ -189,3 +189,19 @@ def score_rule_based(
     scores["causal_type_correct"] = 1.0 if actual_type in acceptable_types else 0.0
     details["expected_causal_type"] = expected_type
     details["actual_causal_type"] = actual_type
+
+    # 4. Confidence adequacy
+    min_conf = ground_truth.get("min_confidence", 0.75)
+    actual_conf = float(explanation.get("confidence", 0.0))
+    scores["confidence_adequate"] = 1.0 if actual_conf >= min_conf else actual_conf / min_conf
+    details["expected_min_confidence"] = min_conf
+    details["actual_confidence"] = actual_conf
+
+    # 5. No hallucination check
+    should_not_contain = ground_truth.get("should_not_contain", [])
+    hallucination_hits = [
+        term for term in should_not_contain
+        if term.lower() in explanation_text
+    ]
+    scores["no_hallucination"] = 1.0 if not hallucination_hits else 0.0
+    details["hallucination_terms_found"] = hallucination_hits
