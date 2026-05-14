@@ -99,4 +99,24 @@ GROUND_TRUTH: list[dict[str, Any]] = [
         "min_confidence": 0.75,
         "acceptable_causal_types": ["analyst_action", "earnings", "macro"],
     },
+    {
+        "symbol": "TSLA",
+        "date": "2026-04-15",
+        "question": "Why did Tesla stock spike on 2026-04-15?",
+        "event_type": "PRICE_SPIKE",
+        "expected_magnitude_pct": 7.62,
+        "expected_causal_type": "product_announcement",
+        "expected_keywords": [
+            "musk", "tesla", "chip", "rally", "popped",
+        ],
+        "expected_evidence_keywords": [
+            "tesla", "popped", "stock", "besy days",
+        ],
+        "should_not_contain": [
+            "earnings beat", "revenue growth",
+        ],
+        "known_cause": "Elon Musk social media posts on chip advances + broader market rally",
+        "min_confidence": 0.70,
+        "acceptable_causal_types": ["product_announcement", "macro", "unknown"],
+    },
 ]
