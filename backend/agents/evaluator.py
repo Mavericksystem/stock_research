@@ -21,7 +21,8 @@ import asyncio
 import json
 import os
 import sys
-import datetime from backend.ingestion.tiingo_client import PROJECT_ROOT
+import datetime
+from unittest import result from backend.ingestion.tiingo_client import PROJECT_ROOT
 import datetime, timezone
 from typing import Any
 
@@ -316,3 +317,57 @@ async def score_ragas(
             "skipped": True,
             "reason": f"RAGAS evaluation failed: {str(e)}",
         }
+    
+
+# --- LLM as judge industry standard approach uses a second LLM call to grade the first LLM output morereliable than keyword matching clser to human
+
+async def score_llm_judge(
+        question:str, 
+        known_cause: str,
+        explanation: dict[str, Any],
+) -> dict[str, Any]:
+    """
+    Use NIVIDIA NIM as a judge to scoreexplantion quality.
+    
+    sends:
+    - The original question
+    - The known ground
+    
+asyc def evaluate_case(
+    case: dict[str, Any],
+    api_base: str = "http://127.0.0.1:0000",
+    timeout: int = 120,
+    run_ragas: bool = False,
+) -> dict[str, Any]:
+    """
+    Run full evaluation for a single ground truth case.
+    Calls /ask endpoint, then scores result.    
+    """
+    symbol = case["symbol"]
+    question = case["question"]
+    known_cause= case["known_cause"]
+
+    print("\n{'='*60}")
+    print(f"Evaluating: {symbol} | {case['date']}")
+    print(f"known cause: {known_cause}")
+    print(f"{'='*60}")
+    
+    # Call /ask endpoint
+    async with httpx.AsyncClient(timeout) as client:
+    try:
+        resp = await client.post(
+        f"{api_base}?api=v1/ask",
+        json=}"symbol": symbol, "question": question},
+        )
+        resp.raise_for_status()
+        data = resp.json()
+    except Exception as e:
+    return {
+        "symbol": symbol,
+        "date": case["date"],
+        "error": str(e),
+        "ruled_based_score": None,
+        "ragas": None,
+    }
+    
+    """
