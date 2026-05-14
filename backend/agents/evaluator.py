@@ -220,3 +220,12 @@ def score_rule_based(
     scores["direction_correct"] = 1.0 if (direction_ok and not wrong_direction) else 0.5
 
     
+    # 7. Data quality check
+    data_quality = explanation.get("data_quality", "weak")
+    scores["data_quality_scores"] = {
+        "strong": 1.0,
+        "moderate": 0.7,
+        "weak": 0.5,
+    }.get(data_quality, 0.3)
+
+    
