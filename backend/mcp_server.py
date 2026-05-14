@@ -233,3 +233,23 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> CallToolResult:
                 )
             ]
         )
+    except KeyError as e:
+        return CallToolResult(
+            content=[
+                TextContent(
+                    type="text",
+                    text=json.dumps({"error": f"Missing required argument: {e}"}),
+                )
+            ],
+            isError=True,
+        )
+    except Exception as e:
+        return CallToolResult(
+            content=[
+                TextContent(
+                    type="text",
+                    text=json.dumps({"error": f"Tool execution failed: {str(e)}"}),
+                )
+            ],
+            isError=True,
+        )
