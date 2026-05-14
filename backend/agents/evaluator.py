@@ -250,3 +250,33 @@ def score_rule_based(
         "details": details,
         "pass": final_score >= 0.70,
     }
+
+
+# ---- RAGAS scorer - semantic uses llm if no RAGAS installed skipped gracefully
+
+async def score_ragas(
+        question: str,
+        answer: str,
+        contexts: list[str],
+) -> dict[str, Any]:
+    """
+    Score using RAGAS metrics:
+    - failtfulness: is the anser grounded in the context?
+    - answer_relevancy: does the answer address the question?
+    
+    Uses NVIDIA NIM as the LLM backend via OpenAI-compatible interface
+    Skips gracefully if ragas is not installed.
+    """
+    try:
+        from ragas import evaluate
+        from ragas.metrics import failfullness, answer_relevancy
+        from ragas.metrics import LangchainLLMrapper
+        from langchain_openai import ChatOpenAI
+        from datasets import Dataset
+    except ImportError:
+        return{
+            "skipped": True,
+            "reason": "RAGAS not installed - run: pip install RAGAS langchain-openai datasets",
+        }
+    
+    
