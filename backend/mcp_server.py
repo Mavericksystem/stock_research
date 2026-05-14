@@ -74,3 +74,27 @@ async def list_tools() -> list[Tool]:
                 "required": ["symbol"],
             },
         ),
+        Tool(
+            name="get_technical_state",
+            description=(
+                "Get technical indicator state for a stock on a specific date. "
+                "Returns RSI-14 with overbought/oversold interpretation, "
+                "20-day and 50-day moving averages, daily return percentage, "
+                "20-day volatility, and price vs SMA position. "
+                "Use after get_event_details to characterize market conditions."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "symbol": {
+                        "type": "string",
+                        "description": "Stock ticker symbol",
+                    },
+                    "date_str": {
+                        "type": "string",
+                        "description": "Date in YYYY-MM-DD format",
+                    },
+                },
+                "required": ["symbol", "date_str"],
+            },
+        ),
