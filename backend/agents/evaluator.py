@@ -1,18 +1,19 @@
-""" 
-Evaluator = scores explantion quality against known ground truth events.
+"""Evaluator — scores explanation quality against known ground truth events.
 
 Two scoring layers:
-1. Custom rule-based scoring - fast, no LLM cost, deterministic
-2. RAGAS semantic scoring - faithfulness * answer relevancy (uses NIVIDIDA NIM)
+1. Custom rule-based scoring — fast, no LLM cost, deterministic
+2. RAGAS semantic scoring — faithfulness + answer relevancy (uses NVIDIA NIM)
 
-Output: 
-     - Per-event scores printed to console
-     - Full JSON report saved to eval_report.json
-     - Summary table printed at end
+Run this script directly:
+    python backend/agents/evaluator.py
 
-Ground truth casws are hardcoded - these are evetns where we know 
-exactly what happend from from public record.
+Output:
+    - Per-event scores printed to console
+    - Full JSON report saved to eval_report.json
+    - Summary table printed at end
 
+Ground truth cases are hardcoded — these are events where we know
+exactly what happened from public record.
 """
 
 from __future__ import annotations
@@ -21,83 +22,107 @@ import asyncio
 import json
 import os
 import sys
-import datetime
-from unittest import result from backend.ingestion.tiingo_client import PROJECT_ROOT
-import datetime, timezone
+from datetime import datetime, timezone
 from typing import Any
 
 import httpx
 
 # Ensure project root importable when run directly
-project_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-#-----------------------------------------------------------------------------------
-# Ground truth - what we know happend for each event
+# ---------------------------------------------------------------------------
+# Ground Truth — what we KNOW happened for each event
 # These are facts verifiable from public earnings records and news
+# ---------------------------------------------------------------------------
 
 GROUND_TRUTH: list[dict[str, Any]] = [
     {
-        "symbol": "v",
+        "symbol": "V",
         "date": "2026-04-29",
-        "question": "Why did V spike on 2026-04-29?",
+        "question": "Why did Visa spike on 2026-04-29?",
         "event_type": "PRICE_SPIKE",
         "expected_magnitude_pct": 8.26,
         "expected_causal_type": "earnings",
         "expected_keywords": [
-            "earnings", "revenue", "q2", "beat", "result",
+            "earnings",
+            "revenue",
+            "q2",
+            "beat",
+            "results",
         ],
         "expected_evidence_keywords": [
-            "visa", "earnings", "popped", "market valur", "results",
+            "visa",
+            "earnings",
+            "popped",
+            "market value",
+            "results",
         ],
         "should_not_contain": [
-            "downgrade", "macro". "tariff",
+            "downgrade",
+            "macro",
+            "tariff",
         ],
-        "known_cause": "visa Q2 2026 earnings beat - 17% revenue growth to $11.2B",
-        "min_confidence": 0.80
-    
+        "known_cause": "Visa Q2 2026 earnings beat — 17% revenue growth to $11.2B",
+        "min_confidence": 0.80,
     },
     {
         "symbol": "GOOGL",
-        "date": 2026-04-30,
-        "question": "Why did google stock spike on 2026-04-30?",
+        "date": "2026-04-30",
+        "question": "Why did Google stock spike on 2026-04-30?",
         "event_type": "PRICE_SPIKE",
         "expected_magnitude_pct": 9.96,
         "expected_causal_type": "earnings",
         "expected_keywords": [
-            "cloud", "earnings", "revenue", "alphabet", "growth",
+            "cloud",
+            "earnings",
+            "revenue",
+            "alphabet",
+            "growth",
         ],
         "expected_evidence_keywords": [
-            "alphabet", "google", "cloud", "surges", "financial results",
+            "alphabet",
+            "google",
+            "cloud",
+            "surges",
+            "financial results",
         ],
         "should_not_contain": [
-            "downgrade", "macro",
+            "downgrade",
+            "macro",
         ],
-        "should_not_contain": [
-            "downgrade", "macro",
-        ],
-        "known_cause": "Alphabet Q1 2026 - Google cloud revenue gre 63% YoY",
-        "min_confidence": 0.80
+        "known_cause": "Alphabet Q1 2026 — Google Cloud revenue grew 63% YoY",
+        "min_confidence": 0.80,
     },
     {
         "symbol": "META",
         "date": "2026-04-30",
-        "question": "Why did META stock drop on 2026-04-30?",
+        "question": "Why did Meta stock drop on 2026-04-30?",
         "event_type": "PRICE_DROP",
         "expected_magnitude_pct": -8.55,
-        "expected_causal_type": "analyst_action",
+        "expected_causal_type": "analyst_action",  # or earnings — both acceptable
         "expected_keywords": [
-            "jpmorgan", "downgrade", "capex", "ai", "spending",
+            "jpmorgan",
+            "downgrade",
+            "capex",
+            "ai",
+            "spending",
         ],
         "expected_evidence_keywords": [
-            "meta", "jpmorgan", "droppend", "price target", "earnings",
+            "meta",
+            "dropped",
+            "price target",
+            "jpmorgan",
+            "earnings",
         ],
         "should_not_contain": [
-            "spike", "surged",
+            "spike",
+            "surged",
         ],
-        "known_cause": "JPMorgan downgrade + AI capex concers depite Q1 earnings beat",
+        "known_cause": "JPMorgan downgrade + AI CapEx concerns despite Q1 earnings beat",
         "min_confidence": 0.75,
+        # META is harder — accept analyst_action OR earnings as valid
         "acceptable_causal_types": ["analyst_action", "earnings", "macro"],
     },
     {
@@ -108,58 +133,79 @@ GROUND_TRUTH: list[dict[str, Any]] = [
         "expected_magnitude_pct": 7.62,
         "expected_causal_type": "product_announcement",
         "expected_keywords": [
-            "musk", "tesla", "chip", "rally", "popped",
+            "musk",
+            "tweet",
+            "chip",
+            "rally",
+            "popped",
         ],
         "expected_evidence_keywords": [
-            "tesla", "popped", "stock", "besy days",
+            "tesla",
+            "popped",
+            "stock",
+            "best days",
         ],
         "should_not_contain": [
-            "earnings beat", "revenue growth",
+            "earnings beat",
+            "revenue growth",
         ],
         "known_cause": "Elon Musk social media posts on chip advances + broader market rally",
         "min_confidence": 0.70,
+        # TSLA is weakest evidence — accept lower confidence
         "acceptable_causal_types": ["product_announcement", "macro", "unknown"],
     },
 ]
 
 
+# ---------------------------------------------------------------------------
+# Rule-based scorer — deterministic, no LLM cost
+# ---------------------------------------------------------------------------
 
-#---- Rule based scorer = deteministic no LLM cost
 
 def score_rule_based(
-      ground_truth: dict[str, Any],
-      explanation: dict[str, Any],
+    ground_truth: dict[str, Any],
+    explanation: dict[str, Any],
 ) -> dict[str, Any]:
-    """
-    
-    Score explanation against ground truth using deterministic rules,
-    
-    
-    Metrics:
-    - Keyword_hit_rate: % of expected keywords found in explanation text
-    - evidence_hit_rate: % of expected evidence keywords found in evidence titles
-    - causal_type_correct: 1.0 if causal_type matches, 0.0 of not 
-    - comfidence_adequate: 1.0 if comfidence >= min required, 0.0 if not
-    - no_hallucination: 1.0 if should_not_contain terms absent, 0.0 if present
-    - directon_correct: 1.0 of explanation desn't confuse spike/drop
+    """Score explanation against ground truth using deterministic rules.
 
-    Final score: weighted average of above metrics
-    
-    """ 
-    scores: dict[str, float] = {} 
+    Metrics:
+    - keyword_hit_rate: % of expected keywords found in explanation text
+    - evidence_hit_rate: % of expected evidence keywords found in evidence titles
+    - causal_type_correct: 1.0 if causal_type matches, 0.0 if not
+    - confidence_adequate: 1.0 if confidence >= min required, else scaled
+    - no_hallucination: 1.0 if should_not_contain terms absent, 0.0 if present
+    - direction_correct: 1.0 if explanation doesn't confuse spike/drop
+
+    Final score: weighted average of above metrics.
+    """
+
+    scores: dict[str, float] = {}
     details: dict[str, Any] = {}
 
-    # Combine all explanation text for keyword search
-    explanation_text = " ".join([
-        explanation.get("primary_cause", ""),
-        explanation.get("explanation", "") if isinstance(explanation.get("explanation"), str)
-        else " ".join(explanation.get("explanation", [])),
-        explanation.get("technical_context", ""),
-        explanation.get("price_context", ""),
-        explanation.get("caveats", ""),
-    ]).lower()
+    explanation_field = explanation.get("explanation", "")
+    if isinstance(explanation_field, list):
+        explanation_body = " ".join(map(str, explanation_field))
+    else:
+        explanation_body = str(explanation_field)
 
-    evidence_titles = " ".join(explanation.get("evidence", [])).lower()
+    # Combine all explanation text for keyword search
+    explanation_text = (
+        " ".join(
+            [
+                str(explanation.get("primary_cause", "")),
+                explanation_body,
+                str(explanation.get("technical_context", "")),
+                str(explanation.get("price_context", "")),
+                str(explanation.get("caveats", "")),
+            ]
+        )
+    ).lower()
+
+    evidence = explanation.get("evidence", [])
+    if isinstance(evidence, list):
+        evidence_titles = " ".join(map(str, evidence)).lower()
+    else:
+        evidence_titles = str(evidence).lower()
 
     # 1. Keyword hit rate
     expected_kw = ground_truth.get("expected_keywords", [])
