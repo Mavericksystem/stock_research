@@ -182,3 +182,25 @@ async def list_tools() -> list[Tool]:
             },
         ),
     ]
+
+ 
+# ---- Tool call handler --------------------------------------------------------
+ 
+@server.call_tool()
+async def call_tool(name: str, arguments: dict[str, Any]) -> CallToolResult:
+    """Route tool calls to the appropriate handler function."""
+ 
+    try:
+        if name == "get_event_details":
+            result = await get_event_details(
+                symbol=arguments["symbol"],
+                date_str=arguments.get("date_str"),
+            )
+ 
+        elif name == "get_technical_state":
+            result = await get_technical_state(
+                symbol=arguments["symbol"],
+                date_str=arguments["date_str"],
+            )
+ 
+        
