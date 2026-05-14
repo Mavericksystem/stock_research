@@ -98,3 +98,29 @@ async def list_tools() -> list[Tool]:
                 "required": ["symbol", "date_str"],
             },
         ),
+        Tool(
+            name="get_news_context",
+            description=(
+                "Get top ranked news articles causally linked to a specific price event. "
+                "Articles are ranked by semantic similarity, temporal proximity, "
+                "and entity relevance. Returns titles, sources, publication times, "
+                "relevance scores, and content previews. "
+                "Requires event_id from get_event_details. "
+                "This is the primary causal evidence layer."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "event_id": {
+                        "type": "integer",
+                        "description": "Event ID from get_event_details response",
+                    },
+                    "limit": {
+                        "type": "integer",
+                        "description": "Number of articles to return (default 5, max 10)",
+                        "default": 5,
+                    },
+                },
+                "required": ["event_id"],
+            },
+        ),
