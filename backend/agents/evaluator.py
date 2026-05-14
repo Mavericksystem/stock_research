@@ -302,3 +302,17 @@ async def score_ragas(
             llm=ragas_llm,
             raise_exceptions=False,
         )
+
+        scores = result.to_pandas().to_dict(orient="records")[0]
+
+        return {
+            "skipped": False,
+            "faithfulness": round(float(scores.get("faithfullness", 0.0)), 4),
+            "answer_relevancy": round(float(scores.get("answer_relevancy", 0.0)), 4),
+        }
+    
+    except Exception as e:
+        return {
+            "skipped": True,
+            "reason": f"RAGAS evaluation failed: {str(e)}",
+        }
