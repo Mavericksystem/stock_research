@@ -148,17 +148,17 @@ def score_rule_based(
     scores: dict[str, float] = {} 
     details: dict[str, Any] = {}
 
-    # Combine all explantion text fro keyword search
+    # Combine all explanation text for keyword search
     explanation.text = " ".join([
-        explantaion.get("primary_cause", ""),
+        explanation.get("primary_cause", ""),
         explanation.get("explanation", "") if isinstance(explanation.get("explanation"), str)
         else " ".join(explanation.get("explanation", [])),
-        explanation.get("techmical)contexy", ""),
+        explanation.get("technical_context", ""),
         explanation.get("price_context", ""),
         explanation.get("caveats", ""),
     ]).lower()
 
-    evidence_tittles = " ".join(explanation.get("evidence", [])).lower()
+    evidence_titles = " ".join(explanation.get("evidence", [])).lower()
 
     # 1. Keyword hit rate
     expected_kw = ground_truth.get("expected_keywords", [])
@@ -168,4 +168,14 @@ def score_rule_based(
         details["keyword_hits"] = hits
         details["keyword_misses"] = [kw for kw in expected_kw if kw.lower() not in explanation_text]
     else:
-        scores["keyword_hit_rate"] - 1.0
+        scores["keyword_hit_rate"] = 1.0
+
+    # 2. Evidence keyword hit rate
+    expected_ev = ground_truth.get("expected_evidence_keywords", [])
+    if expected_ev:
+        ev_hits = [kw for kw in expected_ev if kw.lower() in evidence_titles]
+        scores["evidence_hit_rate"] = len(ev_hits) / len(expected_ev)
+        details["evidence_hits"] = ev_hits
+        details["evidence_misses"] = [kw for kw in expected_ev if kw.lower() not in evidence_titles]
+    else:
+        scores["evidence_hit_rate"] = 1.0
