@@ -37,3 +37,40 @@ from backend.agents.tools import (
 )
 from backend.agents.orchestrator import run_agent
  
+
+
+# ----- MCP Server instance
+ 
+server = Server("market-explanation-engine")
+
+
+# ----- Tool registry — maps MCP tool names to handler functions
+
+ 
+@server.list_tools()
+async def list_tools() -> list[Tool]:
+    """Declare all tools available to MCP clients."""
+    return [
+        Tool(
+            name="get_event_details",
+            description=(
+                "Get details about a statistically significant price event for a stock. "
+                "Returns event type (PRICE_SPIKE or PRICE_DROP), magnitude percentage, "
+                "z-score anomaly score, RSI at event time, volatility, and trend context. "
+                "Use this first when investigating any stock price movement."
+            ),
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "symbol": {
+                        "type": "string",
+                        "description": "Stock ticker symbol e.g. AAPL, MSFT, NVDA, V, GOOGL",
+                    },
+                    "date_str": {
+                        "type": "string",
+                        "description": "Optional date in YYYY-MM-DD format to target a specific event",
+                    },
+                },
+                "required": ["symbol"],
+            },
+        ),
