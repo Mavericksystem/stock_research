@@ -79,4 +79,24 @@ GROUND_TRUTH: list[dict[str, Any]] = [
         "known_cause": "Alphabet Q1 2026 - Google cloud revenue gre 63% YoY",
         "min_confidence": 0.80
     },
+    {
+        "symbol": "META",
+        "date": "2026-04-30",
+        "question": "Why did META stock drop on 2026-04-30?",
+        "event_type": "PRICE_DROP",
+        "expected_magnitude_pct": -8.55,
+        "expected_causal_type": "analyst_action",
+        "expected_keywords": [
+            "jpmorgan", "downgrade", "capex", "ai", "spending",
+        ],
+        "expected_evidence_keywords": [
+            "meta", "jpmorgan", "droppend", "price target", "earnings",
+        ],
+        "should_not_contain": [
+            "spike", "surged",
+        ],
+        "known_cause": "JPMorgan downgrade + AI capex concers depite Q1 earnings beat",
+        "min_confidence": 0.75,
+        "acceptable_causal_types": ["analyst_action", "earnings", "macro"],
+    },
 ]
