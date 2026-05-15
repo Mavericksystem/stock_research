@@ -80,3 +80,41 @@ export default function EventsSidebar({ open, onToggle, onEventSelect }) {
     useEffect(() => {
         loadEvents();
     }, [loadEvents]);
+
+
+    const handleSelect = (event) => {
+        const direction = (event.event_type ?? "").includes("SPIKE") ? "spike" : "drop";
+        onEventSelect(`Why did ${event.symbol} ${direction} on ${event.start_date}?`);
+    };
+
+    return (
+        <div className={`ec-root ${open ? "ec-root--open" : "ec-root--closed"}`}>
+            {/* Sidebar panel */}
+            <aside className="ec-sidebar" aria-label="Recent market anomalies">
+                <div className="ec-sidebar-header">
+                    <span className="ec-sidebar-title">ANOMALIES</span>
+                    <button
+                        className="ec-refresh"
+                        onClick={loadEvents}
+                        disabled={loading}
+                        aria-label="Refresh anomalies"
+                        title="Refresh"
+                    >
+                        <svg
+                            width="13"
+                            height="13"
+                            viewBox="0 0 13 13"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className={loading ? "ec-spin" : ""}
+                        >
+                            <path d="M11.5 2A5.5 5.5 0 0 0 1 6.5" />
+                            <path d="M1.5 11A5.5 5.5 0 0 0 12 6.5" />
+                            <polyline points="11.5,2 11.5,5.5 8,5.5" />
+                            <polyline points="1.5,11 1.5,7.5 5,7.5" />
+                        </svg>
+                    </button>
+                </div>
