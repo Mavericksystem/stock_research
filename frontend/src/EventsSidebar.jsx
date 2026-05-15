@@ -75,3 +75,83 @@
     min - width: 220px;
     border - top: 1px solid rgba(255, 255, 255, 0.04);
 }
+
+
+/* ─── Event cards ───────────────────────────────────────────────── */
+ 
+.ec - card {
+    width: 100 %;
+    background: transparent;
+    border: 1px solid transparent;
+    border - radius: 7px;
+    padding: 9px 10px;
+    margin - bottom: 3px;
+    cursor: pointer;
+    text - align: left;
+    transition: background 0.12s ease, border - color 0.12s ease;
+}
+ 
+.ec - card--interactive:hover {
+    background: rgba(255, 255, 255, 0.05);
+    border - color: rgba(255, 255, 255, 0.08);
+}
+ 
+.ec - card--interactive:active {
+    background: rgba(255, 255, 255, 0.08);
+}
+ 
+.ec - card - row {
+    display: flex;
+    align - items: center;
+    justify - content: space - between;
+    gap: 6px;
+    margin - bottom: 4px;
+}
+ 
+.ec - card - meta {
+    display: flex;
+    align - items: center;
+    gap: 8px;
+}
+ 
+.ec - symbol {
+    font - family: var(--font - mono, "JetBrains Mono", monospace);
+    font - size: 12px;
+    font - weight: 500;
+    color: var(--amber, #f59e0b);
+    letter - spacing: 0.02em;
+}
+ 
+.ec - badge {
+    font - family: var(--font - mono, "JetBrains Mono", monospace);
+    font - size: 10px;
+    font - weight: 500;
+    padding: 2px 6px;
+    border - radius: 4px;
+    letter - spacing: 0.02em;
+    flex - shrink: 0;
+}
+ 
+.ec - badge--spike {
+    background: rgba(16, 185, 129, 0.12);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.2);
+}
+ 
+.ec - badge--drop {
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+ 
+.ec - date {
+    font - family: var(--font - mono, "JetBrains Mono", monospace);
+    font - size: 10px;
+    color: var(--text - dim, rgba(255, 255, 255, 0.35));
+}
+ 
+.ec - zscore {
+    font - family: var(--font - mono, "JetBrains Mono", monospace);
+    font - size: 10px;
+    color: rgba(255, 255, 255, 0.2);
+}
