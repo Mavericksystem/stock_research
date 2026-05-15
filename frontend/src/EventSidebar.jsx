@@ -55,3 +55,28 @@ function EventCard({ event, onClick }) {
             </div>
         </button>
     );
+}
+
+export default function EventsSidebar({ open, onToggle, onEventSelect }) {
+    const [events, setEvents] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [lastRefresh, setLastRefresh] = useState(null);
+
+    const loadEvents = useCallback(() => {
+        setLoading(true);
+        Promise.allSettled(STOCKS.map(fetchEventsForSymbol)).then((results) => {
+            const all = results
+                .filter((r) => r.status === "fulfilled")
+                .flatMap((r) => r.value)
+                .filter((e) => e?.start_date)
+                .sort((a, b) => new Date(b.start_date) - new Date(a.start_date))
+                .slice(0, 25);
+            setEvents(all);
+            setLoading(false);
+            setLastRefresh(new Date());
+        });
+    }, []);
+
+    useEffect(() => {
+        loadEvents();
+    }, [loadEvents]);
