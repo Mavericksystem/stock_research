@@ -14,3 +14,15 @@ async function fetchEventsForSymbol(symbol) {
         return [];
     }
 }
+
+function SkeletonCard() {
+    return (
+        <div className="ec-card ec-card--skeleton" aria-hidden="true">
+            <div className="ec-skeleton ec-skeleton--row">
+                <div className="ec-skeleton--chip" />
+                <div className="ec-skeleton--badge" />
+            </div>
+            <div className="ec-skeleton--date" />
+        </div>
+    );
+}
