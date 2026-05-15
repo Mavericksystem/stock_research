@@ -236,3 +236,34 @@
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
 }
+
+/* ─── Refresh button ────────────────────────────────────────────── */
+ 
+.ec - refresh {
+    background: none;
+    border: none;
+    padding: 3px;
+    cursor: pointer;
+    color: var(--text - dim, rgba(255, 255, 255, 0.35));
+    border - radius: 4px;
+    display: flex;
+    align - items: center;
+    transition: color 0.12s ease;
+}
+ 
+.ec - refresh:hover {
+    color: rgba(255, 255, 255, 0.6);
+}
+ 
+.ec - refresh:disabled {
+    cursor: default ;
+}
+ 
+.ec - spin {
+    animation: ec - rotate 0.8s linear infinite;
+}
+
+@keyframes ec - rotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
