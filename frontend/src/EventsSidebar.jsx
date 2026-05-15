@@ -155,3 +155,53 @@
     font - size: 10px;
     color: rgba(255, 255, 255, 0.2);
 }
+
+/* ─── Skeleton loading ──────────────────────────────────────────── */
+ 
+.ec - card--skeleton {
+    cursor: default ;
+}
+ 
+.ec - skeleton--row {
+    display: flex;
+    align - items: center;
+    justify - content: space - between;
+    margin - bottom: 6px;
+}
+ 
+.ec - skeleton {
+    background: rgba(255, 255, 255, 0.06);
+    border - radius: 3px;
+    animation: ec - pulse 1.4s ease -in -out infinite;
+}
+ 
+.ec - skeleton--chip {
+    width: 36px;
+    height: 12px;
+    background: rgba(255, 255, 255, 0.06);
+    border - radius: 3px;
+    animation: ec - pulse 1.4s ease -in -out infinite;
+}
+ 
+.ec - skeleton--badge {
+    width: 48px;
+    height: 18px;
+    background: rgba(255, 255, 255, 0.06);
+    border - radius: 4px;
+    animation: ec - pulse 1.4s ease -in -out infinite;
+    animation - delay: 0.1s;
+}
+ 
+.ec - skeleton--date {
+    width: 70px;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.04);
+    border - radius: 3px;
+    animation: ec - pulse 1.4s ease -in -out infinite;
+    animation - delay: 0.2s;
+}
+
+@keyframes ec - pulse {
+    0 %, 100 % { opacity: 0.4; }
+    50 % { opacity: 0.9; }
+}
