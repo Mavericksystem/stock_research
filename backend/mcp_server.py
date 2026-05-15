@@ -255,7 +255,7 @@ async def call_tool(name: str, arguments: dict[str, Any]) -> CallToolResult:
         )
     
  
-# ------------- Entry point ------------
+# ------------- Entry point ------------------------------------------------------------------------------
  
 async def main() -> None:
     """Run the MCP server over stdio transport."""
