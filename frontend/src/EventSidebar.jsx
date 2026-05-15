@@ -118,3 +118,50 @@ export default function EventsSidebar({ open, onToggle, onEventSelect }) {
                         </svg>
                     </button>
                 </div>
+
+                <div className="ec-sidebar-body">
+                    {loading ? (
+                        Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
+                    ) : events.length === 0 ? (
+                        <div className="ec-empty">No anomalies in range</div>
+                    ) : (
+                        events.map((event, i) => (
+                            <EventCard
+                                key={`${event.symbol}-${event.start_date}-${i}`}
+                                event={event}
+                                onClick={() => handleSelect(event)}
+                            />
+                        ))
+                    )}
+                </div>
+
+                {lastRefresh && (
+                    <div className="ec-footer">
+                        Updated {lastRefresh.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </div>
+                )}
+            </aside>
+
+            {/* Toggle tab — always visible, straddling the sidebar edge */}
+            <button
+                className="ec-toggle"
+                onClick={onToggle}
+                aria-label={open ? "Collapse sidebar" : "Expand sidebar"}
+                aria-expanded={open}
+            >
+                <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 10 10"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                >
+                    <path d={open ? "M7 1L3 5l4 4" : "M3 1l4 4-4 4"} />
+                </svg>
+            </button>
+        </div>
+    );
+}
