@@ -267,3 +267,26 @@
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
 }
+
+/* ─── Toggle tab ────────────────────────────────────────────────── */
+ 
+.ec - toggle {
+    position: relative;
+    width: 16px;
+    flex - shrink: 0;
+    background: transparent;
+    border: none;
+    border - right: 1px solid rgba(255, 255, 255, 0.06);
+    cursor: pointer;
+    color: rgba(255, 255, 255, 0.25);
+    display: flex;
+    align - items: center;
+    justify - content: center;
+    transition: color 0.15s ease, background 0.15s ease;
+    padding: 0;
+}
+ 
+.ec - toggle:hover {
+    background: rgba(255, 255, 255, 0.04);
+    color: rgba(255, 255, 255, 0.6);
+}
