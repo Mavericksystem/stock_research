@@ -39,12 +39,12 @@ from backend.agents.orchestrator import run_agent
  
 
 
-# ----- MCP Server instance
+# ----- MCP Server instance------------------------------------------------------------------------------------
  
 server = Server("market-explanation-engine")
 
 
-# ----- Tool registry — maps MCP tool names to handler functions
+# ----- Tool registry — maps MCP tool names to handler functions---------------------------------------------
 
  
 @server.list_tools()
