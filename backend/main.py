@@ -11,6 +11,7 @@ _cors_origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "https://your-frontend.onrender.com",
+    "https://stock-research-tibb.vercel.app",
 ]
 
 if not any(m.cls is CORSMiddleware for m in app.user_middleware):
