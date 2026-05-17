@@ -45,3 +45,20 @@ async def root():
 @app.get("/health")
 async def health_check():
     return{"status": "healthy", "version": "v1"}
+
+
+@app.get(f"{API_V1}/debug/db_test")
+async def debug_db_test():
+    """Run a lightweight DB connectivity test and return result or full traceback."""
+    from sqlalchemy import text
+    from backend.db.connection import engine
+    import traceback
+
+    try:
+        async with engine.connect() as conn:
+            res = await conn.execute(text("SELECT 1"))
+            val = res.scalar()
+        return {"status": "ok", "db_result": val}
+    except Exception as e:
+        tb = traceback.format_exc()
+        return {"status": "error", "error": str(e), "traceback": tb}
