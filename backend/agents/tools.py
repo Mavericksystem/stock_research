@@ -7,9 +7,12 @@ No business logic here. Data retrieval only.
 from __future__ import annotations
 
 import json
+import logging
 import inspect
 from datetime import date, datetime, timedelta
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 from sqlalchemy import select, desc
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
@@ -452,4 +455,6 @@ async def dispatch_tool(tool_name: str, tool_args: dict[str, Any]) -> str:
         result = await fn(**tool_args)
         return json.dumps(result, default=str)
     except Exception as e:
+        # Log the full exception traceback for debugging in Render logs
+        logger.error(f"Tool '{tool_name}' execution failed with args {tool_args}", exc_info=True)
         return json.dumps({"error": f"Tool execution failed: {str(e)}"})
