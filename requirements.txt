@@ -15,3 +15,4 @@ chromadb
 sentence-transformers
 ta
 pgvector
+certifi

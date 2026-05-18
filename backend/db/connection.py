@@ -27,8 +27,20 @@ if db_url:
     if sslmode:
         sslmode_normalized = str(sslmode).strip().lower()
         if sslmode_normalized not in {"disable", "allow"}:
-            # `ssl=True` tells asyncpg to require SSL (Render Postgres typically needs this).
-            connect_args["ssl"] = True
+            # asyncpg expects `ssl` (SSLContext/bool), not `sslmode`.
+            # Use certifi CA bundle when available to avoid missing-system-CA issues
+            # in some container images.
+            try:
+                import ssl as _ssl
+                import certifi  # type: ignore
+
+                ssl_ctx = _ssl.create_default_context(cafile=certifi.where())
+                # Keep hostname verification on by default.
+                # (Supabase pooler uses a publicly trusted cert.)
+                connect_args["ssl"] = ssl_ctx
+            except Exception:
+                # Fallback: still require SSL, using platform default CA store.
+                connect_args["ssl"] = True
 
     url = url.set(query=query)
     db_url = str(url)
