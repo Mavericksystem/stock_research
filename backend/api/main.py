@@ -53,12 +53,37 @@ async def debug_db_test():
     from sqlalchemy import text
     from backend.db.connection import engine
     import traceback
+    import socket
+
+    def _db_diagnostics() -> dict:
+        try:
+            url = engine.url
+            safe_url = url.render_as_string(hide_password=True)
+            host = url.host
+            port = url.port
+            query = dict(url.query)
+        except Exception:
+            return {"database_url": None, "host": None, "port": None, "query": None, "dns": None}
+
+        dns = None
+        if host:
+            try:
+                infos = socket.getaddrinfo(host, port or 5432, type=socket.SOCK_STREAM)
+                # Keep this small; just enough to see IPv4 vs IPv6.
+                dns = [
+                    {"family": i[0], "socktype": i[1], "proto": i[2], "address": i[4][0]}
+                    for i in infos
+                ][:10]
+            except Exception as e:
+                dns = {"error": str(e)}
+
+        return {"database_url": safe_url, "host": host, "port": port, "query": query, "dns": dns}
 
     try:
         async with engine.connect() as conn:
             res = await conn.execute(text("SELECT 1"))
             val = res.scalar()
-        return {"status": "ok", "db_result": val}
+        return {"status": "ok", "db_result": val, "db": _db_diagnostics()}
     except Exception as e:
         tb = traceback.format_exc()
-        return {"status": "error", "error": str(e), "traceback": tb}
+        return {"status": "error", "error": str(e), "traceback": tb, "db": _db_diagnostics()}
