@@ -18,7 +18,8 @@ if not db_url:
 engine = create_async_engine(
     db_url,
     echo=False,
-    connect_args={"ssl": "require"}
+    pool_pre_ping=True,
+    connect_args={"ssl": "require", "statement_cache_size": 0}
 )
 
 async_session_maker = async_sessionmaker(engine, expire_on_commit=False)
