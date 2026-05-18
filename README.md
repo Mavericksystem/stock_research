@@ -8,63 +8,94 @@ Production-grade market intelligence platform that detects price events, links t
 
 ```mermaid
 flowchart LR
-	subgraph Frontend[Vercel Frontend]
-		FE[React + Vite SPA]
-	end
 
-	subgraph Backend[Render Backend]
-		API[FastAPI /api/v1]
-		Routes[Routes: ask, analysis, stock]
-		Services[Services: analysis_service, stock_service]
-		RAG[RAG: retriever + generator]
-		Processing[Processing: indicators, signals, events]
-		Ingestion[Ingestion: news_scraper, tiingo, yfinance, embeddings]
-		DBLayer[DB Layer: SQLAlchemy async + asyncpg]
-		Utils[Utils: helpers]
-	end
+    %% =========================
+    %% Frontend
+    %% =========================
+    subgraph FRONTEND["Frontend Layer"]
+        FE["React + Vite SPA
+        Hosted on Vercel"]
+    end
 
-	subgraph Data[Data Stores]
-		PG[(Supabase Postgres + pgvector)]
-	end
+    %% =========================
+    %% API
+    %% =========================
+    subgraph API["API Layer"]
+        FASTAPI["FastAPI Backend
+        REST APIs"]
+    end
 
-	subgraph External[External APIs]
-		TIINGO[Tiingo]
-		FINNHUB[Finnhub]
-		YF[yfinance]
-		NVIDIA[NVIDIA NIM]
-		EDGAR[SEC EDGAR]
-	end
+    %% =========================
+    %% Core Intelligence
+    %% =========================
+    subgraph CORE["Core Intelligence Layer"]
+        AGENTS["AI Agent Orchestrator"]
+        RAG["RAG + Context Engine"]
+        ANALYTICS["Analytics Engine
+        Signals + Event Detection"]
+    end
 
-	subgraph Ops[Local Ops]
-		S1[scripts/init_db.py]
-		S2[scripts/run_daily_10symbols.py]
-		S3[scripts/fetch_prices.py]
-		S4[scripts/recompute_signals_events_10symbols.py]
-	end
+    %% =========================
+    %% Processing
+    %% =========================
+    subgraph PROCESSING["Data Processing Layer"]
+        INGEST["Market Data Ingestion"]
+        EMBED["Embedding Pipeline"]
+    end
 
-	FE -->|HTTP| API
-	API --> Routes
-	Routes --> Services
-	Services --> RAG
-	Services --> Processing
-	Services --> Ingestion
-	Ingestion --> DBLayer
-	Processing --> DBLayer
-	RAG --> DBLayer
-	DBLayer --> PG
+    %% =========================
+    %% Storage
+    %% =========================
+    subgraph STORAGE["Storage Layer"]
+        POSTGRES[("Supabase PostgreSQL")]
+        VECTOR[("Vector Embeddings Store")]
+    end
 
-	Ingestion --> TIINGO
-	Ingestion --> FINNHUB
-	Ingestion --> YF
-	Ingestion --> EDGAR
-	RAG --> NVIDIA
+    %% =========================
+    %% External APIs
+    %% =========================
+    subgraph EXTERNAL["External Services"]
+        TIINGO["Tiingo API"]
+        FINNHUB["Finnhub API"]
+        EDGAR["SEC EDGAR"]
+        YFINANCE["yfinance"]
+        NVIDIA["NVIDIA NIM LLM"]
+    end
 
-	Ops --> DBLayer
-	Ops --> Ingestion
-	Ops --> Processing
+    %% =========================
+    %% User Flow
+    %% =========================
+    FE --> FASTAPI
+
+    FASTAPI --> AGENTS
+    FASTAPI --> RAG
+    FASTAPI --> ANALYTICS
+
+    AGENTS --> RAG
+
+    %% =========================
+    %% Data Flow
+    %% =========================
+    INGEST --> TIINGO
+    INGEST --> FINNHUB
+    INGEST --> EDGAR
+    INGEST --> YFINANCE
+
+    INGEST --> POSTGRES
+
+    EMBED --> VECTOR
+
+    %% =========================
+    %% Intelligence Access
+    %% =========================
+    RAG --> POSTGRES
+    RAG --> VECTOR
+    RAG --> NVIDIA
+
+    ANALYTICS --> POSTGRES
 ```
 
-The system separates ingestion/processing from explanation generation. Market data and news are normalized and stored in PostgreSQL with vector search support. The AI agent retrieves evidence via RAG and produces structured explanations that are persisted back to the events table.
+The system is layered by responsibility: Frontend → API → Intelligence → Processing → Storage. Market data flows from external sources through ingestion and embedding pipelines into PostgreSQL and vector stores. The RAG engine retrieves evidence and grounds the AI agent's explanations.
 
 ---
 
