@@ -61,6 +61,12 @@ async def debug_db_test():
             host = url.host
             port = url.port
             query = dict(url.query)
+            from backend.db import connection as _dbc
+            ssl_info = {
+                "sslmode_effective": getattr(_dbc, "DB_SSLMODE_EFFECTIVE", None),
+                "ssl_config": getattr(_dbc, "DB_SSL_CONFIG", None),
+                "normalized_url": getattr(_dbc, "DB_URL_NORMALIZED", None),
+            }
         except Exception:
             return {"database_url": None, "host": None, "port": None, "query": None, "dns": None}
 
@@ -76,7 +82,14 @@ async def debug_db_test():
             except Exception as e:
                 dns = {"error": str(e)}
 
-        return {"database_url": safe_url, "host": host, "port": port, "query": query, "dns": dns}
+        return {
+            "database_url": safe_url,
+            "host": host,
+            "port": port,
+            "query": query,
+            "dns": dns,
+            "ssl": ssl_info,
+        }
 
     try:
         async with engine.connect() as conn:
