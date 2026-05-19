@@ -330,6 +330,67 @@ html, body, #root {
   margin-top: 2px;
 }
 
+/* ── Tool steps ──────────────────────────────────────────────────────────── */
+.tool-steps {
+  padding-left: 34px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.tool-steps-title {
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: var(--text-dim);
+}
+
+.tool-steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tool-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-muted);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.tool-step-indicator {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.tool-step-running .tool-step-indicator {
+  border-color: var(--amber-border);
+  border-top-color: var(--amber);
+  animation: spin 0.9s linear infinite;
+}
+
+.tool-step-done {
+  color: var(--green);
+  opacity: 0;
+  transform: translateX(4px);
+}
+
+.tool-step-done .tool-step-indicator {
+  background: var(--green);
+  border-color: var(--green);
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
 /* ── Typing indicator ─────────────────────────────────────────────────────── */
 .typing {
   display: flex;
