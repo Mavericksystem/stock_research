@@ -435,6 +435,30 @@ async def dispatch_tool(tool_name: str, tool_args: dict[str, Any]) -> str:
                     tool_args.setdefault("symbol", event.symbol)
                     tool_args.setdefault("date_str", event.start_date.isoformat() if event.start_date else None)
 
+        # Some models pass only symbol without date_str. Fall back to the most
+        # recent high-signal event for that symbol and reuse its start_date.
+        if "symbol" in tool_args and not tool_args.get("date_str"):
+            sym = str(tool_args["symbol"]).upper()
+            async with SessionLocal() as session:
+                stmt = (
+                    select(Event)
+                    .where(Event.symbol == sym)
+                    .order_by(Event.normalized_score.desc().nulls_last(), Event.start_date.desc())
+                    .limit(1)
+                )
+                result = await session.execute(stmt)
+                event = result.scalars().first()
+
+            if event and event.start_date:
+                tool_args["date_str"] = event.start_date.isoformat()
+            else:
+                return json.dumps(
+                    {
+                        "found": False,
+                        "error": f"date_str required but not provided and no events found for {sym}",
+                    }
+                )
+
     if tool_name == "get_news_context":
         # Some models may pass strings; coerce where safe.
         if "event_id" in tool_args:
