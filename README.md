@@ -2,6 +2,8 @@
 
 Production-grade market intelligence platform that detects price events, links them to news and signals, and generates grounded explanations. Built to turn noisy market data into structured, evidence-backed narratives. Designed for async ingestion, scalable storage, and low-latency retrieval for AI reasoning.
 
+**[🚀 Visit the Live Application](https://stockmarketmind.vercel.app/)**
+
 ---
 
 ## System Architecture
