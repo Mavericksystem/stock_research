@@ -45,6 +45,9 @@ async def root():
 async def health_check():
     return{"status": "healthy", "version": "v1"}
 
+@app.get("/api/health")
+async def api_health_check():
+    return{"status": "healthy", "version": "v1"}
 
 @app.get(f"{API_V1}/debug/db_test")
 async def debug_db_test():
