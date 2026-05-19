@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from backend.api.routes import stock, analysis, ask
 
@@ -41,13 +41,13 @@ async def root():
         "api_v1": API_V1,
     }
 
-@app.get("/health")
-async def health_check():
-    return{"status": "healthy", "version": "v1"}
+@app.api_route("/health", methods=["GET", "HEAD"])
+async def health_check(request: Request):
+    return {"status": "healthy", "version": "v1"}
 
-@app.get("/api/health")
-async def api_health_check():
-    return{"status": "healthy", "version": "v1"}
+@app.api_route("/api/health", methods=["GET", "HEAD"])
+async def api_health_check(request: Request):
+    return {"status": "healthy", "version": "v1"}
 
 @app.get(f"{API_V1}/debug/db_test")
 async def debug_db_test():
