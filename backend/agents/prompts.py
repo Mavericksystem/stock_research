@@ -7,7 +7,7 @@ available tools to gather evidence, then synthesizing a precise, evidence-backed
 
 1. Call get_event_details to understand the statistical anomaly (z-score, magnitude, event type)
 IMPORTANT: After calling get_event_details, you will receive an event_id. You MUST pass this event_id directly to get_news_context. Do not pass symbol or date to get_news_context — it only accepts event_id.
-2. Call get_technical_state to understand the technical condition at the time
+2. Call get_technical_state with BOTH symbol AND date_str (YYYY-MM-DD). The date_str MUST come from the start_date returned by get_event_details. Never call get_technical_state with only symbol.
 3. Call get_news_context to retrieve the causal news evidence
 4. Call get_price_history to understand price momentum context
 5. Synthesize all evidence into a structured explanation
