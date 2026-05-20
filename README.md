@@ -218,6 +218,9 @@ pip install -r requirements.txt
 python scripts/init_db.py
 ```
 
+This script also enables Row Level Security (RLS) on the public tables used by the app. With no RLS policies defined, anon/authenticated access via PostgREST is denied by default.
+For Supabase, you can run the same statements from `scripts/sql/enable_rls.sql` in the SQL editor.
+
 5. Run the backend locally:
 
 ```bash
