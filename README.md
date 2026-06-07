@@ -1,6 +1,6 @@
 # Market Intelligence & Explanation Engine
 
-Production-grade market intelligence platform that detects price events, links them to news and signals, and generates grounded explanations. Built to turn noisy market data into structured, evidence-backed narratives. Designed for async ingestion, scalable storage, and low-latency retrieval for AI reasoning.
+Production grade market intelligence platform that detects price events, links them to news and signals, and generates grounded explanations. Built to turn noisy market data into structured, evidence backed narratives. Designed for async ingestion, scalable storage, and low latency retrieval for AI reasoning.
 
 **[🚀 Visit the Live Application](https://stockmarketmind.vercel.app/)**
 
@@ -103,13 +103,13 @@ The system is layered by responsibility: Frontend → API → Intelligence → P
 
 ## Features
 
-- AI-powered stock event explanation engine
+- AI powered stock event explanation engine
 - Statistical anomaly detection and event extraction
-- Retrieval-Augmented Generation (RAG)
-- News-to-event contextual linking
+- Retrieval Augmented Generation (RAG)
+- News to event contextual linking
 - Technical indicator pipeline
 - Vector similarity search with pgvector
-- Multi-source financial data ingestion
+- Multi source financial data ingestion
 - REST API with async I/O
 
 ---
@@ -124,8 +124,8 @@ The system is layered by responsibility: Frontend → API → Intelligence → P
 - pgvector
 
 ### AI / ML
-- NVIDIA NIM (OpenAI-compatible API)
-- Embedding-based retrieval
+- NVIDIA NIM (OpenAI compatible API)
+- Embedding based retrieval
 - RAG pipeline
 
 ### Data Sources
@@ -171,7 +171,7 @@ The system is layered by responsibility: Frontend → API → Intelligence → P
 
 ## Database Design
 
-PostgreSQL stores structured time-series data, derived signals, and event metadata. pgvector is used to store embeddings for semantic retrieval. The core relationship is:
+PostgreSQL stores structured time series data, derived signals, and event metadata. pgvector is used to store embeddings for semantic retrieval. The core relationship is:
 
 - Events reference computed signals and time windows.
 - News articles are embedded and linked to events by relevance.
@@ -185,8 +185,8 @@ The system uses async SQLAlchemy for scalable I/O and to support concurrent infe
 
 - Retrieve: query relevant events/news using vector similarity and structured filters.
 - Ground: construct a context bundle with evidence and metadata.
-- Generate: NVIDIA NIM produces JSON-structured explanations.
-- Reduce hallucinations: responses are evidence-backed and stored with traceable context.
+- Generate: NVIDIA NIM produces JSON structured explanations.
+- Reduce hallucinations: responses are evidence backed and stored with traceable context.
 
 ---
 
@@ -249,12 +249,12 @@ Never commit secrets to source control.
 
 ## Future Improvements
 
-- Multi-stock correlation analysis
-- Real-time streaming ingestion
+- Multi stock correlation analysis
+- Real time streaming ingestion
 - Temporal event clustering
-- Portfolio-level reasoning
-- Multi-agent orchestration
-- Fine-tuned financial LLM
+- Portfolio level reasoning
+- Multi agent orchestration
+- Fine tuned financial LLM
 
 ---
 
