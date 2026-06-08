@@ -274,3 +274,7 @@ Never commit secrets to source control.
 - RAG: grounds model outputs in evidence to improve trust.
 - Supabase: managed Postgres with operational simplicity.
 - Statistical anomaly detection: reliable, explainable event triggers before LLM synthesis.
+
+
+
+## corrections need to make 
