@@ -4,6 +4,17 @@
 
 /* ── Design tokens ────────────────────────────────────────────────────────── */
 :root {
+  --fs-xs: clamp(0.75rem, 0.72rem + 0.15vw, 0.85rem);
+  --fs-sm: clamp(0.875rem, 0.82rem + 0.25vw, 1rem);
+  --fs-md: clamp(1rem, 0.95rem + 0.35vw, 1.125rem);
+  --fs-lg: clamp(1.25rem, 1.1rem + 0.7vw, 1.75rem);
+  --fs-xl: clamp(1.75rem, 1.4rem + 1vw, 2.5rem);
+  --fs-hero: clamp(2.25rem, 1.5rem + 2vw, 4rem);
+
+  --fs-title: clamp(1.5rem, 2vw, 2.5rem);
+  --fs-subtitle: clamp(1rem, 1.2vw, 1.25rem);
+  --fs-body: clamp(0.9rem, 0.9vw, 1rem);
+  
   --bg:           #080c10;
   --surface:      #0e1318;
   --surface-2:    #141b22;
@@ -21,7 +32,7 @@
   --text-muted:   #4a6070;
   --text-dim:     #2a3a4a;
 
-  --font-ui:   "Sora", sans-serif;
+  --font-ui:   "Inter", sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 
   --radius:    8px;
@@ -34,7 +45,7 @@ html, body, #root {
   background: var(--bg);
   color: var(--text);
   font-family: var(--font-ui);
-  font-size: 14px;
+  font-size: clamp(14px, 0.9vw, 17px);
   line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
@@ -49,8 +60,27 @@ html, body, #root {
   display: flex;
   flex-direction: column;
   height: 100vh;
-  max-width: 860px;
+  width: 100%;
+  max-width: 1440px;
   margin: 0 auto;
+  padding: 0 24px;
+}
+
+/* =========================
+   Responsive Layout
+========================= */
+
+@media (max-width: 768px) {
+
+  .layout {
+    padding: 0 12px;
+    max-width: 100%;
+  }
+
+  .header {
+    padding: 14px 12px;
+  }
+
 }
 
 /* ── Header ───────────────────────────────────────────────────────────────── */
