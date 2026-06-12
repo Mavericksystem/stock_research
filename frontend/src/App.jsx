@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { askQuestion } from "./api";
-
+import EventsSidebar from "./EventsSidebar";
+import "./sidebar.css";
 // ── Constants ──────────────────────────────────────────────────────────────
 
 const STOCKS = ["AAPL", "MSFT", "NVDA", "GOOGL", "AMZN", "META", "TSLA", "JPM", "V", "WMT"];
@@ -287,6 +288,7 @@ function SendIcon() {
 
 export default function App() {
   const [messages, setMessages] = useState([]);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [steps, setSteps] = useState([]);
@@ -457,7 +459,7 @@ export default function App() {
 
   return (
     <div className="layout">
-      {/* Header */}
+
       <header className="header">
         <div className="header-logo">
           <div className="header-logo-mark">M²</div>
@@ -469,69 +471,80 @@ export default function App() {
         </div>
       </header>
 
-      {/* Chat area */}
-      <div className="chat-area">
-        {messages.length === 0 && !loading ? (
-          <EmptyState onSuggestion={handleSuggestion} onStock={handleStockPill} />
-        ) : (
-          messages.map((msg) => (
-            <div key={msg.id} className="message">
-              {msg.type === "user" ? (
-                <div className="message-user">
-                  <div className="message-user-bubble">{msg.content}</div>
+      <div className="layout-body">
+
+        <EventsSidebar
+          open={sidebarOpen}
+          onToggle={() => setSidebarOpen((v) => !v)}
+          onEventSelect={(question) => submit(question)}
+        />
+
+        <div className="main-content">
+
+          <div className="chat-area">
+            {messages.length === 0 && !loading ? (
+              <EmptyState onSuggestion={handleSuggestion} onStock={handleStockPill} />
+            ) : (
+              messages.map((msg) => (
+                <div key={msg.id} className="message">
+                  {msg.type === "user" ? (
+                    <div className="message-user">
+                      <div className="message-user-bubble">{msg.content}</div>
+                    </div>
+                  ) : (
+                    <AssistantMessage msg={msg} />
+                  )}
                 </div>
-              ) : (
-                <AssistantMessage msg={msg} />
-              )}
-            </div>
-          ))
-        )}
+              ))
+            )}
 
-        {loading && (
-          <div className="message">
-            <div className="message-assistant">
-              <div className="message-assistant-header">
-                <div className="assistant-icon">M</div>
-                {streamingSymbol && (
-                  <span className="event-meta" style={{ fontWeight: 500, color: "var(--amber)", opacity: 0.9 }}>
-                    {streamingSymbol}
-                  </span>
-                )}
+            {loading && (
+              <div className="message">
+                <div className="message-assistant">
+                  <div className="message-assistant-header">
+                    <div className="assistant-icon">M</div>
+                    {streamingSymbol && (
+                      <span className="event-meta" style={{ fontWeight: 500, color: "var(--amber)", opacity: 0.9 }}>
+                        {streamingSymbol}
+                      </span>
+                    )}
+                  </div>
+                  <ToolSteps steps={steps} />
+                  {streamingAnswer ? (
+                    <p className="message-answer">{streamingAnswer}</p>
+                  ) : (
+                    <TypingIndicator inline />
+                  )}
+                </div>
               </div>
-              <ToolSteps steps={steps} />
-              {streamingAnswer ? (
-                <p className="message-answer">{streamingAnswer}</p>
-              ) : (
-                <TypingIndicator inline />
-              )}
-            </div>
+            )}
+            <div ref={bottomRef} />
           </div>
-        )}
-        <div ref={bottomRef} />
-      </div>
 
-      {/* Input */}
-      <div className="input-bar">
-        <div className="input-wrap">
-          <textarea
-            ref={textareaRef}
-            className="input-field"
-            rows={1}
-            placeholder="Ask why a stock moved…"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={handleKey}
-            disabled={loading}
-          />
-          <button
-            className="send-btn"
-            onClick={() => submit(input)}
-            disabled={loading || !input.trim()}
-          >
-            <SendIcon />
-          </button>
+          <div className="input-bar">
+            <div className="input-wrap">
+              <textarea
+                ref={textareaRef}
+                className="input-field"
+                rows={1}
+                placeholder="Ask why a stock moved…"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={handleKey}
+                disabled={loading}
+              />
+              <button
+                className="send-btn"
+                onClick={() => submit(input)}
+                disabled={loading || !input.trim()}
+              >
+                <SendIcon />
+              </button>
+            </div>
+            <div className="input-hint">Enter to send · Shift+Enter for new line</div>
+          </div>
+
         </div>
-        <div className="input-hint">Enter to send · Shift+Enter for new line</div>
       </div>
     </div>
   );
