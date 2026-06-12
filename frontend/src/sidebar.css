@@ -23,7 +23,8 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  border-right: 1px solid rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(12px);
   background: rgba(255, 255, 255, 0.015);
   transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1),
               opacity 0.18s ease;
@@ -41,11 +42,10 @@
 }
 
 .ec-sidebar-title {
-  font-family: var(--font-mono, "JetBrains Mono", monospace);
-  font-size: 10px;
-  font-weight: 500;
-  letter-spacing: 0.1em;
-  color: var(--text-dim, rgba(255, 255, 255, 0.35));
+  font-size: 13px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: 0.08em;
 }
 
 .ec-sidebar-body {
@@ -79,20 +79,18 @@
 /* ─── Event cards ───────────────────────────────────────────────── */
 
 .ec-card {
+  padding: 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,0.08);
+  background: rgba(255,255,255,0.02);
   width: 100%;
-  background: transparent;
-  border: 1px solid transparent;
-  border-radius: 7px;
-  padding: 9px 10px;
-  margin-bottom: 3px;
-  cursor: pointer;
-  text-align: left;
-  transition: background 0.12s ease, border-color 0.12s ease;
+  display: block;
+  transition: all 0.2s ease;
 }
 
 .ec-card--interactive:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255,255,255,0.04);
+  border-color: rgba(255,255,255,0.16);
 }
 
 .ec-card--interactive:active {
@@ -108,16 +106,16 @@
 }
 
 .ec-card-meta {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  color: rgba(255,255,255,0.75);
+  font-size: 12px;
+  font-weight: 900;
 }
 
 .ec-symbol {
   font-family: var(--font-mono, "JetBrains Mono", monospace);
   font-size: 12px;
   font-weight: 500;
-  color: var(--amber, #f59e0b);
+  color: #ffffff;
   letter-spacing: 0.02em;
 }
 
@@ -133,26 +131,26 @@
 
 .ec-badge--spike {
   background: rgba(16, 185, 129, 0.12);
-  color: #10b981;
+  color: var(--spike);
   border: 1px solid rgba(16, 185, 129, 0.2);
 }
 
 .ec-badge--drop {
   background: rgba(239, 68, 68, 0.12);
-  color: #ef4444;
+  color: var(--drop);
   border: 1px solid rgba(239, 68, 68, 0.2);
 }
 
 .ec-date {
   font-family: var(--font-mono, "JetBrains Mono", monospace);
-  font-size: 10px;
-  color: var(--text-dim, rgba(255, 255, 255, 0.35));
+  font-size: 8px;
+  color: #ffffff;
 }
 
 .ec-zscore {
   font-family: var(--font-mono, "JetBrains Mono", monospace);
-  font-size: 10px;
-  color: rgba(255, 255, 255, 0.2);
+  font-size: 8px;
+  color: #ffffff;
 }
 
 /* ─── Skeleton loading ──────────────────────────────────────────── */
