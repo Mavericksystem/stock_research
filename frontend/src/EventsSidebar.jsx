@@ -88,6 +88,12 @@ export default function EventsSidebar({ open, onToggle, onEventSelect }) {
 
     return (
         <div className={`ec-root ${open ? "ec-root--open" : "ec-root--closed"}`}>
+            {/* tap outside to close on mobile */}
+            <div
+                className={`ec-backdrop ${open ? "ec-backdrop--visible" : ""}`}
+                onClick={onToggle}
+                aria-hidden="true"
+            />
             <aside
                 className="ec-sidebar"
                 aria-label="Recent market anomalies"
