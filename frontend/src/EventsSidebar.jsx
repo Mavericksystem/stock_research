@@ -1,292 +1,167 @@
-/* ─── Sidebar root wrapper ──────────────────────────────────────── */
- 
-.ec - root {
-    display: flex;
-    flex - shrink: 0;
-    position: relative;
-}
- 
-.ec - root--open.ec - sidebar {
-    width: 220px;
-    opacity: 1;
-}
- 
-.ec - root--closed.ec - sidebar {
-    width: 0;
-    opacity: 0;
-    pointer - events: none;
+import { useState, useEffect, useCallback } from "react";
+
+const STOCKS = ["AAPL", "MSFT", "NVDA", "GOOGL", "AMZN", "META", "TSLA", "JPM", "V", "WMT"];
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
+
+async function fetchEventsForSymbol(symbol) {
+    try {
+        const res = await fetch(`${API_BASE}/api/v1/stocks/${symbol}/events?limit=3`);
+        if (!res.ok) return [];
+        const json = await res.json();
+        const raw = json?.data ?? [];
+        return (Array.isArray(raw) ? raw : []).map((e) => ({ ...e, symbol }));
+    } catch {
+        return [];
+    }
 }
 
-/* ─── Sidebar panel ─────────────────────────────────────────────── */
- 
-.ec - sidebar {
-    overflow: hidden;
-    display: flex;
-    flex - direction: column;
-    border - right: 1px solid rgba(255, 255, 255, 0.06);
-    background: rgba(255, 255, 255, 0.015);
-    transition: width 0.22s cubic - bezier(0.4, 0, 0.2, 1),
-        opacity 0.18s ease;
-    will - change: width;
-}
- 
-.ec - sidebar - header {
-    display: flex;
-    align - items: center;
-    justify - content: space - between;
-    padding: 16px 14px 10px;
-    flex - shrink: 0;
-    border - bottom: 1px solid rgba(255, 255, 255, 0.05);
-    min - width: 220px;
-}
- 
-.ec - sidebar - title {
-    font - family: var(--font - mono, "JetBrains Mono", monospace);
-    font - size: 10px;
-    font - weight: 500;
-    letter - spacing: 0.1em;
-    color: var(--text - dim, rgba(255, 255, 255, 0.35));
-}
- 
-.ec - sidebar - body {
-    flex: 1;
-    overflow - y: auto;
-    overflow - x: hidden;
-    padding: 8px 8px;
-    min - width: 220px;
-    scrollbar - width: thin;
-    scrollbar - color: rgba(255, 255, 255, 0.08) transparent;
-}
- 
-.ec - sidebar - body:: -webkit - scrollbar {
-    width: 3px;
-}
- 
-.ec - sidebar - body:: -webkit - scrollbar - thumb {
-    background: rgba(255, 255, 255, 0.08);
-    border - radius: 2px;
-}
- 
-.ec - footer {
-    font - family: var(--font - mono, "JetBrains Mono", monospace);
-    font - size: 10px;
-    color: var(--text - dim, rgba(255, 255, 255, 0.25));
-    padding: 8px 14px 12px;
-    min - width: 220px;
-    border - top: 1px solid rgba(255, 255, 255, 0.04);
+function SkeletonCard() {
+    return (
+        <div className="ec-card ec-card--skeleton" aria-hidden="true">
+            <div className="ec-skeleton ec-skeleton--row">
+                <div className="ec-skeleton--chip" />
+                <div className="ec-skeleton--badge" />
+            </div>
+            <div className="ec-skeleton--date" />
+        </div>
+    );
 }
 
+function EventCard({ event, onClick }) {
+    const isSpike = (event.event_type ?? "").includes("SPIKE");
+    const mag = event.magnitude != null
+        ? `${isSpike ? "+" : ""}${parseFloat(event.magnitude).toFixed(2)}%`
+        : null;
 
-/* ─── Event cards ───────────────────────────────────────────────── */
- 
-.ec - card {
-    width: 100 %;
-    background: transparent;
-    border: 1px solid transparent;
-    border - radius: 7px;
-    padding: 9px 10px;
-    margin - bottom: 3px;
-    cursor: pointer;
-    text - align: left;
-    transition: background 0.12s ease, border - color 0.12s ease;
-}
- 
-.ec - card--interactive:hover {
-    background: rgba(255, 255, 255, 0.05);
-    border - color: rgba(255, 255, 255, 0.08);
-}
- 
-.ec - card--interactive:active {
-    background: rgba(255, 255, 255, 0.08);
-}
- 
-.ec - card - row {
-    display: flex;
-    align - items: center;
-    justify - content: space - between;
-    gap: 6px;
-    margin - bottom: 4px;
-}
- 
-.ec - card - meta {
-    display: flex;
-    align - items: center;
-    gap: 8px;
-}
- 
-.ec - symbol {
-    font - family: var(--font - mono, "JetBrains Mono", monospace);
-    font - size: 12px;
-    font - weight: 500;
-    color: var(--amber, #f59e0b);
-    letter - spacing: 0.02em;
-}
- 
-.ec - badge {
-    font - family: var(--font - mono, "JetBrains Mono", monospace);
-    font - size: 10px;
-    font - weight: 500;
-    padding: 2px 6px;
-    border - radius: 4px;
-    letter - spacing: 0.02em;
-    flex - shrink: 0;
-}
- 
-.ec - badge--spike {
-    background: rgba(16, 185, 129, 0.12);
-    color: #10b981;
-    border: 1px solid rgba(16, 185, 129, 0.2);
-}
- 
-.ec - badge--drop {
-    background: rgba(239, 68, 68, 0.12);
-    color: #ef4444;
-    border: 1px solid rgba(239, 68, 68, 0.2);
-}
- 
-.ec - date {
-    font - family: var(--font - mono, "JetBrains Mono", monospace);
-    font - size: 10px;
-    color: var(--text - dim, rgba(255, 255, 255, 0.35));
-}
- 
-.ec - zscore {
-    font - family: var(--font - mono, "JetBrains Mono", monospace);
-    font - size: 10px;
-    color: rgba(255, 255, 255, 0.2);
+    const zscore = event.normalized_score != null
+        ? `z=${parseFloat(event.normalized_score).toFixed(1)}`
+        : null;
+
+    return (
+        <button
+            className="ec-card ec-card--interactive"
+            onClick={onClick}
+            title={`Why did ${event.symbol} ${isSpike ? "spike" : "drop"} on ${event.start_date}?`}
+        >
+            <div className="ec-card-row">
+                <span className="ec-symbol">{event.symbol}</span>
+                <span className={`ec-badge ${isSpike ? "ec-badge--spike" : "ec-badge--drop"}`}>
+                    {isSpike ? "▲" : "▼"}{mag ? ` ${mag}` : ""}
+                </span>
+            </div>
+            <div className="ec-card-meta">
+                <span className="ec-date">{event.start_date}</span>
+                {zscore && <span className="ec-zscore">{zscore}</span>}
+            </div>
+        </button>
+    );
 }
 
-/* ─── Skeleton loading ──────────────────────────────────────────── */
- 
-.ec - card--skeleton {
-    cursor: default ;
-}
- 
-.ec - skeleton--row {
-    display: flex;
-    align - items: center;
-    justify - content: space - between;
-    margin - bottom: 6px;
-}
- 
-.ec - skeleton {
-    background: rgba(255, 255, 255, 0.06);
-    border - radius: 3px;
-    animation: ec - pulse 1.4s ease -in -out infinite;
-}
- 
-.ec - skeleton--chip {
-    width: 36px;
-    height: 12px;
-    background: rgba(255, 255, 255, 0.06);
-    border - radius: 3px;
-    animation: ec - pulse 1.4s ease -in -out infinite;
-}
- 
-.ec - skeleton--badge {
-    width: 48px;
-    height: 18px;
-    background: rgba(255, 255, 255, 0.06);
-    border - radius: 4px;
-    animation: ec - pulse 1.4s ease -in -out infinite;
-    animation - delay: 0.1s;
-}
- 
-.ec - skeleton--date {
-    width: 70px;
-    height: 10px;
-    background: rgba(255, 255, 255, 0.04);
-    border - radius: 3px;
-    animation: ec - pulse 1.4s ease -in -out infinite;
-    animation - delay: 0.2s;
-}
+export default function EventsSidebar({ open, onToggle, onEventSelect }) {
+    const [events, setEvents] = useState([]);
+    const [loading, setLoading] = useState(true);
+    const [lastRefresh, setLastRefresh] = useState(null);
 
-@keyframes ec - pulse {
-    0 %, 100 % { opacity: 0.4; }
-    50 % { opacity: 0.9; }
-}
+    const loadEvents = useCallback(() => {
+        setLoading(true);
+        Promise.allSettled(STOCKS.map(fetchEventsForSymbol)).then((results) => {
+            const all = results
+                .filter((r) => r.status === "fulfilled")
+                .flatMap((r) => r.value)
+                .filter((e) => e?.start_date)
+                .sort((a, b) => new Date(b.start_date) - new Date(a.start_date))
+                .slice(0, 25);
+            setEvents(all);
+            setLoading(false);
+            setLastRefresh(new Date());
+        });
+    }, []);
 
-/* ─── Refresh button ────────────────────────────────────────────── */
- 
-.ec - refresh {
-    background: none;
-    border: none;
-    padding: 3px;
-    cursor: pointer;
-    color: var(--text - dim, rgba(255, 255, 255, 0.35));
-    border - radius: 4px;
-    display: flex;
-    align - items: center;
-    transition: color 0.12s ease;
-}
- 
-.ec - refresh:hover {
-    color: rgba(255, 255, 255, 0.6);
-}
- 
-.ec - refresh:disabled {
-    cursor: default ;
-}
- 
-.ec - spin {
-    animation: ec - rotate 0.8s linear infinite;
-}
+    useEffect(() => {
+        loadEvents();
+    }, [loadEvents]);
 
-@keyframes ec - rotate {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
 
-/* ─── Refresh button ────────────────────────────────────────────── */
- 
-.ec - refresh {
-    background: none;
-    border: none;
-    padding: 3px;
-    cursor: pointer;
-    color: var(--text - dim, rgba(255, 255, 255, 0.35));
-    border - radius: 4px;
-    display: flex;
-    align - items: center;
-    transition: color 0.12s ease;
-}
- 
-.ec - refresh:hover {
-    color: rgba(255, 255, 255, 0.6);
-}
- 
-.ec - refresh:disabled {
-    cursor: default ;
-}
- 
-.ec - spin {
-    animation: ec - rotate 0.8s linear infinite;
-}
+    const handleSelect = (event) => {
+        const direction = (event.event_type ?? "").includes("SPIKE") ? "spike" : "drop";
+        onEventSelect(`Why did ${event.symbol} ${direction} on ${event.start_date}?`);
+    };
 
-@keyframes ec - rotate {
-  from { transform: rotate(0deg); }
-  to   { transform: rotate(360deg); }
-}
+    return (
+        <div className={`ec-root ${open ? "ec-root--open" : "ec-root--closed"}`}>
+            {/* Sidebar panel */}
+            <aside className="ec-sidebar" aria-label="Recent market anomalies">
+                <div className="ec-sidebar-header">
+                    <span className="ec-sidebar-title">ANOMALIES</span>
+                    <button
+                        className="ec-refresh"
+                        onClick={loadEvents}
+                        disabled={loading}
+                        aria-label="Refresh anomalies"
+                        title="Refresh"
+                    >
+                        <svg
+                            width="13"
+                            height="13"
+                            viewBox="0 0 13 13"
+                            fill="none"
+                            stroke="currentColor"
+                            strokeWidth="1.5"
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            className={loading ? "ec-spin" : ""}
+                        >
+                            <path d="M11.5 2A5.5 5.5 0 0 0 1 6.5" />
+                            <path d="M1.5 11A5.5 5.5 0 0 0 12 6.5" />
+                            <polyline points="11.5,2 11.5,5.5 8,5.5" />
+                            <polyline points="1.5,11 1.5,7.5 5,7.5" />
+                        </svg>
+                    </button>
+                </div>
 
-/* ─── Toggle tab ────────────────────────────────────────────────── */
- 
-.ec - toggle {
-    position: relative;
-    width: 16px;
-    flex - shrink: 0;
-    background: transparent;
-    border: none;
-    border - right: 1px solid rgba(255, 255, 255, 0.06);
-    cursor: pointer;
-    color: rgba(255, 255, 255, 0.25);
-    display: flex;
-    align - items: center;
-    justify - content: center;
-    transition: color 0.15s ease, background 0.15s ease;
-    padding: 0;
-}
- 
-.ec - toggle:hover {
-    background: rgba(255, 255, 255, 0.04);
-    color: rgba(255, 255, 255, 0.6);
+                <div className="ec-sidebar-body">
+                    {loading ? (
+                        Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
+                    ) : events.length === 0 ? (
+                        <div className="ec-empty">No anomalies in range</div>
+                    ) : (
+                        events.map((event, i) => (
+                            <EventCard
+                                key={`${event.symbol}-${event.start_date}-${i}`}
+                                event={event}
+                                onClick={() => handleSelect(event)}
+                            />
+                        ))
+                    )}
+                </div>
+
+                {lastRefresh && (
+                    <div className="ec-footer">
+                        Updated {lastRefresh.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                    </div>
+                )}
+            </aside>
+
+            {/* Toggle tab — always visible, straddling the sidebar edge */}
+            <button
+                className="ec-toggle"
+                onClick={onToggle}
+                aria-label={open ? "Collapse sidebar" : "Expand sidebar"}
+                aria-expanded={open}
+            >
+                <svg
+                    width="10"
+                    height="10"
+                    viewBox="0 0 10 10"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.5"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                >
+                    <path d={open ? "M7 1L3 5l4 4" : "M3 1l4 4-4 4"} />
+                </svg>
+            </button>
+        </div>
+    );
 }
