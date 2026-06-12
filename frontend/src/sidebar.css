@@ -23,9 +23,9 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
-  border-right: 1px solid rgba(255, 255, 255, 0.12);
+  border-right: 1px solid #3d3833;
   backdrop-filter: blur(12px);
-  background: rgba(255, 255, 255, 0.015);
+  background: #24211d;
   transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1),
               opacity 0.18s ease;
   will-change: width;
@@ -81,15 +81,15 @@
 .ec-card {
   padding: 12px;
   border-radius: 12px;
-  border: 1px solid rgba(255,255,255,0.08);
-  background: rgba(255,255,255,0.02);
+  border: 1px solid #3d3833;
+  background: #2a2723;
   width: 100%;
   display: block;
   transition: all 0.2s ease;
 }
 
 .ec-card--interactive:hover {
-  background: rgba(255,255,255,0.04);
+  background: #322f2b;
   border-color: rgba(255,255,255,0.16);
 }
 
