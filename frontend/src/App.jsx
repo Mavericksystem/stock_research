@@ -288,7 +288,7 @@ function SendIcon() {
 
 export default function App() {
   const [messages, setMessages] = useState([]);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [steps, setSteps] = useState([]);
