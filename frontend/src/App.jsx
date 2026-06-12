@@ -465,8 +465,8 @@ export default function App() {
           <button
             className="ec-toggle"
             onClick={() => setSidebarOpen((v) => !v)}
+            style={{ position: "relative", zIndex: 1101 }}
             aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
-            title={sidebarOpen ? "Close sidebar" : "Open sidebar"}
           >
             ☰
           </button>
