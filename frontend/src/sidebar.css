@@ -285,3 +285,16 @@
   min-width: 0;
   overflow: hidden;
 }
+
+@media (max-width: 768px) {
+
+  .ec-sidebar {
+    position: fixed;
+    left: 0;
+    top: 0;
+    height: 100vh;
+    z-index: 1000;
+    background: var(--surface);
+  }
+
+}
