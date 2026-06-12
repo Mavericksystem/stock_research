@@ -253,31 +253,6 @@
   gap: 8px;
 }
 
-
-/* ─── Mobile backdrop ───────────────────────────────────────────── */
-
-.ec-backdrop {
-  display: none;
-}
-
-@media (max-width: 768px) {
-  .ec-backdrop {
-    display: block;
-    position: fixed;
-    inset: 0;
-    z-index: 999;
-    background: rgba(0, 0, 0, 0.5);
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.25s ease;
-  }
-
-  .ec-backdrop--visible {
-    opacity: 1;
-    pointer-events: all;
-  }
-}
-
 /* ─── Sidebar Toggle ────────────────────────────────────────────── */
 
 .ec-toggle {
@@ -312,6 +287,12 @@
   background: rgba(255, 255, 255, 0.10);
 }
 
+/* ─── Mobile backdrop ───────────────────────────────────────────── */
+
+.ec-backdrop {
+  display: none;  /* hidden on desktop */
+}
+
 /* ─── Layout wiring ─────────────────────────────────────────────── */
 
 .layout-body {
@@ -331,6 +312,22 @@
 
 @media (max-width: 768px) {
 
+  .ec-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;           /* below sidebar */
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+
+  .ec-backdrop--visible {
+    opacity: 1;
+    pointer-events: all;
+  }
+
   .ec-sidebar {
     position: fixed;
     top: 0;
@@ -339,7 +336,7 @@
     width: 280px !important;
     height: 100vh;
 
-    z-index: 1000;
+    z-index: 1100;           /* above backdrop */
 
     background: #24211d;
     border-right: 1px solid #3d3833;
