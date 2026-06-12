@@ -461,10 +461,21 @@ export default function App() {
     <div className="layout">
 
       <header className="header">
-        <div className="header-logo">
-          <div className="header-logo-mark">M²</div>
-          <span className="header-logo-name">Market Mind</span>
+        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+          <button
+            className="ec-toggle"
+            onClick={() => setSidebarOpen((v) => !v)}
+            aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
+            title={sidebarOpen ? "Close sidebar" : "Open sidebar"}
+          >
+            ☰
+          </button>
+          <div className="header-logo">
+            <div className="header-logo-mark">M²</div>
+            <span className="header-logo-name">Market Mind</span>
+          </div>
         </div>
+
         <div className="header-status">
           <span className="status-dot" />
           {STOCKS.length} STOCKS TRACKED
