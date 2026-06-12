@@ -149,18 +149,7 @@ export default function EventsSidebar({ open, onToggle, onEventSelect }) {
                 aria-label={open ? "Collapse sidebar" : "Expand sidebar"}
                 aria-expanded={open}
             >
-                <svg
-                    width="10"
-                    height="10"
-                    viewBox="0 0 10 10"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                >
-                    <path d={open ? "M7 1L3 5l4 4" : "M3 1l4 4-4 4"} />
-                </svg>
+                ☰
             </button>
         </div>
     );
