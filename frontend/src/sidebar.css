@@ -1,0 +1,287 @@
+/* ─── Sidebar root wrapper ──────────────────────────────────────── */
+
+.ec-root {
+  display: flex;
+  flex-shrink: 0;
+  position: relative;
+}
+
+.ec-root--open .ec-sidebar {
+  width: 220px;
+  opacity: 1;
+}
+
+.ec-root--closed .ec-sidebar {
+  width: 0;
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* ─── Sidebar panel ─────────────────────────────────────────────── */
+
+.ec-sidebar {
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.015);
+  transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1),
+              opacity 0.18s ease;
+  will-change: width;
+}
+
+.ec-sidebar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 14px 10px;
+  flex-shrink: 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  min-width: 220px;
+}
+
+.ec-sidebar-title {
+  font-family: var(--font-mono, "JetBrains Mono", monospace);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  color: var(--text-dim, rgba(255, 255, 255, 0.35));
+}
+
+.ec-sidebar-body {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 8px 8px;
+  min-width: 220px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.08) transparent;
+}
+
+.ec-sidebar-body::-webkit-scrollbar {
+  width: 3px;
+}
+
+.ec-sidebar-body::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+}
+
+.ec-footer {
+  font-family: var(--font-mono, "JetBrains Mono", monospace);
+  font-size: 10px;
+  color: var(--text-dim, rgba(255, 255, 255, 0.25));
+  padding: 8px 14px 12px;
+  min-width: 220px;
+  border-top: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+/* ─── Event cards ───────────────────────────────────────────────── */
+
+.ec-card {
+  width: 100%;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 7px;
+  padding: 9px 10px;
+  margin-bottom: 3px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.12s ease, border-color 0.12s ease;
+}
+
+.ec-card--interactive:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.ec-card--interactive:active {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.ec-card-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  margin-bottom: 4px;
+}
+
+.ec-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ec-symbol {
+  font-family: var(--font-mono, "JetBrains Mono", monospace);
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--amber, #f59e0b);
+  letter-spacing: 0.02em;
+}
+
+.ec-badge {
+  font-family: var(--font-mono, "JetBrains Mono", monospace);
+  font-size: 10px;
+  font-weight: 500;
+  padding: 2px 6px;
+  border-radius: 4px;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+
+.ec-badge--spike {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10b981;
+  border: 1px solid rgba(16, 185, 129, 0.2);
+}
+
+.ec-badge--drop {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.ec-date {
+  font-family: var(--font-mono, "JetBrains Mono", monospace);
+  font-size: 10px;
+  color: var(--text-dim, rgba(255, 255, 255, 0.35));
+}
+
+.ec-zscore {
+  font-family: var(--font-mono, "JetBrains Mono", monospace);
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.2);
+}
+
+/* ─── Skeleton loading ──────────────────────────────────────────── */
+
+.ec-card--skeleton {
+  cursor: default;
+}
+
+.ec-skeleton--row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.ec-skeleton {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+  animation: ec-pulse 1.4s ease-in-out infinite;
+}
+
+.ec-skeleton--chip {
+  width: 36px;
+  height: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+  animation: ec-pulse 1.4s ease-in-out infinite;
+}
+
+.ec-skeleton--badge {
+  width: 48px;
+  height: 18px;
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 4px;
+  animation: ec-pulse 1.4s ease-in-out infinite;
+  animation-delay: 0.1s;
+}
+
+.ec-skeleton--date {
+  width: 70px;
+  height: 10px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 3px;
+  animation: ec-pulse 1.4s ease-in-out infinite;
+  animation-delay: 0.2s;
+}
+
+@keyframes ec-pulse {
+  0%, 100% { opacity: 0.4; }
+  50%       { opacity: 0.9; }
+}
+
+/* ─── Refresh button ────────────────────────────────────────────── */
+
+.ec-refresh {
+  background: none;
+  border: none;
+  padding: 3px;
+  cursor: pointer;
+  color: var(--text-dim, rgba(255, 255, 255, 0.35));
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  transition: color 0.12s ease;
+}
+
+.ec-refresh:hover {
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.ec-refresh:disabled {
+  cursor: default;
+}
+
+.ec-spin {
+  animation: ec-rotate 0.8s linear infinite;
+}
+
+@keyframes ec-rotate {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* ─── Empty state ───────────────────────────────────────────────── */
+
+.ec-empty {
+  padding: 24px 10px;
+  font-family: var(--font-mono, "JetBrains Mono", monospace);
+  font-size: 11px;
+  color: var(--text-dim, rgba(255, 255, 255, 0.25));
+  text-align: center;
+}
+
+/* ─── Toggle tab ────────────────────────────────────────────────── */
+
+.ec-toggle {
+  position: relative;
+  width: 16px;
+  flex-shrink: 0;
+  background: transparent;
+  border: none;
+  border-right: 1px solid rgba(255, 255, 255, 0.06);
+  cursor: pointer;
+  color: rgba(255, 255, 255, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease, background 0.15s ease;
+  padding: 0;
+}
+
+.ec-toggle:hover {
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.6);
+}
+
+/* ─── Layout wiring ─────────────────────────────────────────────── */
+
+.layout-body {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.main-content {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+}
