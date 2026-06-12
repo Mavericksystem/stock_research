@@ -81,7 +81,6 @@ export default function EventsSidebar({ open, onToggle, onEventSelect }) {
         loadEvents();
     }, [loadEvents]);
 
-
     const handleSelect = (event) => {
         const direction = (event.event_type ?? "").includes("SPIKE") ? "spike" : "drop";
         onEventSelect(`Why did ${event.symbol} ${direction} on ${event.start_date}?`);
@@ -89,10 +88,13 @@ export default function EventsSidebar({ open, onToggle, onEventSelect }) {
 
     return (
         <div className={`ec-root ${open ? "ec-root--open" : "ec-root--closed"}`}>
-            {/* Sidebar panel */}
-            <aside className="ec-sidebar" aria-label="Recent market anomalies">
+            <aside
+                className="ec-sidebar"
+                aria-label="Recent market anomalies"
+            >
                 <div className="ec-sidebar-header">
                     <span className="ec-sidebar-title">ANOMALIES</span>
+
                     <button
                         className="ec-refresh"
                         onClick={loadEvents}
@@ -121,9 +123,13 @@ export default function EventsSidebar({ open, onToggle, onEventSelect }) {
 
                 <div className="ec-sidebar-body">
                     {loading ? (
-                        Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
+                        Array.from({ length: 6 }).map((_, i) => (
+                            <SkeletonCard key={i} />
+                        ))
                     ) : events.length === 0 ? (
-                        <div className="ec-empty">No anomalies in range</div>
+                        <div className="ec-empty">
+                            No anomalies in range
+                        </div>
                     ) : (
                         events.map((event, i) => (
                             <EventCard
@@ -137,20 +143,14 @@ export default function EventsSidebar({ open, onToggle, onEventSelect }) {
 
                 {lastRefresh && (
                     <div className="ec-footer">
-                        Updated {lastRefresh.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+                        Updated{" "}
+                        {lastRefresh.toLocaleTimeString([], {
+                            hour: "2-digit",
+                            minute: "2-digit",
+                        })}
                     </div>
                 )}
             </aside>
-
-            {/* Toggle tab — always visible, straddling the sidebar edge */}
-            <button
-                className="ec-toggle"
-                onClick={onToggle}
-                aria-label={open ? "Collapse sidebar" : "Expand sidebar"}
-                aria-expanded={open}
-            >
-                ☰
-            </button>
         </div>
     );
 }
