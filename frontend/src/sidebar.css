@@ -253,6 +253,31 @@
   gap: 8px;
 }
 
+
+/* ─── Mobile backdrop ───────────────────────────────────────────── */
+
+.ec-backdrop {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  .ec-backdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: rgba(0, 0, 0, 0.5);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.25s ease;
+  }
+
+  .ec-backdrop--visible {
+    opacity: 1;
+    pointer-events: all;
+  }
+}
+
 /* ─── Sidebar Toggle ────────────────────────────────────────────── */
 
 .ec-toggle {
