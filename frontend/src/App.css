@@ -496,6 +496,10 @@ html, body, #root {
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 14px 18px;
+
+  display: flex;
+  align-items: flex-end;
+  gap: 12px;
 }
 
 .input-wrap:focus-within {
