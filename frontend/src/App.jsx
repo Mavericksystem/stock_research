@@ -10,7 +10,7 @@ const SUGGESTIONS = [
   "Why did NVDA drop recently?",
   "What caused Apple's last spike?",
   "Explain Tesla's latest move",
-  "What's driving Meta's price?",
+  //"What's driving Meta's price?",
 ];
 
 let msgId = 0;
