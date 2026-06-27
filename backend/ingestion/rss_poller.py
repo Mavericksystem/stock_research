@@ -20,3 +20,6 @@ from datetime import datetime, timezone
 from typing import Any
  
 import feedparser
+import httpx
+from sqlalchemy.dialects.postgresql import insert
+from sqlalchemy.ext.asyncio import async_sessionmaker
