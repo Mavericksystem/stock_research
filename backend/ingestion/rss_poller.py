@@ -12,3 +12,7 @@ Runs as an asyncio background task started at FastAPI app startup.
 Single task, single event loop — no Go, no worker pool needed at this
 feed count/interval.
 """
+from __future__ import annotations
+ 
+import asyncio
+import logging
