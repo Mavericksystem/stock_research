@@ -52,3 +52,11 @@ _WORD_RE_CACHE: dict[str, "re.Pattern[str]"] = {}
  
  
 def _match_symbol(title: str, summary: str) -> str | None:
+ """Return the first tracked ticker mentioned in title/summary, else None.
+ 
+    Ticker match is always word-boundary-only (case-sensitive on the raw
+    text) — critical for short tickers like "V" or later additions like
+    "T", where a raw lowercase substring check would match almost every
+    article ("investors", "the", etc.). Company-name match is a safe
+    substring check since names are multi-word/long enough not to false-hit.
+    """
