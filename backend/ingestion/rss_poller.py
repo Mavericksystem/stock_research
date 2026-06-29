@@ -37,3 +37,7 @@ SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 # slow/dead feed doesn't block the others.
 RSS_FEEDS: list[dict[str, str]] = [
     {"url": "https://feeds.content.dowjones.io/public/rss/RSSMarketsMain", "source": "WSJ Markets"},
+    {"url": "https://www.cnbc.com/id/20910258/device/rss/rss.html", "source": "CNBC Markets"},
+    {"url": "https://feeds.marketwatch.com/marketwatch/topstories/", "source": "MarketWatch"},
+    {"url": "https://finance.yahoo.com/news/rssindex", "source": "Yahoo Finance"},
+]
