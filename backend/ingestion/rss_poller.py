@@ -41,3 +41,9 @@ RSS_FEEDS: list[dict[str, str]] = [
     {"url": "https://feeds.marketwatch.com/marketwatch/topstories/", "source": "MarketWatch"},
     {"url": "https://finance.yahoo.com/news/rssindex", "source": "Yahoo Finance"},
 ]
+
+# Precompute lowercase match terms once — symbol + company name per ticker.
+# e.g. "V" -> ["v", "visa"], "GOOGL" -> ["googl", "google"]
+_TICKER_TERMS: dict[str, list[str]] = {
+    sym: [sym.lower(), name.lower()] for sym, name in SYMBOL_TO_NAME.items()
+}
