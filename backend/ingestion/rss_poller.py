@@ -75,3 +75,6 @@ def _match_symbol(title: str, summary: str) -> str | None:
         )
         if pattern.search(raw_text):
             return symbol
+
+        if name_term and name_term in lower_text:
+            return symbol
