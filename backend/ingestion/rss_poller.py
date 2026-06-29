@@ -47,3 +47,8 @@ RSS_FEEDS: list[dict[str, str]] = [
 _TICKER_TERMS: dict[str, list[str]] = {
     sym: [sym.lower(), name.lower()] for sym, name in SYMBOL_TO_NAME.items()
 }
+
+_WORD_RE_CACHE: dict[str, "re.Pattern[str]"] = {}
+ 
+ 
+def _match_symbol(title: str, summary: str) -> str | None:
