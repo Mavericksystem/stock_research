@@ -73,4 +73,5 @@ def _match_symbol(title: str, summary: str) -> str | None:
         pattern = _WORD_RE_CACHE.setdefault(
             symbol, re.compile(rf"\b{re.escape(symbol)}\b")
         )
- 
+        if pattern.search(raw_text):
+            return symbol
