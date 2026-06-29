@@ -83,3 +83,6 @@ def _match_symbol(title: str, summary: str) -> str | None:
  
 POLL_INTERVAL_SECONDS = 300  # 5 min — RSS feeds don't update faster than this anyway
 FETCH_TIMEOUT_SECONDS = 15
+
+def _parse_published(entry: dict[str, Any]) -> datetime:
+    """feedparser gives a time.struct_time or nothing — normalize to UTC datetime."""
