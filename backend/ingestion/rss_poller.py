@@ -53,7 +53,7 @@ _WORD_RE_CACHE: dict[str, "re.Pattern[str]"] = {}
  
  
 def _match_symbol(title: str, summary: str) -> str | None:
- """Return the first tracked ticker mentioned in title/summary, else None.
+    """Return the first tracked ticker mentioned in title/summary, else None.
  
     Ticker match is always word-boundary-only (case-sensitive on the raw
     text) — critical for short tickers like "V" or later additions like
@@ -66,3 +66,7 @@ def _match_symbol(title: str, summary: str) -> str | None:
  
     raw_text = f"{title} {summary}"
     lower_text = raw_text.lower()
+
+    for symbol, terms in _TICKER_TERMS.items():
+        _, name_term = terms
+ 
