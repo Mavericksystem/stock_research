@@ -69,4 +69,8 @@ def _match_symbol(title: str, summary: str) -> str | None:
 
     for symbol, terms in _TICKER_TERMS.items():
         _, name_term = terms
+
+        pattern = _WORD_RE_CACHE.setdefault(
+            symbol, re.compile(rf"\b{re.escape(symbol)}\b")
+        )
  
