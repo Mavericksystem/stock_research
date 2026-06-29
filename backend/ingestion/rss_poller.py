@@ -29,3 +29,6 @@ from backend.db.models import News
 # Reuse the same symbol->name map already used for entity scoring in
 # news_scraper.py — keeps ticker filtering consistent across the codebase.
 from backend.ingestion.news_scraper import SYMBOL_TO_NAME
+
+logger = logging.getLogger(__name__)
+SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
