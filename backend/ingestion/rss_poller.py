@@ -23,3 +23,9 @@ import feedparser
 import httpx
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import async_sessionmaker
+rom backend.db.connection import engine
+from backend.db.models import News
+ 
+# Reuse the same symbol->name map already used for entity scoring in
+# news_scraper.py — keeps ticker filtering consistent across the codebase.
+from backend.ingestion.news_scraper import SYMBOL_TO_NAME
