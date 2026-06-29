@@ -15,6 +15,7 @@ feed count/interval.
 from __future__ import annotations
  
 import asyncio
+import re
 import logging
 from datetime import datetime, timezone
 from typing import Any
@@ -60,3 +61,8 @@ def _match_symbol(title: str, summary: str) -> str | None:
     article ("investors", "the", etc.). Company-name match is a safe
     substring check since names are multi-word/long enough not to false-hit.
     """
+
+    
+ 
+    raw_text = f"{title} {summary}"
+    lower_text = raw_text.lower()
