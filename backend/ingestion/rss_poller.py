@@ -32,3 +32,8 @@ from backend.ingestion.news_scraper import SYMBOL_TO_NAME
 
 logger = logging.getLogger(__name__)
 SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
+
+ Feed list. Add/remove freely — each is polled independently, one
+# slow/dead feed doesn't block the others.
+RSS_FEEDS: list[dict[str, str]] = [
+    {"url": "https://feeds.content.dowjones.io/public/rss/RSSMarketsMain", "source": "WSJ Markets"},
