@@ -78,3 +78,8 @@ def _match_symbol(title: str, summary: str) -> str | None:
 
         if name_term and name_term in lower_text:
             return symbol
+
+    return None
+ 
+POLL_INTERVAL_SECONDS = 300  # 5 min — RSS feeds don't update faster than this anyway
+FETCH_TIMEOUT_SECONDS = 15
