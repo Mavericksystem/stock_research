@@ -114,3 +114,8 @@ async def _fetch_feed(client: httpx.AsyncClient, feed: dict[str, str]) -> list[d
         title = entry.get("title")
         if not url or not title:
             continue  # can't dedup or display without these — skip
+
+        summary = entry.get("summary", "") or ""
+        # Strip crude HTML tags feedparser sometimes leaves in summary
+        import re
+        summary = re.sub(r"<[^>]+>", "", summary).strip()[:500]
