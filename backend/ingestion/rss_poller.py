@@ -86,3 +86,5 @@ FETCH_TIMEOUT_SECONDS = 15
 
 def _parse_published(entry: dict[str, Any]) -> datetime:
     """feedparser gives a time.struct_time or nothing — normalize to UTC datetime."""
+    for key in ("published_parsed", "updated_parsed"):
+        st = entry.get(key)
