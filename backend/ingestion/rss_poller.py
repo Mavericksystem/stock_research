@@ -119,3 +119,6 @@ async def _fetch_feed(client: httpx.AsyncClient, feed: dict[str, str]) -> list[d
         # Strip crude HTML tags feedparser sometimes leaves in summary
         import re
         summary = re.sub(r"<[^>]+>", "", summary).strip()[:500]
+
+        title_clean = title.strip()
+        matched_symbol = _match_symbol(title_clean, summary)
