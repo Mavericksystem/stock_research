@@ -97,4 +97,7 @@ async def _fetch_feed(client: httpx.AsyncClient, feed: dict[str, str]) -> list[d
     one bad feed must not kill the poll cycle for the other three."""
     try:
         resp = await client.get(feed["url"], timeout=FETCH_TIMEOUT_SECONDS)
-        resp.raise_for_status(
+        resp.raise_for_status()
+    except Exception as e:
+        logger.warning(f"[rss_poller] fetch failed for {feed['source']}: {e}")
+        return []
