@@ -95,3 +95,6 @@ def _parse_published(entry: dict[str, Any]) -> datetime:
 async def _fetch_feed(client: httpx.AsyncClient, feed: dict[str, str]) -> list[dict[str, Any]]:
     """Fetch + parse one feed. Failures here are logged and swallowed —
     one bad feed must not kill the poll cycle for the other three."""
+    try:
+        resp = await client.get(feed["url"], timeout=FETCH_TIMEOUT_SECONDS)
+        resp.raise_for_status(
