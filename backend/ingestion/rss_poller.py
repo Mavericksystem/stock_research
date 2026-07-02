@@ -153,3 +153,5 @@ async def _upsert_rss_rows(rows: list[dict[str, Any]]) -> int:
 
 async def poll_once() -> None:
     """One full pass over all configured feeds."""
+    async with httpx.AsyncClient(headers={"User-Agent": "MarketMind/1.0"}) as client:
+        results = await asyncio.gather(
