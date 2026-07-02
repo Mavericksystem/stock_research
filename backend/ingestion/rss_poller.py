@@ -122,3 +122,5 @@ async def _fetch_feed(client: httpx.AsyncClient, feed: dict[str, str]) -> list[d
 
         title_clean = title.strip()
         matched_symbol = _match_symbol(title_clean, summary)
+        if matched_symbol is None:
+            continue  # not about any of the 10 tracked stocks — drop it
