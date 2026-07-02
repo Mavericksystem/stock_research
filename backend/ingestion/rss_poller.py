@@ -139,3 +139,7 @@ async def _fetch_feed(client: httpx.AsyncClient, feed: dict[str, str]) -> list[d
             }
         )
     return rows
+
+async def _upsert_rss_rows(rows: list[dict[str, Any]]) -> int:
+    if not rows:
+        return 0
