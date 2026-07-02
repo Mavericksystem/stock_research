@@ -91,3 +91,7 @@ def _parse_published(entry: dict[str, Any]) -> datetime:
         if st:
             return datetime(*st[:6], tzinfo=timezone.utc).replace(tzinfo=None)
     return datetime.utcnow()
+
+async def _fetch_feed(client: httpx.AsyncClient, feed: dict[str, str]) -> list[dict[str, Any]]:
+    """Fetch + parse one feed. Failures here are logged and swallowed —
+    one bad feed must not kill the poll cycle for the other three."""
