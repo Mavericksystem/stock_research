@@ -101,3 +101,9 @@ async def _fetch_feed(client: httpx.AsyncClient, feed: dict[str, str]) -> list[d
     except Exception as e:
         logger.warning(f"[rss_poller] fetch failed for {feed['source']}: {e}")
         return []
+
+    parsed = feedparser.parse(resp.content)
+    if parsed.bozo:
+        # bozo=True means the XML was malformed but feedparser did its best.
+        # Still usable in most cases, just log it.
+        logger.info(f"[rss_poller] {feed['source']} feed is malformed (bozo), parsing anyway")
