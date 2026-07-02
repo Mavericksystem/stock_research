@@ -146,3 +146,5 @@ async def _upsert_rss_rows(rows: list[dict[str, Any]]) -> int:
 
     async with SessionLocal() as session:
         stmt = insert(News).values(rows)
+        upsert_stmt = stmt.on_conflict_do_nothing(index_elements=["url"])
+        result = await session.execute(upsert_stmt)
