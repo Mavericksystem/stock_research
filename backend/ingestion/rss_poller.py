@@ -107,3 +107,6 @@ async def _fetch_feed(client: httpx.AsyncClient, feed: dict[str, str]) -> list[d
         # bozo=True means the XML was malformed but feedparser did its best.
         # Still usable in most cases, just log it.
         logger.info(f"[rss_poller] {feed['source']} feed is malformed (bozo), parsing anyway")
+
+    rows: list[dict[str, Any]] = []
+    for entry in parsed.entries:
