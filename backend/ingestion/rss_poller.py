@@ -150,3 +150,6 @@ async def _upsert_rss_rows(rows: list[dict[str, Any]]) -> int:
         result = await session.execute(upsert_stmt)
         await session.commit()
         return result.rowcount or 0
+
+async def poll_once() -> None:
+    """One full pass over all configured feeds."""
