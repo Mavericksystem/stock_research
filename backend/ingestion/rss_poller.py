@@ -88,3 +88,6 @@ def _parse_published(entry: dict[str, Any]) -> datetime:
     """feedparser gives a time.struct_time or nothing — normalize to UTC datetime."""
     for key in ("published_parsed", "updated_parsed"):
         st = entry.get(key)
+        if st:
+            return datetime(*st[:6], tzinfo=timezone.utc).replace(tzinfo=None)
+    return datetime.utcnow()
