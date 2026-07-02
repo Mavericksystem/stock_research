@@ -130,3 +130,12 @@ async def _fetch_feed(client: httpx.AsyncClient, feed: dict[str, str]) -> list[d
                 "symbol": matched_symbol,
                 "title": title_clean,
                 "content": summary or None,
+                "source": feed["source"],
+                "url": url.strip(),
+                "published_at": _parse_published(entry),
+                "embedding": None,
+                "embedding_model": None,
+                "embedding_created_at": None,
+            }
+        )
+    return rows
