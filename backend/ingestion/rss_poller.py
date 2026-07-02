@@ -110,3 +110,5 @@ async def _fetch_feed(client: httpx.AsyncClient, feed: dict[str, str]) -> list[d
 
     rows: list[dict[str, Any]] = []
     for entry in parsed.entries:
+        url = entry.get("link")
+        title = entry.get("title")
