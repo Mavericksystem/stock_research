@@ -112,3 +112,5 @@ async def _fetch_feed(client: httpx.AsyncClient, feed: dict[str, str]) -> list[d
     for entry in parsed.entries:
         url = entry.get("link")
         title = entry.get("title")
+        if not url or not title:
+            continue  # can't dedup or display without these — skip
