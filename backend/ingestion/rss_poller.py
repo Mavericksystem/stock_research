@@ -161,3 +161,7 @@ async def poll_once() -> None:
 
     all_rows = [row for feed_rows in results for row in feed_rows]
     inserted = await _upsert_rss_rows(all_rows)
+    logger.info(
+        f"[rss_poller] cycle complete: matched={len(all_rows)} "
+        f"(ticker-filtered, non-matching items dropped) inserted={inserted}"
+    )
