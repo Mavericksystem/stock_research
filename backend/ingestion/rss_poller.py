@@ -165,3 +165,7 @@ async def poll_once() -> None:
         f"[rss_poller] cycle complete: matched={len(all_rows)} "
         f"(ticker-filtered, non-matching items dropped) inserted={inserted}"
     )
+
+async def run_rss_poll_loop() -> None:
+    """Long-running loop — call this once via asyncio.create_task at startup."""
+    logger.info(f"[rss_poller] starting, interval={POLL_INTERVAL_SECONDS}s, feeds={len(RSS_FEEDS)}")
