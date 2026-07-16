@@ -172,3 +172,7 @@ async def run_rss_poll_loop() -> None:
     while True:
         try:
             await poll_once()
+        except Exception:
+            # Never let the loop die — log and retry next interval.
+            logger.exception("[rss_poller] poll cycle failed")
+        await asyncio.sleep(POLL_INTERVAL_SECONDS)
