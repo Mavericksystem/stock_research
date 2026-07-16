@@ -158,3 +158,6 @@ async def poll_once() -> None:
             *(_fetch_feed(client, feed) for feed in RSS_FEEDS),
             return_exceptions=False,
         )
+
+    all_rows = [row for feed_rows in results for row in feed_rows]
+    inserted = await _upsert_rss_rows(all_rows)
