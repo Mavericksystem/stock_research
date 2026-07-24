@@ -40,10 +40,10 @@ function EventBadge({
   return (
     <span
       className={`rounded px-2 py-[3px] font-mono text-[11px] font-medium tracking-[0.5px] ${isSpike
-          ? "border border-emerald-400/25 bg-emerald-400/10 text-[var(--green)]"
-          : isDrop
-            ? "border border-red-400/25 bg-red-400/10 text-[var(--red)]"
-            : "border border-[var(--amber-border)] bg-[var(--amber-dim)] text-[var(--amber)]"
+        ? "border border-emerald-400/25 bg-emerald-400/10 text-[var(--green)]"
+        : isDrop
+          ? "border border-red-400/25 bg-red-400/10 text-[var(--red)]"
+          : "border border-[var(--amber-border)] bg-[var(--amber-dim)] text-[var(--amber)]"
         }`}
     >
       {label}
@@ -190,8 +190,8 @@ function ToolSteps({ steps }: { steps: ToolStep[] }) {
               exit={{ opacity: 0, x: 4 }}
               transition={{ duration: 0.2 }}
               className={`flex items-center gap-2 font-mono text-[11px] ${step.status === "done"
-                  ? "text-[var(--green)]"
-                  : "text-[var(--text-muted)]"
+                ? "text-[var(--green)]"
+                : "text-[var(--text-muted)]"
                 }`}
             >
               <motion.span
@@ -206,8 +206,8 @@ function ToolSteps({ steps }: { steps: ToolStep[] }) {
                     : { duration: 0.15 }
                 }
                 className={`h-2.5 w-2.5 shrink-0 rounded-full border ${step.status === "running"
-                    ? "border-[var(--amber-border)] border-t-[var(--amber)]"
-                    : "border-[var(--green)] bg-[var(--green)]"
+                  ? "border-[var(--amber-border)] border-t-[var(--amber)]"
+                  : "border-[var(--green)] bg-[var(--green)]"
                   }`}
               />
               <span>{step.label}</span>
@@ -240,7 +240,7 @@ function EmptyState({
       <div className="mb-2 text-[22px] font-semibold tracking-[-0.5px] text-[var(--text)]">
         Market Mind
       </div>
-      <div className="mb-8 text-sm text-[var(--text-muted)]">
+      <div className="shine-text mb-8 text-sm">
         Ask why any stock moved. Get a sourced explanation.
       </div>
 
@@ -252,9 +252,19 @@ function EmptyState({
             whileHover={{ y: -1 }}
             whileTap={{ scale: 0.97 }}
             onClick={() => onSuggestion(suggestion)}
-            className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-3.5 py-[7px] font-mono text-[13px] font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--amber-border)] hover:bg-[var(--amber-dim)] hover:text-[var(--amber)]"
+            className="suggestion-card"
           >
-            {suggestion}
+            <span className="suggestion-size">
+              {suggestion}
+            </span>
+
+            <span className="suggestion-border" />
+
+            <p
+              className="suggestion-text"
+              data-title={suggestion}
+              data-text="Know more"
+            />
           </motion.button>
         ))}
       </div>
@@ -267,10 +277,30 @@ function EmptyState({
           <motion.button
             key={symbol}
             type="button"
-            whileHover={{ y: -1 }}
-            whileTap={{ scale: 0.97 }}
+            whileHover={{
+              x: -2,
+              y: -4,
+            }}
+            whileTap={{
+              x: 1,
+              y: 2,
+            }}
+            transition={{
+              type: "spring",
+              stiffness: 500,
+              damping: 25,
+            }}
             onClick={() => onStock(symbol)}
-            className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 font-mono text-xs font-medium text-[var(--text-muted)] transition-colors hover:border-[var(--amber-border)] hover:bg-[var(--amber-dim)] hover:text-[var(--amber)]"
+            className="
+    rounded-md
+    border border-[var(--border)]
+    bg-[var(--surface)]
+    px-3 py-1.5
+    font-mono text-xs font-medium
+    text-[var(--text-muted)]
+    shadow-[0_0_0_0_transparent]
+    hover:shadow-[2px_5px_0_0_var(--border)]
+  "
           >
             {symbol}
           </motion.button>
