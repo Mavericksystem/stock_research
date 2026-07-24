@@ -68,3 +68,6 @@ class RSSNewsItem(BaseModel):
     source: str
     url: str
     published_at: datetime
+
+class RSSNewsRequest(BaseModel):
+    items: list[RSSNewsItem]
