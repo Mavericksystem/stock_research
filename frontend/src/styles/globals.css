@@ -1,2 +1,37 @@
-/* Legacy stylesheet intentionally left empty.
-   Global styling now lives in src/index.css. */
+@layer utilities {
+   .content-width {
+      width: min(100%, var(--content-width));
+      margin-inline: auto;
+   }
+
+   .font-mono-ui {
+      font-family: var(--font-mono);
+   }
+
+   .shine-text {
+      background: linear-gradient(110deg,
+            #8b8378 20%,
+            #f5f2ec 40%,
+            #ffffff 50%,
+            #f5f2ec 60%,
+            #8b8378 80%);
+
+      background-size: 250% 100%;
+      background-position: 100% 0;
+
+      -webkit-background-clip: text;
+      background-clip: text;
+      -webkit-text-fill-color: transparent;
+
+      animation: text-shine 3s linear infinite;
+   }
+
+   @keyframes text-shine {
+      0% {
+         background-position: 100% 0;
+      }
+
+      100% {
+         background-position: -100% 0;
+      }
+   }
