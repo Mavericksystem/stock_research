@@ -100,11 +100,223 @@
 
 @layer utilities {
   .content-width {
-    width: 100%;
-    max-width: var(--content-width);
+    width: min(100%, var(--content-width));
+    margin-inline: auto;
   }
 
   .font-mono-ui {
     font-family: var(--font-mono);
   }
+
+  .shine-text {
+    background: linear-gradient(110deg,
+        #8b8378 20%,
+        #f5f2ec 45%,
+        #ffffff 55%,
+        #f5f2ec 60%,
+        #8b8378 80%);
+
+    background-size: 250% 100%;
+    background-position: 100% 0;
+
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    animation: text-shine 4s linear infinite;
+  }
+
+  @keyframes text-shine {
+    0% {
+      background-position: 100% 0;
+    }
+
+    100% {
+      background-position: -100% 0;
+    }
+  }
+}
+
+/* ========================================
+   Suggestion Cards
+   ======================================== */
+
+.suggestion-card {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  min-height: 34px;
+  padding: 7px 14px;
+
+  overflow: hidden;
+  border: 0;
+  border-radius: 3px;
+
+  background: var(--surface);
+  color: var(--text-muted);
+
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 500;
+
+  cursor: pointer;
+}
+
+/*
+ * Invisible sizing text.
+ * Keeps each button the same width as
+ * its original suggestion text.
+ */
+.suggestion-size {
+  visibility: hidden;
+  white-space: nowrap;
+  line-height: 18px;
+}
+
+/* ========================================
+   Animated horizontal border lines
+   ======================================== */
+
+.suggestion-card::before,
+.suggestion-card::after {
+  content: "";
+  position: absolute;
+
+  width: 0;
+  height: 1px;
+
+  background: #6fcfad;
+
+  transition:
+    width 0.5s cubic-bezier(0.35, 0.1, 0.25, 1);
+}
+
+.suggestion-card::before {
+  right: 0;
+  top: 0;
+}
+
+.suggestion-card::after {
+  left: 0;
+  bottom: 0;
+}
+
+/* ========================================
+   Animated vertical border lines
+   ======================================== */
+
+.suggestion-border {
+  position: absolute;
+  inset: 0;
+
+  pointer-events: none;
+}
+
+.suggestion-border::before,
+.suggestion-border::after {
+  content: "";
+
+  position: absolute;
+
+  width: 1px;
+  height: 0;
+
+  background: #6fcfad;
+
+  transition:
+    height 0.3s cubic-bezier(0.35, 0.1, 0.25, 1);
+}
+
+.suggestion-border::before {
+  right: 0;
+  top: 0;
+}
+
+.suggestion-border::after {
+  left: 0;
+  bottom: 0;
+}
+
+/* ========================================
+   Draw four lines only on hover
+   ======================================== */
+
+.suggestion-card:hover::before,
+.suggestion-card:hover::after {
+  width: 100%;
+}
+
+.suggestion-card:hover .suggestion-border::before,
+.suggestion-card:hover .suggestion-border::after {
+  height: 100%;
+}
+
+/* ========================================
+   Suggestion text transition
+   ======================================== */
+
+.suggestion-text {
+  position: absolute;
+  inset: 0;
+
+  width: 100%;
+  height: 100%;
+
+  margin: 0;
+  padding: 0;
+
+  overflow: hidden;
+}
+
+.suggestion-text::before,
+.suggestion-text::after {
+  position: absolute;
+
+  left: 0;
+
+  width: 100%;
+
+  text-align: center;
+  white-space: nowrap;
+
+  transition:
+    all 0.4s cubic-bezier(0.35, 0.1, 0.25, 1);
+}
+
+/* Original suggestion text */
+
+.suggestion-text::before {
+  content: attr(data-title);
+
+  top: 50%;
+
+  color: var(--text-muted);
+
+  transform: translateY(-50%);
+}
+
+/* Know more */
+
+.suggestion-text::after {
+  content: attr(data-text);
+
+  top: 150%;
+
+  color: #6fcfad;
+}
+
+/* Original text leaves upward */
+
+.suggestion-card:hover .suggestion-text::before {
+  top: -100%;
+  transform: rotate(5deg);
+}
+
+/* Know more enters */
+
+.suggestion-card:hover .suggestion-text::after {
+  top: 50%;
+  transform: translateY(-50%);
 }
