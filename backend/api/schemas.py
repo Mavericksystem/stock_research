@@ -60,3 +60,11 @@ class ContextItemResponse(BaseModel):
     url: Optional[str] = None
     published_at: Optional[datetime] = None
     relevance_score: Optional[float] = None
+
+
+class RSSNewsItem(BaseModel):
+    title: str
+    description: Optional[str] = None
+    source: str
+    url: str
+    published_at: datetime
