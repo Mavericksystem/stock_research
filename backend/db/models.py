@@ -110,7 +110,7 @@ class News(Base):
     id = Column(Integer, primary_key=True, autoincrement=True)
 
     # v1: event-centeric assumption (one symbol per row). ok for phase 3
-    symbol = Column(String(20), ForeignKey("stocks.symbol"), nullable=False, index=True)
+    symbol = Column(String(20), ForeignKey("stocks.symbol"), nullable=True, index=True)
 
     title = Column(String, nullable=True)
     content = Column(Text, nullable=True)
