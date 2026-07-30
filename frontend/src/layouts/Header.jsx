@@ -1,15 +1,7 @@
-export default function Header({ stocksTracked, sidebarOpen, onToggleSidebar }) {
+export default function Header({ stocksTracked }) {
   return (
     <header className="header">
-      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-        <button
-          className="ec-toggle"
-          onClick={onToggleSidebar}
-          style={{ position: "relative", zIndex: 1200 }}
-          aria-label={sidebarOpen ? "Close sidebar" : "Open sidebar"}
-        >
-          ☰
-        </button>
+      <div className="header-left">
         <div className="header-logo">
           <div className="header-logo-mark">M²</div>
           <span className="header-logo-name">Market Mind</span>
