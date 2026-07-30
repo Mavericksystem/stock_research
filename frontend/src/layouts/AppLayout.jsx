@@ -12,9 +12,7 @@ export default function AppLayout({
     <div className="layout">
       <Header
         stocksTracked={trackedStocksCount}
-        sidebarOpen={sidebarOpen}
-        onToggleSidebar={onToggleSidebar}
-      />
+        />
 
       <div className="layout-body">
         <Sidebar
