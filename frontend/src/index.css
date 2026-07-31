@@ -1,3 +1,110 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@layer base {
+  :root {
+    --content-width: 820px;
+
+    --bg: #1f1d1a;
+    --surface: #2a2723;
+    --surface-2: #34312d;
+    --border: #45403a;
+    --border-soft: #3a3631;
+
+    --text: #f5f2ec;
+    --text-muted: #c5beb3;
+    --text-dim: #8b8378;
+
+    --amber: #d97706;
+    --amber-dim: rgba(217, 119, 6, 0.12);
+    --amber-border: rgba(217, 119, 6, 0.25);
+
+    --green: #22c55e;
+    --red: #ef4444;
+    --spike: #22c55e;
+    --drop: #ef4444;
+
+    --font-ui: "Inter", sans-serif;
+    --font-mono: "JetBrains Mono", monospace;
+
+    --radius: 8px;
+    --radius-lg: 14px;
+  }
+
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  html,
+  body,
+  #root {
+    width: 100%;
+    height: 100%;
+    min-height: 100%;
+  }
+
+  html {
+    background: var(--bg);
+    color-scheme: dark;
+  }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-ui);
+    font-size: clamp(14px, 0.9vw, 17px);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  button,
+  textarea,
+  input {
+    font: inherit;
+  }
+
+  button {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  ::selection {
+    background: rgba(217, 119, 6, 0.28);
+    color: var(--text);
+  }
+
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 999px;
+  }
+
+  @media (max-width: 768px) {
+    body {
+      overflow: hidden;
+    }
+  }
+}
+
+@layer utilities {
+  .content-width {
+    width: 100%;
+    max-width: var(--content-width);
+  }
+
+  .font-mono-ui {
+    font-family: var(--font-mono);
+  }
+}
