@@ -21,3 +21,7 @@ async def ingest_rss_news(
         existing = await session.scalar(
             select(News.id).where(News.url == item.url)
         )
+
+        if existing is not None:
+            skipped += 1
+            continue
