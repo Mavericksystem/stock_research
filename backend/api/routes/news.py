@@ -31,3 +31,7 @@ async def ingest_rss_news(
             title=item.title,
             content=item.description,
             source=item.source
+            url=item.url,
+            published_at=item.published_at,
+            embedding=None,
+            embedding_model=None,
