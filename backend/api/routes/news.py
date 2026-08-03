@@ -13,3 +13,7 @@ async def ingest_rss_news(
     payload: RSSNewsRequest,
     session: AsyncSession = Depends(get_db),
 ):
+    """Manual/external ingest path — kept as-is. The automated path is
+    backend.ingestion.rss_poller, started as a background task."""
+    inserted = 0
+    skipped = 0
