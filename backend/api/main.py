@@ -120,3 +120,5 @@ async def start_rss_poller():
 
 @app.on_event("shutdown")
 async def stop_rss_poller():
+    if _rss_task:
+        _rss_task.cancel()
