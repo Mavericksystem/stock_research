@@ -124,3 +124,5 @@ async def stop_rss_poller():
         _rss_task.cancel()
         try:
             await _rss_task
+        except asyncio.CancelledError:
+            pass
