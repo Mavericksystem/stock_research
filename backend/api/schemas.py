@@ -77,3 +77,7 @@ class NewsItemResponse(BaseModel):
     symbol: Optional[str] = None
     title: Optional[str] = None
     content: Optional[str] = None
+    source: str
+    url: str
+    published_at: datetime
+    model_config = ConfigDict(from_attributes=True)
