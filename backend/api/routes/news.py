@@ -49,3 +49,10 @@ async def ingest_rss_news(
             "skipped": skipped,
         }
     )
+
+@router.get("/latest", response_model=APIResponse)
+async def get_latest_news(
+    limit: int = Query(20, le=50),
+    symbol: str | None = Query(None, description="Filter to one tracked ticker, e.g. AAPL"),
+    session: AsyncSession = Depends(get_db),
+):
