@@ -114,3 +114,6 @@ async def debug_db_test():
 async def start_rss_poller():
     global _rss_task
     from backend.ingestion.rss_poller import run_rss_poll_loop
+
+    _rss_task = asyncio.create_task(run_rss_poll_loop())
+    logger.info("RSS poller background task started")
