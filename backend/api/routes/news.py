@@ -60,3 +60,4 @@ async def get_latest_news(
     RSS items are now ticker-scoped (rss_poller filters to the 10
     tracked symbols before insert), so `symbol` narrows to one stock;
     omit it to see the combined feed across all 10."""
+    stmt = select(News).order_by(News.published_at.desc())
