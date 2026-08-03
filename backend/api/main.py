@@ -1,6 +1,12 @@
+import asyncio
+import logging
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from backend.api.routes import stock, analysis, ask, news
+
+logger = logging.getLogger(__name__)
+ 
+_rss_task: asyncio.Task | None = None
 
 app = FastAPI(
     title="Market Explanation Engine - Intelligence API",
