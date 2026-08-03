@@ -112,3 +112,5 @@ async def debug_db_test():
 
 @app.on_event("startup")
 async def start_rss_poller():
+    global _rss_task
+    from backend.ingestion.rss_poller import run_rss_poll_loop
