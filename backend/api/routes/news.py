@@ -7,3 +7,9 @@ from backend.db.models import News
 from backend.api.schemas import RSSNewsRequest, APIResponse, NewsItemResponse
  
 router = APIRouter()
+
+@router.post("/rss", response_model=APIResponse)
+async def ingest_rss_news(
+    payload: RSSNewsRequest,
+    session: AsyncSession = Depends(get_db),
+):
