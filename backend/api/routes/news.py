@@ -17,3 +17,7 @@ async def ingest_rss_news(
     backend.ingestion.rss_poller, started as a background task."""
     inserted = 0
     skipped = 0
+    for item in payload.items:
+        existing = await session.scalar(
+            select(News.id).where(News.url == item.url)
+        )
