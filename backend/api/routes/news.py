@@ -61,3 +61,6 @@ async def get_latest_news(
     tracked symbols before insert), so `symbol` narrows to one stock;
     omit it to see the combined feed across all 10."""
     stmt = select(News).order_by(News.published_at.desc())
+
+    if symbol:
+        stmt = stmt.where(News.symbol == symbol.upper())
