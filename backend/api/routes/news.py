@@ -64,3 +64,7 @@ async def get_latest_news(
 
     if symbol:
         stmt = stmt.where(News.symbol == symbol.upper())
+
+    stmt = stmt.limit(limit)
+    result = await session.execute(stmt)
+    items = result.scalars().all()
