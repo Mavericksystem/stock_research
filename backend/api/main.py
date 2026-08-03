@@ -117,3 +117,6 @@ async def start_rss_poller():
 
     _rss_task = asyncio.create_task(run_rss_poll_loop())
     logger.info("RSS poller background task started")
+
+@app.on_event("shutdown")
+async def stop_rss_poller():
