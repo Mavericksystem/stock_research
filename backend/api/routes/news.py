@@ -68,3 +68,7 @@ async def get_latest_news(
     stmt = stmt.limit(limit)
     result = await session.execute(stmt)
     items = result.scalars().all()
+
+    return APIResponse(
+        data=[NewsItemResponse.model_validate(item) for item in items]
+    )
