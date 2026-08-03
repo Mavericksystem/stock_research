@@ -122,3 +122,5 @@ async def start_rss_poller():
 async def stop_rss_poller():
     if _rss_task:
         _rss_task.cancel()
+        try:
+            await _rss_task
