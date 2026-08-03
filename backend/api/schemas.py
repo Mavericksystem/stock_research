@@ -71,3 +71,9 @@ class RSSNewsItem(BaseModel):
 
 class RSSNewsRequest(BaseModel):
     items: list[RSSNewsItem]
+
+class NewsItemResponse(BaseModel):
+    id: int
+    symbol: Optional[str] = None
+    title: Optional[str] = None
+    content: Optional[str] = None
