@@ -56,3 +56,7 @@ async def get_latest_news(
     symbol: str | None = Query(None, description="Filter to one tracked ticker, e.g. AAPL"),
     session: AsyncSession = Depends(get_db),
 ):
+    """Feeds the News panel in the right rail. Most recent first.
+    RSS items are now ticker-scoped (rss_poller filters to the 10
+    tracked symbols before insert), so `symbol` narrows to one stock;
+    omit it to see the combined feed across all 10."""
