@@ -25,3 +25,6 @@ export async function fetchLatestNews(
 
     const json = (await res.json()) as { data?: unknown };
     const raw = json?.data ?? [];
+
+    return Array.isArray(raw) ? (raw as NewsItem[]) : [];
+}
