@@ -9,3 +9,7 @@ export interface NewsItem {
     url: string;
     published_at: string;
 }
+
+export async function fetchLatestNews(
+    limit = 20,
+    symbol?: string,
