@@ -6,3 +6,6 @@ export interface NewsItem {
     title: string;
     content: string | null;
     source: string;
+    url: string;
+    published_at: string;
+}
