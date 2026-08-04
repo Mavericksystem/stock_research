@@ -13,3 +13,6 @@ export interface NewsItem {
 export async function fetchLatestNews(
     limit = 20,
     symbol?: string,
+): Promise<NewsItem[]> {
+    const params = new URLSearchParams({ limit: String(limit) });
+    if (symbol) params.set("symbol", symbol);
