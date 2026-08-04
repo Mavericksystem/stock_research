@@ -16,3 +16,7 @@ export async function fetchLatestNews(
 ): Promise<NewsItem[]> {
     const params = new URLSearchParams({ limit: String(limit) });
     if (symbol) params.set("symbol", symbol);
+
+    const res = await fetch(
+        `${getApiBaseUrl()}/api/v1/news/latest?${params.toString()}`,
+    );
