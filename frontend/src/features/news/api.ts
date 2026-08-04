@@ -20,3 +20,8 @@ export async function fetchLatestNews(
     const res = await fetch(
         `${getApiBaseUrl()}/api/v1/news/latest?${params.toString()}`,
     );
+
+    if (!res.ok) return [];
+
+    const json = (await res.json()) as { data?: unknown };
+    const raw = json?.data ?? [];
