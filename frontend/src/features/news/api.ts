@@ -28,3 +28,8 @@ export async function fetchLatestNews(
 
     return Array.isArray(raw) ? (raw as NewsItem[]) : [];
 }
+
+
+function timeAgo(iso: string): string {
+    const diffMs = Date.now() - new Date(iso).getTime();
+    const mins = Math.floor(diffMs / 60000);
