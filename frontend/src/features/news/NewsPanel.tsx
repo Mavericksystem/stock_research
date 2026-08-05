@@ -7,3 +7,6 @@ function NewsCardSkeleton({ index }: { index: number }) {
         <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
+            transition={{ delay: index * 0.03, duration: 0.2 }}
+            className="rounded-lg border border-[#3d3833] bg-[#2a2723] p-3"
+        ></motion.div>
