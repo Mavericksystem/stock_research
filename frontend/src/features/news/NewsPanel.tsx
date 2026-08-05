@@ -28,4 +28,6 @@ function NewsCard({ item, index }: { item: NewsItem; index: number }) {
             transition={{ delay: Math.min(index * 0.02, 0.15), duration: 0.2 }}
             whileHover={{ x: 2 }}
             className="block rounded-lg border border-[#3d3833] bg-[#2a2723] p-3 no-underline transition-colors hover:border-[var(--amber-border)] hover:bg-[#322f2b]"
-        ></motion.a>
+        >
+            <div className="mb-1.5 flex items-center gap-1.5">
+                <span className="rounded bg-[var(--amber-dim)] px-1.5 py-0.5 font-mono text-[10px] font-medium text-[var(--amber)]"></span>
