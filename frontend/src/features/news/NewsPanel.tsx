@@ -48,3 +48,6 @@ function NewsCard({ item, index }: { item: NewsItem; index: number }) {
 export default function NewsPanel() {
     const [items, setItems] = useState<NewsItem[]>([]);
     const [loading, setLoading] = useState(true);
+
+    const load = useCallback(() => {
+        setLoading(true);
