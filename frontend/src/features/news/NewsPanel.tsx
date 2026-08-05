@@ -9,4 +9,10 @@ function NewsCardSkeleton({ index }: { index: number }) {
             animate={{ opacity: 1 }}
             transition={{ delay: index * 0.03, duration: 0.2 }}
             className="rounded-lg border border-[#3d3833] bg-[#2a2723] p-3"
-        ></motion.div>
+        >
+            <div className="mb-2 h-3 w-full animate-pulse rounded bg-white/[0.06]" />
+            <div className="mb-2 h-3 w-3/4 animate-pulse rounded bg-white/[0.06]" />
+            <div className="h-2.5 w-1/3 animate-pulse rounded bg-white/[0.04]" />
+        </motion.div>
+    );
+}
