@@ -30,4 +30,10 @@ function NewsCard({ item, index }: { item: NewsItem; index: number }) {
             className="block rounded-lg border border-[#3d3833] bg-[#2a2723] p-3 no-underline transition-colors hover:border-[var(--amber-border)] hover:bg-[#322f2b]"
         >
             <div className="mb-1.5 flex items-center gap-1.5">
-                <span className="rounded bg-[var(--amber-dim)] px-1.5 py-0.5 font-mono text-[10px] font-medium text-[var(--amber)]"></span>
+                <span className="rounded bg-[var(--amber-dim)] px-1.5 py-0.5 font-mono text-[10px] font-medium text-[var(--amber)]">
+                    {item.symbol}
+                </span>
+            </div>
+            <div className="mb-1.5 line-clamp-2 text-[13px] leading-snug text-[var(--text)]">
+                {item.title}
+            </div>
