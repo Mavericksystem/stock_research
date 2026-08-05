@@ -22,3 +22,6 @@ function NewsCard({ item, index }: { item: NewsItem; index: number }) {
         <motion.a
             href={item.url}
             target="_blank"
+            rel="noopener noreferrer"
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0 }}
