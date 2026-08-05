@@ -25,3 +25,7 @@ function NewsCard({ item, index }: { item: NewsItem; index: number }) {
             rel="noopener noreferrer"
             initial={{ opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: Math.min(index * 0.02, 0.15), duration: 0.2 }}
+            whileHover={{ x: 2 }}
+            className="block rounded-lg border border-[#3d3833] bg-[#2a2723] p-3 no-underline transition-colors hover:border-[var(--amber-border)] hover:bg-[#322f2b]"
+        ></motion.a>
