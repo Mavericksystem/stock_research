@@ -37,3 +37,10 @@ function NewsCard({ item, index }: { item: NewsItem; index: number }) {
             <div className="mb-1.5 line-clamp-2 text-[13px] leading-snug text-[var(--text)]">
                 {item.title}
             </div>
+            <div className="flex items-center justify-between gap-2 font-mono text-[10px] text-[var(--text-dim)]">
+                <span className="truncate">{item.source}</span>
+                <span className="shrink-0">{timeAgo(item.published_at)}</span>
+            </div>
+        </motion.a>
+    );
+}
