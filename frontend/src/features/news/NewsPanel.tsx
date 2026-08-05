@@ -56,3 +56,8 @@ export default function NewsPanel() {
             setLoading(false);
         });
     }, []);
+
+    useEffect(() => {
+        load();
+// Refresh in step with the backend poll interval (5 min) so the
+// panel doesn't go stale without a manual refresh.
