@@ -51,3 +51,6 @@ export default function NewsPanel() {
 
     const load = useCallback(() => {
         setLoading(true);
+        void fetchLatestNews(20).then((data) => {
+            setItems(data);
+            setLoading(false);
