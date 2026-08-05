@@ -54,3 +54,5 @@ export default function NewsPanel() {
         void fetchLatestNews(20).then((data) => {
             setItems(data);
             setLoading(false);
+        });
+    }, []);
