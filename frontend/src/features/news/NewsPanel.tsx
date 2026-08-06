@@ -79,3 +79,9 @@ export default function NewsPanel() {
                 <AnimatePresence initial={false}>
                     {items.map((item, i) => (
                         <NewsCard key={item.id} item={item} index={i} />
+                    ))}
+                </AnimatePresence>
+            )}
+        </div>
+    );
+}
