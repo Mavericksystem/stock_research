@@ -64,3 +64,7 @@ export default function NewsPanel() {
         const interval = window.setInterval(load, 5 * 60 * 1000);
         return () => window.clearInterval(interval);
     }, [load]);
+
+    return (
+        <div className="flex h-full flex-col gap-2 overflow-y-auto p-2">
+            {loading && items.length === 0 ? (
