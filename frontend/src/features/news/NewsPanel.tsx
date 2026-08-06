@@ -68,3 +68,6 @@ export default function NewsPanel() {
     return (
         <div className="flex h-full flex-col gap-2 overflow-y-auto p-2">
             {loading && items.length === 0 ? (
+                Array.from({ length: 6 }).map((_, i) => (
+                    <NewsCardSkeleton key={i} index={i} />
+                ))
