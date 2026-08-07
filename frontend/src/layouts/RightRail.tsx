@@ -29,3 +29,13 @@ export default function RightRail() {
                     transition={{ duration: 0.15 }}
                     className="text-white/40"
                 ></motion.span>
+                ▾
+            </motion.span>
+        </button>
+
+        <motion.div
+          animate={{ height: open === "news" ? "auto" : 0 }}
+          initial={false}
+          transition={{ duration: 0.2 }}
+          className="overflow-hidden"
+        >
