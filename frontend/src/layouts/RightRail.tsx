@@ -14,3 +14,5 @@ export default function RightRail() {
 
     return (
         <aside className="hidden h-full w-[320px] shrink-0 flex-col overflow-hidden border-l border-[var(--border)] md:flex"></aside>
+        {/* News section */ }
+    <div className="flex flex-col overflow-hidden" style={{ flex: open === "news" ? 1 : "0 0 auto" }}></div>
