@@ -24,3 +24,8 @@ export default function RightRail() {
                 <span className="text-[13px] font-bold tracking-[0.08em] text-white">
                     NEWS
                 </span>
+                <motion.span
+                    animate={{ rotate: open === "news" ? 0 : -90 }}
+                    transition={{ duration: 0.15 }}
+                    className="text-white/40"
+                ></motion.span>
