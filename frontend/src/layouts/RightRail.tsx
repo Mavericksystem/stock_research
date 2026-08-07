@@ -11,3 +11,6 @@ export default function RightRail() {
         if (section === "graphs") return; // not implemented yet — no-op
         setOpen(section);
     };
+
+    return (
+        <aside className="hidden h-full w-[320px] shrink-0 flex-col overflow-hidden border-l border-[var(--border)] md:flex"></aside>
