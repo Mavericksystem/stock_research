@@ -1,6 +1,11 @@
 import type { ReactNode } from "react";
 import Header from "./Header";
 import Sidebar from "./Sidebar";
+import { useState } from "react";
+import { motion } from "framer-motion";
+import NewsPanel from "../../news/components/NewsPanel";
+
+type Section = "news" | "graphs";
 
 interface AppLayoutProps {
   sidebarOpen: boolean;
