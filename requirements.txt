@@ -16,3 +16,5 @@ sentence-transformers
 ta
 pgvector
 certifi
+feedparser==6.0.14
+feedparser-sgmllib==2.1.0
