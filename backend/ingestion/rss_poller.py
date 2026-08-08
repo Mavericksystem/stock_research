@@ -24,7 +24,7 @@ import feedparser
 import httpx
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import async_sessionmaker
-rom backend.db.connection import engine
+from backend.db.connection import engine
 from backend.db.models import News
  
 # Reuse the same symbol->name map already used for entity scoring in
@@ -34,13 +34,45 @@ from backend.ingestion.news_scraper import SYMBOL_TO_NAME
 logger = logging.getLogger(__name__)
 SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
- Feed list. Add/remove freely — each is polled independently, one
-# slow/dead feed doesn't block the others.
+# Feed list. Each feed is polled independently.
+# One slow/dead feed doesn't block the others.
 RSS_FEEDS: list[dict[str, str]] = [
-    {"url": "https://feeds.content.dowjones.io/public/rss/RSSMarketsMain", "source": "WSJ Markets"},
-    {"url": "https://www.cnbc.com/id/20910258/device/rss/rss.html", "source": "CNBC Markets"},
-    {"url": "https://feeds.marketwatch.com/marketwatch/topstories/", "source": "MarketWatch"},
-    {"url": "https://finance.yahoo.com/news/rssindex", "source": "Yahoo Finance"},
+    {
+        "url": "https://search.cnbc.com/rs/search/combinedcms/view.xml?partnerId=wrss01&id=10000664",
+        "source": "CNBC",
+    },
+    {
+        "url": "https://feeds.content.dowjones.io/public/rss/mw_marketpulse",
+        "source": "MarketWatch",
+    },
+    {
+        "url": "https://seekingalpha.com/sector/financial.xml",
+        "source": "Seeking Alpha",
+    },
+    {
+        "url": "https://www.fool.com/a/feeds/partner/googlechromefollow?apikey=5e092c1f-c5f9-4428-9219-908a47d2e2de",
+        "source": "The Motley Fool",
+    },
+    {
+        "url": "https://scr.zacks.com/rss/pressrelease.aspx",
+        "source": "Zacks Small Cap Research",
+    },
+    {
+        "url": "https://in.investing.com/rss/news_25.rss",
+        "source": "Investing.com",
+    },
+    {
+        "url": "https://feeds.businessinsider.com/custom/all",
+        "source": "Business Insider",
+    },
+    {
+        "url": "https://ir.nasdaq.com/rss/news-releases.xml?items=15&category=Financial",
+        "source": "Nasdaq News Releases",
+    },
+    {
+        "url": "https://ir.nasdaq.com/rss/sec-filings.xml?items=15",
+        "source": "Nasdaq SEC Filings",
+    },
 ]
 
 # Precompute lowercase match terms once — symbol + company name per ticker.
