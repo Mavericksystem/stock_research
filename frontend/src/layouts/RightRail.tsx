@@ -55,4 +55,13 @@ export default function RightRail() {
         disabled
         title="Coming soon"
         className="flex shrink-0 cursor-not-allowed items-center justify-between px-3.5 py-3 text-left opacity-40"
-    ></button>
+    >
+        <span className="text-[13px] font-bold tracking-[0.08em] text-white">
+            GRAPHS
+        </span>
+        <span className="font-mono text-[10px] text-white/40">soon</span>
+    </button>
+      </div >
+    </aside >
+  );
+}
