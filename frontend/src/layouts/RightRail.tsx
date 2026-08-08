@@ -2,6 +2,7 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import NewsPanel from "../../news/NewsPanel";
 import { div } from "framer-motion/m";
+import { style } from "framer-motion/client";
 
 type Section = "news" | "graphs";
 
@@ -46,4 +47,12 @@ export default function RightRail() {
 
         {/* Graphs section — placeholder, disabled */ }
         < div className = "flex flex-col overflow-hidden border-t border-[var(--border)]" style = {{ flex: open === "graphs" ? 1 : "0 0 auto" }
-}>
+}
+>
+    <button
+        type="button"
+        onClick={() => select("graphs")}
+        disabled
+        title="Coming soon"
+        className="flex shrink-0 cursor-not-allowed items-center justify-between px-3.5 py-3 text-left opacity-40"
+    ></button>
