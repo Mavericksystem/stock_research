@@ -1,12 +1,13 @@
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
- 
+
 from backend.db.connection import get_db
 from backend.db.models import News
 from backend.api.schemas import RSSNewsRequest, APIResponse, NewsItemResponse
- 
+
 router = APIRouter()
+
 
 @router.post("/rss", response_model=APIResponse)
 async def ingest_rss_news(
@@ -37,18 +38,19 @@ async def ingest_rss_news(
             embedding_model=None,
             embedding_created_at=None,
         )
- 
+
         session.add(news)
         inserted += 1
 
     await session.commit()
- 
+
     return APIResponse(
         data={
             "inserted": inserted,
             "skipped": skipped,
         }
     )
+
 
 @router.get("/latest", response_model=APIResponse)
 async def get_latest_news(
