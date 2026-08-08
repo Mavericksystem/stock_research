@@ -49,12 +49,21 @@ export default function NewsPanel() {
     const [items, setItems] = useState<NewsItem[]>([]);
     const [loading, setLoading] = useState(true);
 
+    const [error, setError] = useState(false);
+
     const load = useCallback(() => {
         setLoading(true);
-        void fetchLatestNews(20).then((data) => {
-            setItems(data);
-            setLoading(false);
-        });
+        setError(false);
+        fetchLatestNews(20)
+            .then((data) => {
+                setItems(data);
+            })
+            .catch(() => {
+                setError(true);
+            })
+            .finally(() => {
+                setLoading(false);
+            });
     }, []);
 
     useEffect(() => {
@@ -71,6 +80,10 @@ export default function NewsPanel() {
                 Array.from({ length: 6 }).map((_, i) => (
                     <NewsCardSkeleton key={i} index={i} />
                 ))
+            ) : error ? (
+                <div className="px-2 py-6 text-center font-mono text-[11px] text-white/25">
+                    Couldn't load news — retrying shortly
+                </div>
             ) : items.length === 0 ? (
                 <div className="px-2 py-6 text-center font-mono text-[11px] text-white/25">
                     No news available
