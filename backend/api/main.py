@@ -112,11 +112,12 @@ async def debug_db_test():
 
 @app.on_event("startup")
 async def start_rss_poller():
-    global _rss_task
-    from backend.ingestion.rss_poller import run_rss_poll_loop
+    pass
+    # global _rss_task
+    # from backend.ingestion.rss_poller import run_rss_poll_loop
 
-    _rss_task = asyncio.create_task(run_rss_poll_loop())
-    logger.info("RSS poller background task started")
+    # _rss_task = asyncio.create_task(run_rss_poll_loop())
+    # logger.info("RSS poller background task started")
 
 @app.on_event("shutdown")
 async def stop_rss_poller():
