@@ -39,3 +39,6 @@ export default function RightRail() {
           transition={{ duration: 0.2 }}
           className="overflow-hidden"
         >
+            {open === "news" && <NewsPanel />}
+        </motion.div>
+      </div >
