@@ -16,3 +16,9 @@ function NewsCardSkeleton({ index }: { index: number }) {
         </motion.div>
     );
 }
+
+function NewsCard({ item, index }: { item: NewsItem; index: number }) {
+    return (
+        <motion.a
+            href={item.url}
+            target="_blank"
