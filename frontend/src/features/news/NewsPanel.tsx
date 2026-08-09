@@ -64,3 +64,8 @@ function NewsCard({ item, index }: { item: NewsItem; index: number }) {
                         <span className="font-mono text-[9px] font-semibold tracking-[0.14em] text-[var(--amber)]">
                             NEWS
                         </span>
+
+                        <span className="rounded bg-[var(--amber-dim)] px-1.5 py-0.5 font-mono text-[10px] font-medium text-[var(--amber)]">
+                            {item.symbol}
+                        </span>
+                    </div>
