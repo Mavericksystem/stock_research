@@ -56,3 +56,11 @@ function NewsCard({ item, index }: { item: NewsItem; index: number }) {
             <div className="line-clamp-2 text-[12px] font-medium leading-[1.35] text-[var(--text)] transition-opacity duration-200 group-hover:opacity-0">
                 {item.title}
             </div>
+
+            {/* Expanded content */}
+            <div className="pointer-events-none absolute inset-0 flex flex-col justify-between rounded-xl bg-[#2a2723] p-3 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
+                <div>
+                    <div className="mb-2 flex items-center justify-between">
+                        <span className="font-mono text-[9px] font-semibold tracking-[0.14em] text-[var(--amber)]">
+                            NEWS
+                        </span>
