@@ -39,3 +39,10 @@ function NewsCard({ item, index }: { item: NewsItem; index: number }) {
                     damping: 26,
                 },
             }}
+            className="group relative block h-[112px] overflow-hidden rounded-xl border border-[#3d3833] bg-[#2a2723] p-3 no-underline shadow-[0_4px_12px_rgba(0,0,0,0.15)] transition-colors duration-200 hover:border-[var(--amber-border)] hover:bg-[#322f2b] hover:shadow-[0_16px_30px_rgba(0,0,0,0.28)]"
+        >
+            {/* Top heading */}
+            <div className="mb-2 flex items-center justify-between">
+                <span className="font-mono text-[9px] font-semibold tracking-[0.14em] text-[var(--text-dim)]">
+                    NEWS
+                </span>
