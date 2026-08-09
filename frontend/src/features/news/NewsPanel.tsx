@@ -33,3 +33,9 @@ function NewsCard({ item, index }: { item: NewsItem; index: number }) {
                 y: -18,
                 scale: 1.015,
                 zIndex: 50,
+                transition: {
+                    type: "spring",
+                    stiffness: 420,
+                    damping: 26,
+                },
+            }}
