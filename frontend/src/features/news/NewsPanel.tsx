@@ -74,3 +74,8 @@ function NewsCard({ item, index }: { item: NewsItem; index: number }) {
                         {item.title}
                     </div>
                 </div>
+
+                <div className="flex items-center justify-between gap-2">
+                    <span className="truncate font-mono text-[9px] text-[var(--text-dim)]">
+                        {item.source} · {timeAgo(item.published_at)}
+                    </span>
