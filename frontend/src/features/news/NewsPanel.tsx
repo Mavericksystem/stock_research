@@ -25,3 +25,7 @@ function NewsCard({ item, index }: { item: NewsItem; index: number }) {
             rel="noopener noreferrer"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
+            transition={{
+                delay: Math.min(index * 0.025, 0.2),
+                duration: 0.3,
+            }}
