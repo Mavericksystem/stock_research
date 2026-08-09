@@ -69,3 +69,8 @@ function NewsCard({ item, index }: { item: NewsItem; index: number }) {
                             {item.symbol}
                         </span>
                     </div>
+
+                    <div className="text-[12px] font-medium leading-[1.4] text-[var(--text)]">
+                        {item.title}
+                    </div>
+                </div>
