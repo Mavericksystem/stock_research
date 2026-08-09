@@ -51,3 +51,8 @@ function NewsCard({ item, index }: { item: NewsItem; index: number }) {
                     {item.symbol}
                 </span>
             </div>
+
+            {/* Compact title */}
+            <div className="line-clamp-2 text-[12px] font-medium leading-[1.35] text-[var(--text)] transition-opacity duration-200 group-hover:opacity-0">
+                {item.title}
+            </div>
