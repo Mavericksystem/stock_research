@@ -29,3 +29,7 @@ function NewsCard({ item, index }: { item: NewsItem; index: number }) {
                 delay: Math.min(index * 0.025, 0.2),
                 duration: 0.3,
             }}
+            whileHover={{
+                y: -18,
+                scale: 1.015,
+                zIndex: 50,
