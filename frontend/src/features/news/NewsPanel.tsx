@@ -93,3 +93,7 @@ export default function NewsPanel() {
     const [items, setItems] = useState<NewsItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(false);
+
+    const load = useCallback(() => {
+        setLoading(true);
+        setError(false);
