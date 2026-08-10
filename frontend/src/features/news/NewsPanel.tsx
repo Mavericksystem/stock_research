@@ -124,3 +124,7 @@ export default function NewsPanel() {
                 Array.from({ length: 6 }).map((_, i) => (
                     <NewsCardSkeleton key={i} index={i} />
                 ))
+            ) : error ? (
+                <div className="px-2 py-6 text-center font-mono text-[11px] text-white/25">
+                    Couldn't load news — retrying shortly
+                </div>
