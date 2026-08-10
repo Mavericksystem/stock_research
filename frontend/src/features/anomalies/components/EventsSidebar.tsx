@@ -67,18 +67,25 @@ function EventCard({ event, onClick, index }: EventCardProps) {
         <span className="font-mono text-xs font-medium tracking-[0.02em] text-white">
           {event.symbol}
         </span>
-        <span
-          className={`shrink-0 rounded border px-1.5 py-0.5 font-mono text-[10px] font-medium tracking-[0.02em] ${isSpike
-            ? "border-emerald-500/20 bg-emerald-500/[0.12] text-[var(--spike)]"
-            : "border-red-500/20 bg-red-500/[0.12] text-[var(--drop)]"
-            }`}
-        >
-          {isSpike ? "▲" : "▼"}
-          {magnitude ? ` ${magnitude}` : ""}
+        <span className="flex shrink-0 items-center gap-1.5">
+          <span className="flex h-4 w-4 items-center justify-center">
+            <svg
+              viewBox="0 0 46 40"
+              xmlns="http://www.w3.org/2000/svg"
+              className={`h-3 w-3 ${isSpike ? "rotate-[270deg]" : "rotate-90"}`}
+              fill="currentColor"
+            >
+              <path d="M46 20.038c0-.7-.3-1.5-.8-2.1l-16-17c-1.1-1-3.2-1.4-4.4-.3-1.2 1.1-1.2 3.3 0 4.4l11.3 11.9H3c-1.7 0-3 1.3-3 3s1.3 3 3 3h33.1l-11.3 11.9c-1 1-1.2 3.3 0 4.4l16-17c.5-.5.8-1.1.8-1.9z" />
+            </svg>
+          </span>
+
+          <span className="font-mono text-[12px] font-medium tracking-[0.02em] text-white">
+            {magnitude}
+          </span>
         </span>
       </div>
 
-      <div className="flex items-center justify-between gap-2 text-[8px] text-white/80">
+      <div className="flex items-center justify-between gap-2 text-[12px] text-white/80">
         <span className="font-mono">{event.start_date}</span>
         {zscore && <span className="font-mono">{zscore}</span>}
       </div>

@@ -17,70 +17,113 @@ function NewsCardSkeleton({ index }: { index: number }) {
     );
 }
 
+const CARD_COLORS = [
+    {
+        bg: "bg-[#000000]",
+        text: "text-[#E1DCC9]",
+        muted: "text-[#E1DCC9]/60",
+        symbol: "text-[#E1DCC9]",
+        symbolBorder: "border-[#E1DCC9]/30",
+    },
+    {
+        bg: "bg-[#1F150C]",
+        text: "text-[#E1DCC9]",
+        muted: "text-[#E1DCC9]/60",
+        symbol: "text-[#E1DCC9]",
+        symbolBorder: "border-[#E1DCC9]/30",
+    },
+    {
+        bg: "bg-[#412D15]",
+        text: "text-[#E1DCC9]",
+        muted: "text-[#E1DCC9]/60",
+        symbol: "text-[#E1DCC9]",
+        symbolBorder: "border-[#E1DCC9]/30",
+    },
+    {
+        bg: "bg-[#B8B3A3]",
+        text: "text-[#1F150C]",
+        muted: "text-[#1F150C]/60",
+        symbol: "text-[#1F150C]",
+        symbolBorder: "border-[#1F150C]/30",
+    },
+];
+
 function NewsCard({ item, index }: { item: NewsItem; index: number }) {
+    const cardColor = CARD_COLORS[index % CARD_COLORS.length];
+
     return (
         <motion.a
             href={item.url}
             target="_blank"
             rel="noopener noreferrer"
-            initial={{ opacity: 0, y: 10 }}
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{
                 delay: Math.min(index * 0.025, 0.2),
-                duration: 0.3,
+                duration: 0.35,
             }}
             whileHover={{
-                y: -18,
-                scale: 1.015,
-                zIndex: 50,
+                y: -28,
+                scale: 1.02,
+                zIndex: 100,
                 transition: {
                     type: "spring",
                     stiffness: 420,
-                    damping: 26,
+                    damping: 28,
                 },
             }}
-            className="group relative block h-[112px] overflow-hidden rounded-xl border border-[#3d3833] bg-[#2a2723] p-3 no-underline shadow-[0_4px_12px_rgba(0,0,0,0.15)] transition-colors duration-200 hover:border-[var(--amber-border)] hover:bg-[#322f2b] hover:shadow-[0_16px_30px_rgba(0,0,0,0.28)]"
+            className={`group relative -mt-8 first:mt-0 block min-h-[142px] overflow-hidden rounded-2xl border border-white/10 ${cardColor.bg} p-4 no-underline shadow-[0_8px_18px_rgba(0,0,0,0.22)]`}
         >
-            {/* Top heading */}
-            <div className="mb-2 flex items-center justify-between">
-                <span className="font-mono text-[9px] font-semibold tracking-[0.14em] text-[var(--text-dim)]">
-                    NEWS
-                </span>
-
-                <span className="rounded bg-[var(--amber-dim)] px-1.5 py-0.5 font-mono text-[10px] font-medium text-[var(--amber)]">
+            <div className="mb-3 flex items-center justify-between">
+                <span
+                    className={`rounded-md border ${cardColor.symbolBorder} bg-transparent px-2 py-1 font-mono text-[10px] font-semibold ${cardColor.symbol}`}
+                >
                     {item.symbol}
                 </span>
             </div>
 
-            {/* Compact title */}
-            <div className="line-clamp-2 text-[12px] font-medium leading-[1.35] text-[var(--text)] transition-opacity duration-200 group-hover:opacity-0">
+            <div
+                className={`line-clamp-2 text-[13px] font-medium leading-[1.45] ${cardColor.text}`}
+            >
                 {item.title}
             </div>
 
-            {/* Expanded content */}
-            <div className="pointer-events-none absolute inset-0 flex flex-col justify-between rounded-xl bg-[#2a2723] p-3 opacity-0 transition-opacity duration-150 group-hover:opacity-100">
-                <div>
-                    <div className="mb-2 flex items-center justify-between">
-                        <span className="font-mono text-[9px] font-semibold tracking-[0.14em] text-[var(--amber)]">
-                            NEWS
-                        </span>
+            <div
+                className={`absolute bottom-4 left-4 right-4 flex items-center justify-between gap-3 font-mono text-[9px] ${cardColor.muted}`}
+            >
+                <span className="truncate">{item.source}</span>
+                <span className="shrink-0">{timeAgo(item.published_at)}</span>
+            </div>
 
-                        <span className="rounded bg-[var(--amber-dim)] px-1.5 py-0.5 font-mono text-[10px] font-medium text-[var(--amber)]">
+            <div
+                className={`pointer-events-none absolute inset-0 flex flex-col justify-between rounded-2xl ${cardColor.bg} p-4 opacity-0 transition-opacity duration-150 group-hover:opacity-100`}
+            >
+                <div>
+                    <div className="mb-3 flex items-center justify-between">
+                        <span
+                            className={`rounded-md border ${cardColor.symbolBorder} bg-transparent px-2 py-1 font-mono text-[10px] font-semibold ${cardColor.symbol}`}
+                        >
                             {item.symbol}
                         </span>
                     </div>
 
-                    <div className="text-[12px] font-medium leading-[1.4] text-[var(--text)]">
+                    <p
+                        className={`m-0 text-[13px] font-medium leading-[1.45] ${cardColor.text}`}
+                    >
                         {item.title}
-                    </div>
+                    </p>
                 </div>
 
-                <div className="flex items-center justify-between gap-2">
-                    <span className="truncate font-mono text-[9px] text-[var(--text-dim)]">
+                <div className="flex items-center justify-between gap-3">
+                    <span
+                        className={`truncate font-mono text-[9px] ${cardColor.muted}`}
+                    >
                         {item.source} · {timeAgo(item.published_at)}
                     </span>
 
-                    <span className="shrink-0 font-mono text-[9px] font-semibold tracking-[0.08em] text-[var(--amber)]">
+                    <span
+                        className={`shrink-0 font-mono text-[9px] font-semibold tracking-[0.12em] ${cardColor.symbol}`}
+                    >
                         READ MORE →
                     </span>
                 </div>
@@ -119,7 +162,7 @@ export default function NewsPanel() {
     }, [load]);
 
     return (
-        <div className="flex h-full flex-col gap-[-1px] overflow-y-auto overflow-x-visible p-2">
+        <div className="flex h-full flex-col overflow-y-auto overflow-x-visible p-2">
             {loading && items.length === 0 ? (
                 Array.from({ length: 6 }).map((_, i) => (
                     <NewsCardSkeleton key={i} index={i} />
