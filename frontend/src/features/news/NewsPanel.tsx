@@ -97,3 +97,10 @@ export default function NewsPanel() {
     const load = useCallback(() => {
         setLoading(true);
         setError(false);
+
+        fetchLatestNews(20)
+            .then((data) => {
+                setItems(data);
+            })
+            .catch(() => {
+                setError(true);
