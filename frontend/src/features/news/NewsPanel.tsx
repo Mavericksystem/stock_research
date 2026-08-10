@@ -104,3 +104,8 @@ export default function NewsPanel() {
             })
             .catch(() => {
                 setError(true);
+            })
+            .finally(() => {
+                setLoading(false);
+            });
+    }, []);
