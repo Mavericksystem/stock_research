@@ -79,3 +79,12 @@ function NewsCard({ item, index }: { item: NewsItem; index: number }) {
                     <span className="truncate font-mono text-[9px] text-[var(--text-dim)]">
                         {item.source} · {timeAgo(item.published_at)}
                     </span>
+
+                    <span className="shrink-0 font-mono text-[9px] font-semibold tracking-[0.08em] text-[var(--amber)]">
+                        READ MORE →
+                    </span>
+                </div>
+            </div>
+        </motion.a>
+    );
+}
