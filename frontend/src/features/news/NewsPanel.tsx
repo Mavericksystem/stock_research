@@ -109,3 +109,11 @@ export default function NewsPanel() {
                 setLoading(false);
             });
     }, []);
+
+    useEffect(() => {
+        load();
+
+        const interval = window.setInterval(load, 5 * 60 * 1000);
+
+        return () => window.clearInterval(interval);
+    }, [load]);
