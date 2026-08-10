@@ -88,3 +88,8 @@ function NewsCard({ item, index }: { item: NewsItem; index: number }) {
         </motion.a>
     );
 }
+
+export default function NewsPanel() {
+    const [items, setItems] = useState<NewsItem[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(false);
