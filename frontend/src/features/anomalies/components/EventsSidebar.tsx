@@ -265,7 +265,7 @@ export default function EventsSidebar({
               </motion.button>
             </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-2 scrollbar-thin scrollbar-thumb-white/10">
+            <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-2 scrollbar-thin scrollbar-thumb-white/10 [touch-action:pan-y] [-webkit-overflow-scrolling:touch]">
               {loading ? (
                 <div className="space-y-2">
                   {Array.from({ length: 6 }).map((_, index) => (
