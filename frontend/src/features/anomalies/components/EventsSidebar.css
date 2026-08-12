@@ -17,7 +17,6 @@
   pointer-events: none;
 }
 
-
 /* ─── Sidebar panel ─────────────────────────────────────────────── */
 
 .ec-sidebar {
@@ -27,8 +26,7 @@
   border-right: 1px solid #3d3833;
   backdrop-filter: blur(12px);
   background: #24211d;
-  transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1),
-              opacity 0.18s ease;
+  transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.18s ease;
   will-change: width;
 }
 
@@ -243,4 +241,66 @@
   font-size: 11px;
   color: var(--text-dim, rgba(255, 255, 255, 0.25));
   text-align: center;
+}
+
+/* ─── Desktop-only sidebar motion ───────────────────────────────── */
+
+@media (min-width: 769px) {
+  .ec-root {
+    overflow: visible;
+  }
+
+  .ec-sidebar {
+    transform: translateX(-18px);
+    transform-origin: left center;
+    transition:
+      width 0.28s cubic-bezier(0.22, 1, 0.36, 1),
+      opacity 0.18s ease,
+      transform 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+    will-change: width, opacity, transform;
+  }
+
+  .ec-root--open .ec-sidebar {
+    transform: translateX(0);
+  }
+
+  .ec-root--closed .ec-sidebar {
+    transform: translateX(-18px);
+  }
+
+  .ec-root--open .ec-sidebar-header,
+  .ec-root--open .ec-sidebar-body,
+  .ec-root--open .ec-footer {
+    animation: ec-content-enter 0.24s ease both;
+  }
+
+  .ec-root--open .ec-sidebar-body {
+    animation-delay: 0.03s;
+  }
+
+  .ec-root--open .ec-footer {
+    animation-delay: 0.05s;
+  }
+
+  @keyframes ec-content-enter {
+    from {
+      opacity: 0;
+      transform: translateX(-8px);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ec-sidebar,
+    .ec-root--open .ec-sidebar-header,
+    .ec-root--open .ec-sidebar-body,
+    .ec-root--open .ec-footer {
+      animation: none;
+      transition: opacity 0.01ms linear;
+      transform: none;
+    }
+  }
 }
