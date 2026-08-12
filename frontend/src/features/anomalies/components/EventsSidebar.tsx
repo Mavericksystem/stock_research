@@ -97,11 +97,21 @@ export default function EventsSidebar({
   const [lastRefresh, setLastRefresh] = useState<Date | null>(null);
   const [edgeHovered, setEdgeHovered] = useState(false);
   const [panelHovered, setPanelHovered] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
   const reduceMotion = useReducedMotion();
 
   const desktopOpen = edgeHovered || panelHovered;
   const drawerOpen = open || desktopOpen;
   const drawerWidth = "min(280px, 82vw)";
+
+  useEffect(() => {
+    const mediaQuery = window.matchMedia("(max-width: 768px)");
+    const updateMobile = () => setIsMobile(mediaQuery.matches);
+
+    updateMobile();
+    mediaQuery.addEventListener("change", updateMobile);
+    return () => mediaQuery.removeEventListener("change", updateMobile);
+  }, []);
 
   const loadEvents = useCallback(() => {
     setLoading(true);
@@ -149,7 +159,6 @@ export default function EventsSidebar({
 
   return (
     <div className="pointer-events-none absolute inset-0 z-[1100] overflow-visible">
-      {/* Desktop: invisible edge activation zone */}
       <div
         aria-hidden="true"
         className="pointer-events-auto absolute inset-y-0 left-0 hidden w-5 md:block"
@@ -157,7 +166,6 @@ export default function EventsSidebar({
         onMouseLeave={() => setEdgeHovered(false)}
       />
 
-      {/* Desktop: subtle edge affordance */}
       <motion.div
         aria-hidden="true"
         animate={{
@@ -168,7 +176,6 @@ export default function EventsSidebar({
         className="pointer-events-none absolute left-0 top-1/2 hidden h-11 -translate-y-1/2 rounded-r bg-white md:block"
       />
 
-      {/* Mobile: real touch target */}
       <motion.button
         type="button"
         aria-label={open ? "Close anomalies" : "Open anomalies"}
@@ -188,7 +195,6 @@ export default function EventsSidebar({
         />
       </motion.button>
 
-      {/* Mobile backdrop: constrained to layout-body, so header stays untouched */}
       <AnimatePresence>
         {open && (
           <motion.button
@@ -208,18 +214,20 @@ export default function EventsSidebar({
         {drawerOpen && (
           <motion.aside
             key="anomalies-drawer"
-            initial={{ x: "-100%", opacity: 0 }}
-            animate={{ x: 0, opacity: 1 }}
-            exit={{ x: "-100%", opacity: 0 }}
+            initial={isMobile ? { opacity: 0 } : { x: "-100%", opacity: 0 }}
+            animate={isMobile ? { opacity: 1 } : { x: 0, opacity: 1 }}
+            exit={isMobile ? { opacity: 0 } : { x: "-100%", opacity: 0 }}
             transition={
               reduceMotion
                 ? { duration: 0 }
-                : {
-                    type: "spring",
-                    stiffness: 360,
-                    damping: 36,
-                    mass: 0.8,
-                  }
+                : isMobile
+                  ? { duration: 0.18 }
+                  : {
+                      type: "spring",
+                      stiffness: 360,
+                      damping: 36,
+                      mass: 0.8,
+                    }
             }
             onMouseEnter={() => setPanelHovered(true)}
             onMouseLeave={() => setPanelHovered(false)}
