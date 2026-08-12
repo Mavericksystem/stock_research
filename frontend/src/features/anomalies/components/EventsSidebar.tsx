@@ -224,7 +224,7 @@ export default function EventsSidebar({
             onMouseEnter={() => setPanelHovered(true)}
             onMouseLeave={() => setPanelHovered(false)}
             aria-label="Recent market anomalies"
-            className="pointer-events-auto absolute inset-y-0 left-0 flex w-[min(280px,82vw)] flex-col overflow-hidden border-r border-[#3d3833] bg-[#24211d] shadow-[8px_0_30px_rgba(0,0,0,0.18)] backdrop-blur-xl md:w-[220px]"
+            className="pointer-events-auto absolute inset-y-0 left-0 flex h-full w-[min(280px,82vw)] min-h-0 flex-col overflow-hidden border-r border-[#3d3833] bg-[#24211d] shadow-[8px_0_30px_rgba(0,0,0,0.18)] backdrop-blur-xl md:h-auto md:w-[220px]"
           >
             <div className="flex shrink-0 items-center justify-between border-b border-white/[0.05] px-3.5 pb-2.5 pt-4">
               <span className="text-[13px] font-bold tracking-[0.08em] text-white">
@@ -265,7 +265,7 @@ export default function EventsSidebar({
               </motion.button>
             </div>
 
-            <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-2 scrollbar-thin scrollbar-thumb-white/10 [touch-action:pan-y] [-webkit-overflow-scrolling:touch]">
+            <div className="h-0 min-h-0 flex-1 overflow-y-auto overflow-x-hidden p-2 scrollbar-thin scrollbar-thumb-white/10 [touch-action:pan-y] [-webkit-overflow-scrolling:touch] md:h-auto">
               {loading ? (
                 <div className="space-y-2">
                   {Array.from({ length: 6 }).map((_, index) => (
