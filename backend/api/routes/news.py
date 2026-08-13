@@ -37,3 +37,8 @@ async def ingest_rss_news(
             embedding_model=None,
             embedding_created_at=None,
         )
+
+        session.add(news)
+        inserted += 1
+
+    await session.commit()
