@@ -25,3 +25,15 @@ async def ingest_rss_news(
         if existing is not None:
             skipped += 1
             continue
+
+        news = News(
+            symbol=None,
+            title=item.title,
+            content=item.description,
+            source=item.source,
+            url=item.url,
+            published_at=item.published_at,
+            embedding=None,
+            embedding_model=None,
+            embedding_created_at=None,
+        )
