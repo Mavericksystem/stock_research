@@ -42,3 +42,10 @@ async def ingest_rss_news(
         inserted += 1
 
     await session.commit()
+
+    return APIResponse(
+        data={
+            "inserted": inserted,
+            "skipped": skipped,
+        }
+    )
