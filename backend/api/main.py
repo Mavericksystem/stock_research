@@ -1,6 +1,6 @@
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
-from backend.api.routes import stock, analysis, ask
+from backend.api.routes import stock, analysis, ask, news
 
 app = FastAPI(
     title="Market Explanation Engine - Intelligence API",
@@ -30,6 +30,7 @@ API_V1 = "/api/v1"
 app.include_router(stock.router, prefix=f"{API_V1}/stocks", tags=["Data & Signals"])
 app.include_router(analysis.router, prefix=f"{API_V1}/analysis", tags=["Reasoning Layer"])
 app.include_router(ask.router, prefix=f"{API_V1}/ask", tags=["Intelligence"])
+app.include_router(news.router, prefix=f"{API_V1}/news", tags=["News"],)
 
 @app.get("/")
 async def root():
