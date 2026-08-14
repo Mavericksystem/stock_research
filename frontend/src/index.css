@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --content-width: 820px;
+    --content-gap: 32px;
 
     --bg: #1f1d1a;
     --surface: #2a2723;
@@ -100,7 +100,7 @@
 
 @layer utilities {
   .content-width {
-    width: min(100%, var(--content-width));
+    width: calc(100% - (2 * var(--content-gap)));
     margin-inline: auto;
   }
 
