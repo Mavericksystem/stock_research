@@ -346,7 +346,7 @@ export default function DashboardPage({
 
   return (
     <>
-      <div className="flex min-h-0 flex-1 flex-col items-center gap-6 overflow-y-auto px-3 pb-2 pt-6 md:px-6">
+      <div className="flex min-h-0 flex-1 flex-col items-center gap-6 overflow-y-auto px-0 pb-2 pt-6">
         {messages.length === 0 && !loading ? (
           <EmptyState
             onSuggestion={onSuggestion}
