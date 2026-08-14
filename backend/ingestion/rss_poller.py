@@ -31,6 +31,11 @@ from backend.db.models import News
 # news_scraper.py — keeps ticker filtering consistent across the codebase.
 from backend.ingestion.news_scraper import SYMBOL_TO_NAME
 
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s | %(levelname)s | %(message)s",
+)
+
 logger = logging.getLogger(__name__)
 SessionLocal = async_sessionmaker(engine, expire_on_commit=False)
 
@@ -113,7 +118,6 @@ def _match_symbol(title: str, summary: str) -> str | None:
 
     return None
  
-POLL_INTERVAL_SECONDS = 300  # 5 min — RSS feeds don't update faster than this anyway
 FETCH_TIMEOUT_SECONDS = 15
 
 def _parse_published(entry: dict[str, Any]) -> datetime:
@@ -198,13 +202,5 @@ async def poll_once() -> None:
         f"(ticker-filtered, non-matching items dropped) inserted={inserted}"
     )
 
-async def run_rss_poll_loop() -> None:
-    """Long-running loop — call this once via asyncio.create_task at startup."""
-    logger.info(f"[rss_poller] starting, interval={POLL_INTERVAL_SECONDS}s, feeds={len(RSS_FEEDS)}")
-    while True:
-        try:
-            await poll_once()
-        except Exception:
-            # Never let the loop die — log and retry next interval.
-            logger.exception("[rss_poller] poll cycle failed")
-        await asyncio.sleep(POLL_INTERVAL_SECONDS)
+if __name__ == "__main__":
+    asyncio.run(poll_once())
