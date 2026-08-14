@@ -1,4 +1,3 @@
-import asyncio
 import logging
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
@@ -6,7 +5,7 @@ from backend.api.routes import stock, analysis, ask, news
 
 logger = logging.getLogger(__name__)
  
-_rss_task: asyncio.Task | None = None
+
 
 app = FastAPI(
     title="Market Explanation Engine - Intelligence API",
@@ -110,20 +109,3 @@ async def debug_db_test():
         tb = traceback.format_exc()
         return {"status": "error", "error": str(e), "traceback": tb, "db": _db_diagnostics()}
 
-@app.on_event("startup")
-async def start_rss_poller():
-    pass
-    # global _rss_task
-    # from backend.ingestion.rss_poller import run_rss_poll_loop
-
-    # _rss_task = asyncio.create_task(run_rss_poll_loop())
-    # logger.info("RSS poller background task started")
-
-@app.on_event("shutdown")
-async def stop_rss_poller():
-    if _rss_task:
-        _rss_task.cancel()
-        try:
-            await _rss_task
-        except asyncio.CancelledError:
-            pass
