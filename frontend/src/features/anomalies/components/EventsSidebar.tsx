@@ -68,11 +68,10 @@ function EventCard({ event, onClick, index }: EventCardProps) {
           {event.symbol}
         </span>
         <span
-          className={`shrink-0 rounded border px-1.5 py-0.5 font-mono text-[10px] font-medium tracking-[0.02em] ${
-            isSpike
-              ? "border-emerald-500/20 bg-emerald-500/[0.12] text-[var(--spike)]"
-              : "border-red-500/20 bg-red-500/[0.12] text-[var(--drop)]"
-          }`}
+          className={`shrink-0 rounded border px-1.5 py-0.5 font-mono text-[10px] font-medium tracking-[0.02em] ${isSpike
+            ? "border-emerald-500/20 bg-emerald-500/[0.12] text-[var(--spike)]"
+            : "border-red-500/20 bg-red-500/[0.12] text-[var(--drop)]"
+            }`}
         >
           {isSpike ? "▲" : "▼"}
           {magnitude ? ` ${magnitude}` : ""}
@@ -102,7 +101,7 @@ export default function EventsSidebar({
 
   const desktopOpen = edgeHovered || panelHovered;
   const drawerOpen = open || desktopOpen;
-  const drawerWidth = "min(280px, 82vw)";
+  const drawerWidth = "280px";
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(max-width: 768px)");
@@ -223,16 +222,16 @@ export default function EventsSidebar({
                 : isMobile
                   ? { duration: 0.18 }
                   : {
-                      type: "spring",
-                      stiffness: 360,
-                      damping: 36,
-                      mass: 0.8,
-                    }
+                    type: "spring",
+                    stiffness: 360,
+                    damping: 36,
+                    mass: 0.8,
+                  }
             }
             onMouseEnter={() => setPanelHovered(true)}
             onMouseLeave={() => setPanelHovered(false)}
             aria-label="Recent market anomalies"
-            className="pointer-events-auto absolute inset-y-0 left-0 z-[1101] flex h-full w-[min(280px,82vw)] min-h-0 flex-col overflow-hidden border-r border-[#3d3833] bg-[#24211d] shadow-[8px_0_30px_rgba(0,0,0,0.18)] backdrop-blur-xl md:h-auto md:w-[220px]"
+            className="pointer-events-auto absolute inset-y-0 left-0 z-[1101] flex h-full w-[min(280px,82vw)] min-h-0 flex-col overflow-hidden border-r border-[#3d3833] bg-[#24211d] shadow-[8px_0_30px_rgba(0,0,0,0.18)] backdrop-blur-xl md:h-auto md:w-[280px]"
           >
             <div className="flex shrink-0 items-center justify-between border-b border-white/[0.05] px-3.5 pb-2.5 pt-4">
               <span className="text-[13px] font-bold tracking-[0.08em] text-white">
