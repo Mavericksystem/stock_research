@@ -4,7 +4,7 @@
 
 @layer base {
   :root {
-    --content-gap: 32px;
+    --content-width: min(82vw, 960px);
 
     --bg: #1f1d1a;
     --surface: #2a2723;
@@ -100,42 +100,43 @@
 
 @layer utilities {
   .content-width {
-    width: calc(100% - (2 * var(--content-gap)));
+    width: min(920px, calc(100% - 48px));
     margin-inline: auto;
   }
+}
 
-  .font-mono-ui {
-    font-family: var(--font-mono);
-  }
+.font-mono-ui {
+  font-family: var(--font-mono);
+}
 
-  .shine-text {
-    background: linear-gradient(110deg,
-        #8b8378 20%,
-        #f5f2ec 45%,
-        #ffffff 55%,
-        #f5f2ec 60%,
-        #8b8378 80%);
+.shine-text {
+  background: linear-gradient(110deg,
+      #8b8378 20%,
+      #f5f2ec 45%,
+      #ffffff 55%,
+      #f5f2ec 60%,
+      #8b8378 80%);
 
-    background-size: 250% 100%;
+  background-size: 250% 100%;
+  background-position: 100% 0;
+
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+
+  animation: text-shine 4s linear infinite;
+}
+
+@keyframes text-shine {
+  0% {
     background-position: 100% 0;
-
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
-
-    animation: text-shine 4s linear infinite;
   }
 
-  @keyframes text-shine {
-    0% {
-      background-position: 100% 0;
-    }
-
-    100% {
-      background-position: -100% 0;
-    }
+  100% {
+    background-position: -100% 0;
   }
 }
+
 
 /* ========================================
    Suggestion Cards
