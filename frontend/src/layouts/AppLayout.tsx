@@ -19,20 +19,25 @@ export default function AppLayout({
   children,
 }: AppLayoutProps) {
   return (
-    <div className="flex h-dvh w-full flex-col bg-[var(--bg)] px-3 md:mx-auto md:max-w-[1440px] md:px-6">
+    <div className="flex h-dvh w-full flex-col bg-[var(--bg)] px-3 md:px-6">
       <Header stocksTracked={trackedStocksCount} />
 
       <div className="relative flex min-h-0 flex-1 overflow-hidden">
-        <Sidebar
-          open={sidebarOpen}
-          onToggle={onToggleSidebar}
-          onEventSelect={onEventSelect}
-        />
+        {/* Left rail */}
+        <aside className="hidden w-[280px] shrink-0 md:block">
+          <Sidebar
+            open={sidebarOpen}
+            onToggle={onToggleSidebar}
+            onEventSelect={onEventSelect}
+          />
+        </aside>
 
+        {/* Center */}
         <main className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
           {children}
         </main>
 
+        {/* Right rail */}
         <RightRail />
       </div>
     </div>
