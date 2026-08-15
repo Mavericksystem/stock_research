@@ -8,3 +8,27 @@ import websockets
 from websockets.exceptions import ConnectionClosed
  
 from backend.config.settings import settings
+
+from backend.ingestion.news_scraper import SYMBOL_TO_NAME
+ 
+TRACKED_SYMBOLS = list(SYMBOL_TO_NAME.keys())
+ 
+logger = logging.getLogger(__name__)
+
+FINNHUB_WS_URL = "wss://ws.finnhub.io"
+ 
+# Shared state — read by the SSE endpoint, written only by this module's
+# listener loop. Plain dict assignment is atomic under asyncio's single
+# event loop, no lock needed.
+latest_prices: dict[str, dict[str, Any]] = {}
+ 
+# Exposed so the SSE endpoint / a health check can report connection state
+# without reaching into listener internals.
+connection_state: dict[str, Any] = {"connected": False, "last_tick_at": None}
+
+_MAX_BACKOFF_SECONDS = 30
+ 
+ 
+async def _subscribe_all(ws: Any) -> None:
+    for symbol in TRACKED_SYMBOLS:
+        await ws.send(json.dumps({"type": "subscribe", "symbol": symbol}))
