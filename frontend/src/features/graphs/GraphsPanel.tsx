@@ -42,3 +42,12 @@ export function subscribeLivePrices(
     onSnapshot: (snapshot: LiveSnapshot) => void,
 ): () => void {
     const es = new EventSource(`${getApiBaseUrl()}/api/v1/stocks/stream`);
+
+    es.onmessage = (event) => {
+        try {
+            const parsed = JSON.parse(event.data) as LiveSnapshot;
+            onSnapshot(parsed);
+        } catch {
+            // malformed snapshot — skip this tick, next one will arrive in ~1s
+        }
+    };
