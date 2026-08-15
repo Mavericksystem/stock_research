@@ -32,3 +32,8 @@ export interface LiveTick {
     price: number;
     t: number;
 }
+
+export interface LiveSnapshot {
+    prices: Record<string, LiveTick>;
+    connected: boolean;
+}
