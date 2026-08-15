@@ -39,3 +39,12 @@ export default function GraphsPanel() {
             .then(setHistory)
             .finally(() => setLoading(false));
     }, [symbol]);
+
+    useEffect(() => {
+        const cleanup = subscribeLivePrices((snapshot) => {
+            setConnected(snapshot.connected);
+            const tick = snapshot.prices[symbol];
+            if (tick) setLivePrice(tick.price);
+        });
+        return cleanup;
+    }, [symbol]);
