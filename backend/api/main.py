@@ -109,3 +109,5 @@ async def debug_db_test():
         tb = traceback.format_exc()
         return {"status": "error", "error": str(e), "traceback": tb, "db": _db_diagnostics()}
 
+@app.on_event("startup")
+async def start_background_tasks():
