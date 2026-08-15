@@ -52,3 +52,7 @@ async def _subscribe_all(ws: Any) -> None:
 
         latest_prices[symbol] = {"price": price, "t": ts}
         connection_state["last_tick_at"] = ts
+
+async def run_price_feed_loop() -> None:
+    """Long-running loop — call once via asyncio.create_task at startup."""
+    if not settings.FINNHUB_API_KEY:
