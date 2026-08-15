@@ -5,7 +5,7 @@ from backend.api.routes import stock, analysis, ask, news
 
 logger = logging.getLogger(__name__)
  
-
+_price_feed_task: asyncio.Task | None = None
 
 app = FastAPI(
     title="Market Explanation Engine - Intelligence API",
