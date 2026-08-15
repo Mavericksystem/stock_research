@@ -49,3 +49,6 @@ async def _subscribe_all(ws: Any) -> None:
         ts = trade.get("t")
         if not symbol or price is None:
             continue
+
+        latest_prices[symbol] = {"price": price, "t": ts}
+        connection_state["last_tick_at"] = ts
