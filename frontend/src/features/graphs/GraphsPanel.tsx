@@ -92,3 +92,9 @@ export default function GraphsPanel() {
                     {connected ? "LIVE" : "OFFLINE"}
                 </div>
             </div>
+
+            {lastClose != null && (
+                <div className="flex items-baseline gap-2">
+                    <span className="font-mono text-lg font-semibold text-[var(--text)]">
+                        ${lastClose.toFixed(2)}
+                    </span>
