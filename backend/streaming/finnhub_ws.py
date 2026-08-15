@@ -33,7 +33,7 @@ async def _subscribe_all(ws: Any) -> None:
     for symbol in TRACKED_SYMBOLS:
         await ws.send(json.dumps({"type": "subscribe", "symbol": symbol}))
 
-        async def _handle_message(raw: str) -> None:
+async def _handle_message(raw: str) -> None:
     try:
         msg = json.loads(raw)
     except json.JSONDecodeError:
