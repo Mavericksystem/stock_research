@@ -116,3 +116,8 @@ async def start_background_tasks():
 
     _price_feed_task = asyncio.create_task(run_price_feed_loop())
     logger.info("Price feed background task started (RSS runs via GH Actions cron, not in-process)")
+
+@app.on_event("shutdown")
+async def stop_background_tasks():
+    if _price_feed_task:
+        _price_feed_task.cancel()
