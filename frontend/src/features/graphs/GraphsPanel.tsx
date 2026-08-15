@@ -37,3 +37,8 @@ export interface LiveSnapshot {
     prices: Record<string, LiveTick>;
     connected: boolean;
 }
+
+export function subscribeLivePrices(
+    onSnapshot: (snapshot: LiveSnapshot) => void,
+): () => void {
+    const es = new EventSource(`${getApiBaseUrl()}/api/v1/stocks/stream`);
