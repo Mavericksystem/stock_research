@@ -68,3 +68,12 @@ export default function GraphsPanel() {
         firstClose != null && lastClose != null && firstClose !== 0
             ? ((lastClose - firstClose) / firstClose) * 100
             : null;
+
+    return (
+        <div className="flex h-full flex-col gap-3 p-3">
+            <div className="flex items-center justify-between gap-2">
+                <select
+                    value={symbol}
+                    onChange={(e) => setSymbol(e.target.value)}
+                    className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-2 py-1 font-mono text-xs text-[var(--text)] outline-none"
+                ></select>
