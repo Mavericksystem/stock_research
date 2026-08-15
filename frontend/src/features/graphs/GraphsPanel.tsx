@@ -24,3 +24,10 @@ function ChartSkeleton() {
         </div>
     );
 }
+
+export default function GraphsPanel() {
+    const [symbol, setSymbol] = useState<string>(TRACKED_STOCKS[0]);
+    const [history, setHistory] = useState<PricePoint[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [livePrice, setLivePrice] = useState<number | null>(null);
+    const [connected, setConnected] = useState(false);
