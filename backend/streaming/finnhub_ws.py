@@ -73,3 +73,7 @@ async def run_price_feed_loop() -> None:
 
                 async for raw in ws:
                     await _handle_message(raw)
+
+                    except (ConnectionClosed, OSError) as e:
+            connection_state["connected"] = False
+            logger.warning("[price_feed] connection lost (%s), reconnecting in %ss", e, backoff)
