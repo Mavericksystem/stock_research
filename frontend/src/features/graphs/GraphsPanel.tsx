@@ -22,3 +22,8 @@ export async function fetchPriceHistory(
 
     const json = (await res.json()) as { data?: { prices?: RawPriceRow[] } };
     const rows = json?.data?.prices ?? [];
+
+    return rows
+        .map((r) => ({ date: r.date, close: r.adj_close ?? r.close }))
+        .reverse();
+}
