@@ -51,3 +51,10 @@ export function subscribeLivePrices(
             // malformed snapshot — skip this tick, next one will arrive in ~1s
         }
     };
+
+    es.onerror = () => {
+        /* no-op — EventSource handles reconnection itself */
+    };
+
+    return () => es.close();
+}
