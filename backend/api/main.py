@@ -17,18 +17,16 @@ app = FastAPI(
 _cors_origins = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://your-frontend.onrender.com",
+    "https://stockmarketmind.vercel.app",
 ]
 
-if not any(m.cls is CORSMiddleware for m in app.user_middleware):
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=_cors_origins,
-        allow_origin_regex=r"^https://.*\.vercel\.app$",
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=_cors_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # API Versioning implemented per critique
 API_V1 = "/api/v1"

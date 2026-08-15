@@ -15,22 +15,5 @@ logging.basicConfig(
 )
 
 from backend.api.main import app
-from fastapi.middleware.cors import CORSMiddleware
-
-_cors_origins = [
-    "http://localhost:5173",
-    "http://127.0.0.1:5173",
-    "https://your-frontend.onrender.com",
-]
-
-if not any(m.cls is CORSMiddleware for m in app.user_middleware):
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=_cors_origins,
-        allow_origin_regex=r"^https://.*\.vercel\.app$",
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
 
 __all__ = ["app"]
