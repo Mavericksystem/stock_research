@@ -27,3 +27,8 @@ export async function fetchPriceHistory(
         .map((r) => ({ date: r.date, close: r.adj_close ?? r.close }))
         .reverse();
 }
+
+export interface LiveTick {
+    price: number;
+    t: number;
+}
