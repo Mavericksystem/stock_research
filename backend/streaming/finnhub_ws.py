@@ -58,3 +58,6 @@ async def run_price_feed_loop() -> None:
     if not settings.FINNHUB_API_KEY:
         logger.warning("[price_feed] FINNHUB_API_KEY not set — live graphs disabled")
         return
+
+    backoff = 1
+    url = f"{FINNHUB_WS_URL}?token={settings.FINNHUB_API_KEY}"
