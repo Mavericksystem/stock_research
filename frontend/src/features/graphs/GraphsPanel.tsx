@@ -19,3 +19,6 @@ export async function fetchPriceHistory(
         `${getApiBaseUrl()}/api/v1/stocks/${symbol}/prices?limit=${limit}`,
     );
     if (!res.ok) return [];
+
+    const json = (await res.json()) as { data?: { prices?: RawPriceRow[] } };
+    const rows = json?.data?.prices ?? [];
