@@ -56,3 +56,5 @@ async def _subscribe_all(ws: Any) -> None:
 async def run_price_feed_loop() -> None:
     """Long-running loop — call once via asyncio.create_task at startup."""
     if not settings.FINNHUB_API_KEY:
+        logger.warning("[price_feed] FINNHUB_API_KEY not set — live graphs disabled")
+        return
