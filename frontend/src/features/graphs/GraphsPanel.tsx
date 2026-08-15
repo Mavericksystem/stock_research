@@ -31,3 +31,11 @@ export default function GraphsPanel() {
     const [loading, setLoading] = useState(true);
     const [livePrice, setLivePrice] = useState<number | null>(null);
     const [connected, setConnected] = useState(false);
+
+    useEffect(() => {
+        setLoading(true);
+        setLivePrice(null);
+        fetchPriceHistory(symbol, 30)
+            .then(setHistory)
+            .finally(() => setLoading(false));
+    }, [symbol]);
