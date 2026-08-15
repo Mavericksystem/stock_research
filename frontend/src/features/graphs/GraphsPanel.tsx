@@ -63,3 +63,8 @@ export default function GraphsPanel() {
     const isUp =
         firstClose != null && lastClose != null ? lastClose >= firstClose : true;
     const lineColor = isUp ? GREEN : RED;
+
+    const pctChange =
+        firstClose != null && lastClose != null && firstClose !== 0
+            ? ((lastClose - firstClose) / firstClose) * 100
+            : null;
