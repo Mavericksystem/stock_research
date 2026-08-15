@@ -56,7 +56,8 @@ async def stream_prices():
             }
             yield f"data: {json.dumps(payload)}\n\n"
             await asyncio.sleep(1)
-            return StreamingResponse(
+
+    return StreamingResponse(
         event_generator(),
         media_type="text/event-stream",
         headers={
