@@ -66,3 +66,7 @@ async def run_price_feed_loop() -> None:
         try:
             async with websockets.connect(url, ping_interval=20, ping_timeout=10) as ws:
                 logger.info("[price_feed] connected, subscribing to %d symbols", len(TRACKED_SYMBOLS))
+
+                await _subscribe_all(ws)
+                connection_state["connected"] = True
+                backoff = 1  # reset on successful connect
