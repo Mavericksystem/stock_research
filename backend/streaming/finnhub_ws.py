@@ -45,3 +45,7 @@ async def _subscribe_all(ws: Any) -> None:
     for trade in msg.get("data", []):
         symbol = trade.get("s")
         price = trade.get("p")
+
+        ts = trade.get("t")
+        if not symbol or price is None:
+            continue
