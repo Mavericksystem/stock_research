@@ -47,3 +47,12 @@ async def stream_prices():
         const es = new EventSource(`${API_BASE}/api/v1/stocks/stream`)
         es.onmessage = (e) => console.log(JSON.parse(e.data))
     """
+
+    async def event_generator():
+        while True:
+            payload = {
+                "prices": latest_prices,
+                "connected": connection_state["connected"],
+            }
+            yield f"data: {json.dumps(payload)}\n\n"
+            await asyncio.sleep(1)
