@@ -26,8 +26,8 @@ class StockResponse(BaseModel):
 class PriceResponse(BaseModel):
     date: date
     close: float
-    adj_close: float
-    volume: float
+    adj_close: Optional[float] = None
+    volume: Optional[float] = None
     model_config = ConfigDict(from_attributes=True)
 
 class SignalResponse(BaseModel):

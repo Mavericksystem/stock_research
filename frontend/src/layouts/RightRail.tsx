@@ -1,15 +1,11 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import NewsPanel from "../features/news/components/NewsPanel";
-import GraphsPanel from "../features/graphs/components/GraphsPanel";
+import NewsPanel from "../features/news/NewsPanel";
+import GraphsPanel from "../features/graphs/GraphsPanel";
 
 type Section = "news" | "graphs";
 
-/**
- * Desktop-only right rail. Two accordion sections — News and Graphs.
- * Exactly one is open at all times (clicking the open section's header
- * does nothing if it's already open — there is no "both closed" state).
- */
+
 export default function RightRail() {
     const [open, setOpen] = useState<Section>("news");
 
