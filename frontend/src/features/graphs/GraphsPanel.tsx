@@ -116,3 +116,20 @@ export default function GraphsPanel() {
                 <div className="flex h-[180px] items-center justify-center font-mono text-[11px] text-white/25">
                     No price data
                 </div>
+
+            ) : (
+                <ResponsiveContainer width="100%" height={180}>
+                    <LineChart data={chartData} margin={{ top: 4, right: 4, bottom: 0, left: 4 }}>
+                        <XAxis dataKey="date" hide />
+                        <YAxis domain={["auto", "auto"]} hide />
+                        <Tooltip
+                            contentStyle={{
+                                background: "var(--surface-2)",
+                                border: "1px solid var(--border)",
+                                borderRadius: 6,
+                                fontSize: 11,
+                                fontFamily: "var(--font-mono)",
+                            }}
+                            labelStyle={{ color: "var(--text-muted)" }}
+                            formatter={(value: number) => [`$${value.toFixed(2)}`, "Close"]}
+                        />
