@@ -74,6 +74,13 @@ async def run_price_feed_loop() -> None:
                 async for raw in ws:
                     await _handle_message(raw)
 
-                    except (ConnectionClosed, OSError) as e:
+        except (ConnectionClosed, OSError) as e:
             connection_state["connected"] = False
             logger.warning("[price_feed] connection lost (%s), reconnecting in %ss", e, backoff)
+
+        except Exception:
+            connection_state["connected"] = False
+            logger.exception("[price_feed] unexpected error, reconnecting in %ss", backoff)
+ 
+        await asyncio.sleep(backoff)
+        backoff = min(backoff * 2, _MAX_BACKOFF_SECONDS)
