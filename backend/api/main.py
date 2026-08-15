@@ -113,3 +113,6 @@ async def debug_db_test():
 async def start_background_tasks():
     global _price_feed_task
     from backend.streaming.finnhub_ws import run_price_feed_loop
+
+    _price_feed_task = asyncio.create_task(run_price_feed_loop())
+    logger.info("Price feed background task started (RSS runs via GH Actions cron, not in-process)")
