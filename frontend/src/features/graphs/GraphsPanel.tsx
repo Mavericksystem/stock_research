@@ -98,3 +98,14 @@ export default function GraphsPanel() {
                     <span className="font-mono text-lg font-semibold text-[var(--text)]">
                         ${lastClose.toFixed(2)}
                     </span>
+                    {pctChange != null && (
+                        <span
+                            className="font-mono text-xs font-medium"
+                            style={{ color: lineColor }}
+                        >
+                            {pctChange >= 0 ? "+" : ""}
+                            {pctChange.toFixed(2)}%
+                        </span>
+                    )}
+                </div>
+            )}
