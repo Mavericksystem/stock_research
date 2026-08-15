@@ -1,37 +1,51 @@
 from __future__ import annotations
- 
+
 import asyncio
 import json
 import logging
 from typing import Any
 import websockets
 from websockets.exceptions import ConnectionClosed
- 
+
 from backend.config.settings import settings
 
-from backend.ingestion.news_scraper import SYMBOL_TO_NAME
- 
-TRACKED_SYMBOLS = list(SYMBOL_TO_NAME.keys())
- 
+# IMPORTANT: do NOT import from backend.ingestion.news_scraper here.
+# That module imports backend.ingestion.embeddings, which imports
+# sentence_transformers (torch/transformers) at module load time.
+# Since this file is imported during app startup (main.py needs
+# run_price_feed_loop), that chain was executing on every boot even
+# though the model itself is lazy-loaded — likely the actual 512Mi
+# OOM cause on Render, not the WS loop itself.
+#
+# The 10-symbol list is duplicated here on purpose: it's a static,
+# rarely-changing set, and decoupling it from the RAG/embedding stack
+# is worth the tiny duplication. If you add an 11th symbol, update
+# both this list and news_scraper.SYMBOL_TO_NAME.
+TRACKED_SYMBOLS = [
+    "AAPL", "MSFT", "NVDA", "GOOGL", "AMZN",
+    "META", "TSLA", "JPM", "V", "WMT",
+]
+
 logger = logging.getLogger(__name__)
 
 FINNHUB_WS_URL = "wss://ws.finnhub.io"
- 
+
 # Shared state — read by the SSE endpoint, written only by this module's
 # listener loop. Plain dict assignment is atomic under asyncio's single
 # event loop, no lock needed.
 latest_prices: dict[str, dict[str, Any]] = {}
- 
+
 # Exposed so the SSE endpoint / a health check can report connection state
 # without reaching into listener internals.
 connection_state: dict[str, Any] = {"connected": False, "last_tick_at": None}
 
 _MAX_BACKOFF_SECONDS = 30
- 
- 
+
+
 async def _subscribe_all(ws: Any) -> None:
     for symbol in TRACKED_SYMBOLS:
         await ws.send(json.dumps({"type": "subscribe", "symbol": symbol}))
+
 
 async def _handle_message(raw: str) -> None:
     try:
@@ -45,13 +59,13 @@ async def _handle_message(raw: str) -> None:
     for trade in msg.get("data", []):
         symbol = trade.get("s")
         price = trade.get("p")
-
         ts = trade.get("t")
         if not symbol or price is None:
             continue
 
         latest_prices[symbol] = {"price": price, "t": ts}
         connection_state["last_tick_at"] = ts
+
 
 async def run_price_feed_loop() -> None:
     """Long-running loop — call once via asyncio.create_task at startup."""
@@ -66,7 +80,6 @@ async def run_price_feed_loop() -> None:
         try:
             async with websockets.connect(url, ping_interval=20, ping_timeout=10) as ws:
                 logger.info("[price_feed] connected, subscribing to %d symbols", len(TRACKED_SYMBOLS))
-
                 await _subscribe_all(ws)
                 connection_state["connected"] = True
                 backoff = 1  # reset on successful connect
@@ -77,10 +90,9 @@ async def run_price_feed_loop() -> None:
         except (ConnectionClosed, OSError) as e:
             connection_state["connected"] = False
             logger.warning("[price_feed] connection lost (%s), reconnecting in %ss", e, backoff)
-
         except Exception:
             connection_state["connected"] = False
             logger.exception("[price_feed] unexpected error, reconnecting in %ss", backoff)
- 
+
         await asyncio.sleep(backoff)
         backoff = min(backoff * 2, _MAX_BACKOFF_SECONDS)
