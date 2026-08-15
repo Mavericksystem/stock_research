@@ -48,3 +48,12 @@ export default function GraphsPanel() {
         });
         return cleanup;
     }, [symbol]);
+
+    const chartData = useMemo(() => {
+        if (history.length === 0) return [];
+        const withLive =
+            livePrice != null
+                ? [...history, { date: "Live", close: livePrice }]
+                : history;
+        return withLive;
+    }, [history, livePrice]);
