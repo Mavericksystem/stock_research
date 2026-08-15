@@ -111,3 +111,5 @@ async def debug_db_test():
 
 @app.on_event("startup")
 async def start_background_tasks():
+    global _price_feed_task
+    from backend.streaming.finnhub_ws import run_price_feed_loop
