@@ -57,3 +57,9 @@ export default function GraphsPanel() {
                 : history;
         return withLive;
     }, [history, livePrice]);
+
+    const firstClose = history[0]?.close;
+    const lastClose = livePrice ?? history[history.length - 1]?.close;
+    const isUp =
+        firstClose != null && lastClose != null ? lastClose >= firstClose : true;
+    const lineColor = isUp ? GREEN : RED;
