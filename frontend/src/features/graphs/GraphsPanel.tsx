@@ -109,3 +109,10 @@ export default function GraphsPanel() {
                     )}
                 </div>
             )}
+
+            {loading ? (
+                <ChartSkeleton />
+            ) : chartData.length === 0 ? (
+                <div className="flex h-[180px] items-center justify-center font-mono text-[11px] text-white/25">
+                    No price data
+                </div>
