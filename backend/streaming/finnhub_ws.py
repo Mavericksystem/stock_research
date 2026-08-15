@@ -70,3 +70,6 @@ async def run_price_feed_loop() -> None:
                 await _subscribe_all(ws)
                 connection_state["connected"] = True
                 backoff = 1  # reset on successful connect
+
+                async for raw in ws:
+                    await _handle_message(raw)
