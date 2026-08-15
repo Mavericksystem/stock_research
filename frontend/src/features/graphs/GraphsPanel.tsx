@@ -10,3 +10,12 @@ interface RawPriceRow {
     close: number;
     adj_close: number;
 }
+
+export async function fetchPriceHistory(
+    symbol: string,
+    limit = 30,
+): Promise<PricePoint[]> {
+    const res = await fetch(
+        `${getApiBaseUrl()}/api/v1/stocks/${symbol}/prices?limit=${limit}`,
+    );
+    if (!res.ok) return [];
