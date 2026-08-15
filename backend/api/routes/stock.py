@@ -1,3 +1,7 @@
+import asyncio
+import json
+from fastapi.responses import StreamingResponse
+from backend.streaming.finnhub_ws import latest_prices, connection_state
 from fastapi import APIRouter, Depends, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from backend.db.connection import get_db
@@ -27,3 +31,19 @@ async def get_stock_signals(symbol: str, limit: int = Query(30, le=100), session
 async def get_stock_events(symbol: str, limit: int = Query(10, le=50), session: AsyncSession = Depends(get_db)):
     events = await StockService.get_events(session, symbol.upper(), limit=limit)
     return APIResponse(data=[EventResponse.model_validate(e) for e in events])
+
+@router.get("/stream")
+async def stream_prices():
+    """
+    SSE endpoint for live price ticks.
+ 
+    Snapshot cadence, not per-tick push: the Finnhub listener already
+    coalesces ticks into `latest_prices` (last value per symbol wins),
+    so this just re-emits that dict once a second. Simpler than a
+    per-client queue and sufficient at 10 symbols / low client count —
+    revisit only if that stops being true.
+ 
+    Client usage:
+        const es = new EventSource(`${API_BASE}/api/v1/stocks/stream`)
+        es.onmessage = (e) => console.log(JSON.parse(e.data))
+    """
