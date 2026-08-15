@@ -133,3 +133,17 @@ export default function GraphsPanel() {
                             labelStyle={{ color: "var(--text-muted)" }}
                             formatter={(value: number) => [`$${value.toFixed(2)}`, "Close"]}
                         />
+                        <Line
+                            type="monotone"
+                            dataKey="close"
+                            stroke={lineColor}
+                            strokeWidth={1.75}
+                            dot={false}
+                            isAnimationActive={false}
+                        />
+                    </LineChart>
+                </ResponsiveContainer>
+            )}
+        </div>
+    );
+}
