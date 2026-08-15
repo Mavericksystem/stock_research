@@ -76,4 +76,10 @@ export default function GraphsPanel() {
                     value={symbol}
                     onChange={(e) => setSymbol(e.target.value)}
                     className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-2 py-1 font-mono text-xs text-[var(--text)] outline-none"
-                ></select>
+                >
+                    {TRACKED_STOCKS.map((sym) => (
+                        <option key={sym} value={sym}>
+                            {sym}
+                        </option>
+                    ))}
+                </select>
