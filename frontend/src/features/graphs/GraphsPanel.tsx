@@ -83,3 +83,12 @@ export default function GraphsPanel() {
                         </option>
                     ))}
                 </select>
+
+                <div className="flex items-center gap-1.5 font-mono text-[10px] text-[var(--text-dim)]">
+                    <span
+                        className={`h-1.5 w-1.5 rounded-full ${connected ? "bg-[var(--green)]" : "bg-white/20"
+                            }`}
+                    />
+                    {connected ? "LIVE" : "OFFLINE"}
+                </div>
+            </div>
