@@ -122,3 +122,8 @@ async def start_background_tasks():
 async def stop_background_tasks():
     if _price_feed_task:
         _price_feed_task.cancel()
+
+        try:
+            await _price_feed_task
+        except asyncio.CancelledError:
+            pass
