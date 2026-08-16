@@ -14,7 +14,6 @@ const uid = () => ++msgId;
 
 export default function App() {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [steps, setSteps] = useState<ToolStep[]>([]);
@@ -88,8 +87,7 @@ export default function App() {
       window.setTimeout(() => {
         setSteps((prev) =>
           prev.filter(
-            (step) =>
-              !(step.tool === tool && step.status === "done"),
+            (step) => !(step.tool === tool && step.status === "done"),
           ),
         );
       }, 250);
@@ -176,8 +174,6 @@ export default function App() {
 
   return (
     <AppLayout
-      sidebarOpen={sidebarOpen}
-      onToggleSidebar={() => setSidebarOpen((value) => !value)}
       onEventSelect={(question) => void submit(question)}
       trackedStocksCount={TRACKED_STOCKS.length}
     >
