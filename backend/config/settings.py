@@ -16,9 +16,9 @@ class Settings(BaseSettings):
     NVIDIA_NIM_MODEL: str = "deepseek-ai/deepseek-v4-flash-0731"
 
     # Agent config
-    AGENT_TEMPERATURE: float = 0.1
-    AGENT_MAX_TOKENS: int = 1024
-    AGENT_TOP_P: float = 0.7
+    AGENT_TEMPERATURE: float = 1.0
+    AGENT_MAX_TOKENS: int = 16384
+    AGENT_TOP_P: float = 0.95
 
     model_config = SettingsConfigDict(
         env_file=".env",
