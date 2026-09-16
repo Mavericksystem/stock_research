@@ -283,3 +283,4 @@ Never commit secrets to source control.
 
 # Multi agent approach
 - add two or three new agents to monitor and audit response of main agent
+- to get better resoning output
