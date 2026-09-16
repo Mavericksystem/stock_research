@@ -279,3 +279,7 @@ Never commit secrets to source control.
 
 ## corrections need to make 
 - add correct sources
+
+
+# Multi agent approach
+- add two or three new agents to monitor and audit response of main agent
