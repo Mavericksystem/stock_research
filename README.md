@@ -6,6 +6,8 @@ Production grade market intelligence platform that detects price events, links t
 
 This project is actively evolving.
 
+Research workflows are updated continuously.
+
 ---
 
 ## System Architecture
