@@ -4,6 +4,8 @@ Production grade market intelligence platform that detects price events, links t
 
 **[🚀 Visit the Live Application](https://stockmarketmind.vercel.app/)**
 
+This project is actively evolving.
+
 ---
 
 ## System Architecture
