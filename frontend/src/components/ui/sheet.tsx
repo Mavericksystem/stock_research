@@ -25,8 +25,16 @@ function SheetOverlay({ className, ...props }: SheetPrimitive.Backdrop.Props) {
   return (
     <SheetPrimitive.Backdrop
       data-slot="sheet-overlay"
+      // Blur lives here, not on the panel. The panel surface
+      // (`sidebar-mobile-surface` in sidebar.tsx) is flat/opaque with no
+      // filter of its own, so it can't sample blur through from this layer
+      // — this backdrop-filter only affects what's actually behind it (the
+      // chat), which is exactly the "blur the background, not the panel"
+      // look. The panel-text-blur bug was about *that* element carrying a
+      // filter while being a descendant of an opacity-animating ancestor;
+      // this element has no such descendant of its own to corrupt.
       className={cn(
-        "fixed inset-0 z-50 bg-black/10 transition-opacity duration-150 data-ending-style:opacity-0 data-starting-style:opacity-0 supports-backdrop-filter:backdrop-blur-xs",
+        "fixed inset-0 z-50 bg-black/45 backdrop-blur-md transition-opacity duration-300 ease-out data-ending-style:opacity-0 data-starting-style:opacity-0",
         className
       )}
       {...props}
