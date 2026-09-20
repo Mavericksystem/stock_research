@@ -181,25 +181,57 @@ function Sidebar({
 
   if (isMobile) {
     return (
-      <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
+      <Sheet open={openMobile} onOpenChange={setOpenMobile}>
         <SheetContent
           dir={dir}
           data-sidebar="sidebar"
           data-slot="sidebar"
           data-mobile="true"
-          className="w-(--sidebar-width) bg-sidebar p-0 text-sidebar-foreground [&>button]:hidden"
+          // No bg-*/backdrop-blur-* here on purpose. This element (the Base UI
+          // Popup) also carries sheet.tsx's enter/exit *opacity* transition
+          // (`transition ... data-ending-style:opacity-0 data-starting-style:opacity-0`).
+          // Pairing `backdrop-filter` with an animating opacity on the same
+          // node is a known WebKit/mobile rendering bug: the browser forces
+          // the whole element — including its own children — onto a blurred
+          // compositing layer while opacity is mid-transition, so the panel's
+          // own text reads as blurred, not just the backdrop behind it. Fix
+          // is to keep this shell transparent and put the glass surface on a
+          // separate, non-animating inner div below.
+          className={cn(
+            "w-(--sidebar-width) bg-transparent p-0 text-sidebar-foreground shadow-none data-[side=left]:w-(--sidebar-width) data-[side=left]:sm:max-w-none data-[side=right]:w-(--sidebar-width) data-[side=right]:sm:max-w-none [&>button]:hidden",
+            className
+          )}
           style={
             {
-              "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
+              // Honor the --sidebar-width-mobile override set on SidebarProvider.
+              "--sidebar-width": `var(--sidebar-width-mobile, ${SIDEBAR_WIDTH_MOBILE})`,
             } as React.CSSProperties
           }
           side={side}
+          {...props}
         >
           <SheetHeader className="sr-only">
             <SheetTitle>Sidebar</SheetTitle>
             <SheetDescription>Displays the mobile sidebar.</SheetDescription>
           </SheetHeader>
-          <div className="flex h-full w-full flex-col">{children}</div>
+          {/* Opaque surface — deliberately NOT glass on mobile.
+              Moving backdrop-blur off the animating Popup wasn't enough: this
+              div is still a descendant of a node that animates opacity and
+              translate, so mobile WebKit/Blink promote the whole subtree to a
+              composited layer and the backdrop-filter samples the full page
+              behind it (including the scrim), blurring the panel's own text.
+              A flat `--sidebar` fill has no backdrop-filter at all, so there
+              is nothing left to smear. Desktop keeps its glass in
+              `sidebar-inner` below, where no ancestor animates opacity. */}
+          <div
+            data-slot="sidebar-mobile-surface"
+            className={cn(
+              "flex h-full w-full flex-col border-[var(--border)] bg-[var(--sidebar)] shadow-lg",
+              side === "right" ? "border-l" : side === "left" ? "border-r" : undefined
+            )}
+          >
+            {children}
+          </div>
         </SheetContent>
       </Sheet>
     )
@@ -242,7 +274,7 @@ function Sidebar({
         <div
           data-sidebar="sidebar"
           data-slot="sidebar-inner"
-          className="flex size-full flex-col bg-sidebar group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:shadow-sm group-data-[variant=floating]:ring-1 group-data-[variant=floating]:ring-sidebar-border"
+          className="flex size-full flex-col bg-[var(--sidebar-glass)] backdrop-blur-xl group-data-[variant=floating]:rounded-lg group-data-[variant=floating]:shadow-sm group-data-[variant=floating]:ring-1 group-data-[variant=floating]:ring-sidebar-border"
         >
           {children}
         </div>
@@ -254,6 +286,7 @@ function Sidebar({
 function SidebarTrigger({
   className,
   onClick,
+  children,
   ...props
 }: React.ComponentProps<typeof Button>) {
   const { toggleSidebar } = useSidebar()
@@ -271,7 +304,7 @@ function SidebarTrigger({
       }}
       {...props}
     >
-      <PanelLeftIcon />
+      {children ?? <PanelLeftIcon />}
       <span className="sr-only">Toggle Sidebar</span>
     </Button>
   )
@@ -566,7 +599,7 @@ function SidebarMenuAction({
         className: cn(
           "absolute top-1.5 right-1 flex aspect-square w-5 items-center justify-center rounded-md p-0 text-sidebar-foreground ring-sidebar-ring outline-hidden transition-transform group-data-[collapsible=icon]:hidden peer-hover/menu-button:text-sidebar-accent-foreground peer-data-[size=default]/menu-button:top-1.5 peer-data-[size=lg]/menu-button:top-2.5 peer-data-[size=sm]/menu-button:top-1 after:absolute after:-inset-2 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground focus-visible:ring-2 md:after:hidden [&>svg]:size-4 [&>svg]:shrink-0",
           showOnHover &&
-            "group-focus-within/menu-item:opacity-100 group-hover/menu-item:opacity-100 peer-data-active/menu-button:text-sidebar-accent-foreground aria-expanded:opacity-100 md:opacity-0",
+          "group-focus-within/menu-item:opacity-100 group-hover/menu-item:opacity-100 peer-data-active/menu-button:text-sidebar-accent-foreground aria-expanded:opacity-100 md:opacity-0",
           className
         ),
       },
