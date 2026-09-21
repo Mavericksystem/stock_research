@@ -47,13 +47,13 @@ export default function Header({ stocksTracked }: HeaderProps) {
 
       <div className="ml-auto flex shrink-0 items-center gap-3">
         <div className="flex items-center gap-1.5 font-mono text-[10px] text-[var(--text-muted)] md:text-[11px]">
-          <motion.span
+          {/* <motion.span
             aria-hidden="true"
             animate={{ opacity: [1, 0.4, 1] }}
             transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
             className="h-1.5 w-1.5 rounded-full bg-[var(--green)]"
           />
-          <span>{stocksTracked} STOCKS TRACKED</span>
+          <span>{stocksTracked} STOCKS TRACKED</span> */}
         </div>
 
         <div className="md:hidden">
