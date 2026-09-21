@@ -41,7 +41,7 @@ export default function AppLayout({
 }: AppLayoutProps) {
   return (
     <SidebarProvider
-      defaultOpen
+      defaultOpen={false}
       className="h-dvh min-h-0 overflow-hidden bg-[var(--bg)]"
       style={
         {
