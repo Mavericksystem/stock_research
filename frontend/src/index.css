@@ -1,6 +1,62 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+@import "tw-animate-css";
+
+/*
+ * Tailwind v4 does not read tailwind.config.js unless it is loaded with
+ * `@config`. Every shadcn utility (bg-sidebar, text-sidebar-foreground,
+ * bg-background, border-border, rounded-lg, ...) is generated from theme
+ * variables, so without this block those classes simply do not exist and the
+ * components render unstyled. `inline` keeps them pointing at the runtime
+ * :root vars below, so theme switching still works.
+ */
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+
+  --color-destructive: var(--destructive);
+
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+
+  --radius-sm: calc(var(--radius) - 4px);
+  --radius-md: calc(var(--radius) - 2px);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) + 4px);
+}
 
 @layer base {
   :root {
@@ -9,7 +65,7 @@
     --bg: #1f1d1a;
     --surface: #2a2723;
     --surface-2: #34312d;
-    --border: #45403a;
+    --border: oklch(0.922 0 0);
     --border-soft: #3a3631;
 
     --text: #f5f2ec;
@@ -28,9 +84,47 @@
     --font-ui: "Inter", sans-serif;
     --font-mono: "JetBrains Mono", monospace;
 
-    --radius: 8px;
+    --radius: 0.625rem;
     --radius-lg: 14px;
+    --background: #1f1d1a;
+    --foreground: #f5f2ec;
+    --card: #2a2723;
+    --card-foreground: #f5f2ec;
+    --popover: #2a2723;
+    --popover-foreground: #f5f2ec;
+    --primary: #d97706;
+    --primary-foreground: #080c10;
+    --secondary: #34312d;
+    --secondary-foreground: #f5f2ec;
+    --muted: #34312d;
+    --muted-foreground: #c5beb3;
+    --accent: #34312d;
+    --accent-foreground: #f5f2ec;
+    --destructive: #ef4444;
+    --input: #3a3631;
+    --ring: #d97706;
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --sidebar: #24211d;
+    --sidebar-foreground: #f5f2ec;
+    --sidebar-primary: #d97706;
+    --sidebar-primary-foreground: #080c10;
+    --sidebar-accent: #34312d;
+    --sidebar-accent-foreground: #f5f2ec;
+    --sidebar-border: #3d3833;
+    --sidebar-ring: #d97706;
+
+    /* Right rail — frosted surface + the width the mobile sheet opens to.
+       These must live on :root, not on SidebarProvider: the mobile sheet is
+       rendered through a portal at <body>, so it never inherits vars set on
+       the provider element. */
+    --sidebar-glass: rgba(36, 33, 29, 0.82);
+    --sidebar-width-mobile: min(86vw, 22rem);
   }
+
 
   *,
   *::before,
@@ -49,6 +143,7 @@
   html {
     background: var(--bg);
     color-scheme: dark;
+    @apply font-sans;
   }
 
   body {
@@ -96,284 +191,327 @@
       overflow: hidden;
     }
   }
-}
 
-@layer utilities {
-  .content-width {
-    width: min(920px, calc(100% - 48px));
-    margin-inline: auto;
+  .theme {
+    --font-heading: var(--font-sans);
+    --font-sans: 'Geist Variable', sans-serif;
   }
-}
 
-.font-mono-ui {
-  font-family: var(--font-mono);
-}
+  .dark {
+    --background: #1f1d1a;
+    --foreground: #f5f2ec;
+    --card: #2a2723;
+    --card-foreground: #f5f2ec;
+    --popover: #2a2723;
+    --popover-foreground: #f5f2ec;
+    --primary: #d97706;
+    --primary-foreground: #080c10;
+    --secondary: #34312d;
+    --secondary-foreground: #f5f2ec;
+    --muted: #34312d;
+    --muted-foreground: #c5beb3;
+    --accent: #34312d;
+    --accent-foreground: #f5f2ec;
+    --destructive: #ef4444;
+    --border: #3a3631;
+    --input: #3a3631;
+    --ring: #d97706;
+    --chart-1: oklch(0.87 0 0);
+    --chart-2: oklch(0.556 0 0);
+    --chart-3: oklch(0.439 0 0);
+    --chart-4: oklch(0.371 0 0);
+    --chart-5: oklch(0.269 0 0);
+    --sidebar: #24211d;
+    --sidebar-foreground: #f5f2ec;
+    --sidebar-primary: #d97706;
+    --sidebar-primary-foreground: #080c10;
+    --sidebar-accent: #34312d;
+    --sidebar-accent-foreground: #f5f2ec;
+    --sidebar-border: #3d3833;
+    --sidebar-ring: #d97706;
+  }
 
-.shine-text {
-  background: linear-gradient(110deg,
-      #8b8378 20%,
-      #f5f2ec 45%,
-      #ffffff 55%,
-      #f5f2ec 60%,
-      #8b8378 80%);
+  * {
+    border-color: var(--border);
+    outline-color: var(--ring);
+  }
 
-  background-size: 250% 100%;
-  background-position: 100% 0;
+  @layer utilities {
+    .content-width {
+      width: min(920px, calc(100% - 48px));
+      margin-inline: auto;
+    }
+  }
 
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
+  .font-mono-ui {
+    font-family: var(--font-mono);
+  }
 
-  animation: text-shine 4s linear infinite;
-}
+  .shine-text {
+    background: linear-gradient(110deg,
+        #8b8378 20%,
+        #f5f2ec 45%,
+        #ffffff 55%,
+        #f5f2ec 60%,
+        #8b8378 80%);
 
-@keyframes text-shine {
-  0% {
+    background-size: 250% 100%;
     background-position: 100% 0;
+
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+
+    animation: text-shine 4s linear infinite;
   }
 
-  100% {
-    background-position: -100% 0;
+  @keyframes text-shine {
+    0% {
+      background-position: 100% 0;
+    }
+
+    100% {
+      background-position: -100% 0;
+    }
   }
-}
 
-
-/* ========================================
+  /* ========================================
    Suggestion Cards
    ======================================== */
 
-.suggestion-card {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
+  .suggestion-card {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
 
-  min-height: 34px;
-  padding: 7px 14px;
+    min-height: 34px;
+    padding: 7px 14px;
 
-  overflow: hidden;
-  border: 0;
-  border-radius: 3px;
+    overflow: hidden;
+    border: 0;
+    border-radius: 3px;
 
-  background: var(--surface);
-  color: var(--text-muted);
+    background: var(--surface);
+    color: var(--text-muted);
 
-  font-family: var(--font-mono);
-  font-size: 13px;
-  font-weight: 500;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 500;
 
-  cursor: pointer;
-}
+    cursor: pointer;
+  }
 
-/*
+  /*
  * Invisible sizing text.
  * Keeps each button the same width as
  * its original suggestion text.
  */
-.suggestion-size {
-  visibility: hidden;
-  white-space: nowrap;
-  line-height: 18px;
-}
+  .suggestion-size {
+    visibility: hidden;
+    white-space: nowrap;
+    line-height: 18px;
+  }
 
-/* ========================================
+  /* ========================================
    Animated horizontal border lines
    ======================================== */
 
-.suggestion-card::before,
-.suggestion-card::after {
-  content: "";
-  position: absolute;
+  .suggestion-card::before,
+  .suggestion-card::after {
+    content: "";
+    position: absolute;
 
-  width: 0;
-  height: 1px;
+    width: 0;
+    height: 1px;
 
-  background: #6fcfad;
+    background: #6fcfad;
 
-  transition:
-    width 0.5s cubic-bezier(0.35, 0.1, 0.25, 1);
-}
+    transition:
+      width 0.5s cubic-bezier(0.35, 0.1, 0.25, 1);
+  }
 
-.suggestion-card::before {
-  right: 0;
-  top: 0;
-}
+  .suggestion-card::before {
+    right: 0;
+    top: 0;
+  }
 
-.suggestion-card::after {
-  left: 0;
-  bottom: 0;
-}
+  .suggestion-card::after {
+    left: 0;
+    bottom: 0;
+  }
 
-/* ========================================
+  /* ========================================
    Animated vertical border lines
    ======================================== */
 
-.suggestion-border {
-  position: absolute;
-  inset: 0;
+  .suggestion-border {
+    position: absolute;
+    inset: 0;
 
-  pointer-events: none;
-}
+    pointer-events: none;
+  }
 
-.suggestion-border::before,
-.suggestion-border::after {
-  content: "";
+  .suggestion-border::before,
+  .suggestion-border::after {
+    content: "";
 
-  position: absolute;
+    position: absolute;
 
-  width: 1px;
-  height: 0;
+    width: 1px;
+    height: 0;
 
-  background: #6fcfad;
+    background: #6fcfad;
 
-  transition:
-    height 0.3s cubic-bezier(0.35, 0.1, 0.25, 1);
-}
+    transition:
+      height 0.3s cubic-bezier(0.35, 0.1, 0.25, 1);
+  }
 
-.suggestion-border::before {
-  right: 0;
-  top: 0;
-}
+  .suggestion-border::before {
+    right: 0;
+    top: 0;
+  }
 
-.suggestion-border::after {
-  left: 0;
-  bottom: 0;
-}
+  .suggestion-border::after {
+    left: 0;
+    bottom: 0;
+  }
 
-/* ========================================
+  /* ========================================
    Draw four lines only on hover
    ======================================== */
 
-.suggestion-card:hover::before,
-.suggestion-card:hover::after {
-  width: 100%;
-}
+  .suggestion-card:hover::before,
+  .suggestion-card:hover::after {
+    width: 100%;
+  }
 
-.suggestion-card:hover .suggestion-border::before,
-.suggestion-card:hover .suggestion-border::after {
-  height: 100%;
-}
+  .suggestion-card:hover .suggestion-border::before,
+  .suggestion-card:hover .suggestion-border::after {
+    height: 100%;
+  }
 
-/* ========================================
+  /* ========================================
    Suggestion text transition
    ======================================== */
 
-.suggestion-text {
-  position: absolute;
-  inset: 0;
+  .suggestion-text {
+    position: absolute;
+    inset: 0;
 
-  width: 100%;
-  height: 100%;
+    width: 100%;
+    height: 100%;
 
-  margin: 0;
-  padding: 0;
+    margin: 0;
+    padding: 0;
 
-  overflow: hidden;
-}
+    overflow: hidden;
+  }
 
-.suggestion-text::before,
-.suggestion-text::after {
-  position: absolute;
+  .suggestion-text::before,
+  .suggestion-text::after {
+    position: absolute;
 
-  left: 0;
+    left: 0;
 
-  width: 100%;
+    width: 100%;
 
-  text-align: center;
-  white-space: nowrap;
+    text-align: center;
+    white-space: nowrap;
 
-  transition:
-    all 0.4s cubic-bezier(0.35, 0.1, 0.25, 1);
-}
+    transition:
+      all 0.4s cubic-bezier(0.35, 0.1, 0.25, 1);
+  }
 
-/* Original suggestion text */
+  /* Original suggestion text */
 
-.suggestion-text::before {
-  content: attr(data-title);
+  .suggestion-text::before {
+    content: attr(data-title);
 
-  top: 50%;
+    top: 50%;
 
-  color: var(--text-muted);
+    color: var(--text-muted);
 
-  transform: translateY(-50%);
-}
+    transform: translateY(-50%);
+  }
 
-/* Know more */
+  /* Know more */
 
-.suggestion-text::after {
-  content: attr(data-text);
+  .suggestion-text::after {
+    content: attr(data-text);
 
-  top: 150%;
+    top: 150%;
 
-  color: #6fcfad;
-}
+    color: #6fcfad;
+  }
 
-/* Original text leaves upward */
+  /* Original text leaves upward */
 
-.suggestion-card:hover .suggestion-text::before {
-  top: -100%;
-  transform: rotate(5deg);
-}
+  .suggestion-card:hover .suggestion-text::before {
+    top: -100%;
+    transform: rotate(5deg);
+  }
 
-/* Know more enters */
+  /* Know more enters */
 
-.suggestion-card:hover .suggestion-text::after {
-  top: 50%;
-  transform: translateY(-50%);
-}
+  .suggestion-card:hover .suggestion-text::after {
+    top: 50%;
+    transform: translateY(-50%);
+  }
 
-.search-input-wrapper {
-  background:
-    linear-gradient(var(--surface-2), var(--surface-2)) padding-box,
-    linear-gradient(120deg, hsl(278, 30%, 35%), hsl(35, 81%, 73%)) border-box;
-}
+  .search-input-wrapper {
+    background:
+      linear-gradient(var(--surface-2), var(--surface-2)) padding-box,
+      linear-gradient(120deg, hsl(278, 30%, 35%), hsl(35, 81%, 73%)) border-box;
+  }
 
-.search-input-wrapper .search-icon {
-  position: absolute;
-  width: 28px;
-  height: 28px;
-  top: 50%;
-  left: 1rem;
-  translate: 0 -50%;
-  overflow: visible;
-  color: rgba(255, 255, 255, 0.65);
-  pointer-events: none;
-}
+  .search-input-wrapper .search-icon {
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    top: 50%;
+    left: 1rem;
+    translate: 0 -50%;
+    overflow: visible;
+    color: rgba(255, 255, 255, 0.65);
+    pointer-events: none;
+  }
 
-.search-input-wrapper .search-icon path {
-  transform-box: fill-box;
-  transform-origin: center;
-  fill: currentColor;
-}
+  .search-input-wrapper .search-icon path {
+    transform-box: fill-box;
+    transform-origin: center;
+    fill: currentColor;
+  }
 
-.search-input-wrapper:is(:hover, :focus-within) .search-icon path {
-  animation: search-pop 0.5s var(--search-delay) 1 both;
-}
+  .search-input-wrapper:is(:hover, :focus-within) .search-icon path {
+    animation: search-pop 0.5s var(--search-delay) 1 both;
+  }
 
-.search-input-wrapper .search-icon path:nth-of-type(1) {
-  --search-delay: 0s;
-  --search-rotate: 20deg;
-  --search-scale: 1.5;
-}
+  .search-input-wrapper .search-icon path:nth-of-type(1) {
+    --search-delay: 0s;
+    --search-rotate: 20deg;
+    --search-scale: 1.5;
+  }
 
-.search-input-wrapper .search-icon path:nth-of-type(2) {
-  --search-delay: 0.12s;
-  --search-rotate: 10deg;
-  --search-scale: 1.4;
+  .search-input-wrapper .search-icon path:nth-of-type(2) {
+    --search-delay: 0.12s;
+    --search-rotate: 10deg;
+    --search-scale: 1.4;
 
-}
+  }
 
-.search-input-wrapper .search-icon path:nth-of-type(3) {
-  --search-delay: 0.24s;
-  --search-rotate: 0deg;
-  --search-scale: 1.3;
+  .search-input-wrapper .search-icon path:nth-of-type(3) {
+    --search-delay: 0.24s;
+    --search-rotate: 0deg;
+    --search-scale: 1.3;
 
-  translate: -9px 5px;
-}
+    translate: -9px 5px;
+  }
 
-@keyframes search-pop {
-  50% {
-    scale: var(--search-scale, 1);
-    rotate: var(--search-rotate, 0deg);
+  @keyframes search-pop {
+    50% {
+      scale: var(--search-scale, 1);
+      rotate: var(--search-rotate, 0deg);
+    }
   }
 }

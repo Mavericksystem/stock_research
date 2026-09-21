@@ -1,120 +1,211 @@
-import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { motion } from "framer-motion";
+import { ChevronDown, PanelRight, PanelRightClose } from "lucide-react";
+
+import {
+    Sidebar,
+    SidebarContent,
+    SidebarFooter,
+    SidebarGroup,
+    SidebarGroupContent,
+    SidebarHeader,
+    SidebarMenu,
+    SidebarMenuButton,
+    SidebarMenuItem,
+    useSidebar,
+} from "@/components/ui/sidebar";
+import { TooltipProvider } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+
 import NewsPanel from "../features/news/NewsPanel";
 import GraphsPanel from "../features/graphs/GraphsPanel";
 import AnomaliesPanel from "../features/anomalies/AnomaliesPanel";
-
-type Section = "news" | "graphs" | "anomalies";
+import { RAIL_SECTIONS, useRail, type RailSectionId } from "./rail/rail-context";
 
 interface RightRailProps {
     onEventSelect: (question: string) => void;
 }
 
 /**
- * Right-side drawer — News, Graphs, Anomalies as accordion sections
- * (exactly one open at a time, same as before). The whole rail is now
- * a slide-in drawer instead of a desktop-only fixed column, so it
- * works on mobile too — toggle tab is self-contained, no external
- * state needed from AppLayout/App.
+ * Right research rail.
+ *
+ * Layout model — deliberately an *overlay*, not a push:
+ *   collapsed  → 3.5rem icon strip, always visible on desktop
+ *   expanded   → 22rem panel that floats over the chat behind a blurred scrim
+ *
+ * shadcn's `collapsible="icon"` normally reflows the page when it expands. Here
+ * `--sidebar-width` and `--sidebar-width-icon` are both set to the icon width
+ * (see AppLayout), so the in-flow gap is a constant 3.5rem and only the fixed
+ * container grows via `group-data-[state=expanded]:w-(--rail-width)`. The chat
+ * never reflows, and the open/close reads identically on desktop and mobile:
+ * panel slides in, background blurs.
+ *
+ * Inside, the three sections are an accordion (one open at a time). The open
+ * section takes the remaining height so its own scroll container works; the
+ * others collapse to their header row.
  */
 export default function RightRail({ onEventSelect }: RightRailProps) {
-    const [drawerOpen, setDrawerOpen] = useState(false);
-    const [section, setSection] = useState<Section>("news");
-    const drawerWidth = "min(320px, 85vw)";
+    const { state, isMobile, setOpen } = useSidebar();
+    const { section, toggleSection, openSection, closeRail } = useRail();
 
-    const sections: { key: Section; label: string }[] = [
-        { key: "news", label: "NEWS" },
-        { key: "graphs", label: "GRAPHS" },
-        { key: "anomalies", label: "ANOMALIES" },
-    ];
+    // `state` is derived from desktop-only `open`, which defaults to true and
+    // is independent of `openMobile` — so on mobile this was `true` from
+    // first paint, before the sheet ever opened. Gate on `isMobile` too so
+    // the value is never stale, on top of not rendering the scrim at all
+    // below.
+    const expanded = !isMobile && state === "expanded";
+
+    const renderPanel = (id: RailSectionId) => {
+        switch (id) {
+            case "news":
+                return <NewsPanel />;
+            case "graphs":
+                return <GraphsPanel />;
+            case "anomalies":
+                return (
+                    <AnomaliesPanel
+                        onEventSelect={(question) => {
+                            onEventSelect(question);
+                            closeRail();
+                        }}
+                    />
+                );
+        }
+    };
 
     return (
-        <>
-            {/* Toggle tab — slides with the drawer, retracts on click */}
-            <motion.button
-                type="button"
-                aria-label={drawerOpen ? "Close panel" : "Open panel"}
-                onClick={() => setDrawerOpen((v) => !v)}
-                animate={{ x: drawerOpen ? `calc(-1 * ${drawerWidth})` : 0 }}
-                transition={{ type: "spring", stiffness: 360, damping: 36, mass: 0.8 }}
-                className="fixed right-0 top-1/2 z-[1201] flex h-14 w-5 -translate-y-1/2 items-center justify-center rounded-l-md border border-r-0 border-white/[0.06] bg-white/[0.07]"
+        <TooltipProvider delay={0}>
+            {/* Desktop-only scrim. Mobile gets an equivalent blurred backdrop
+                for free from the Sheet's own SheetOverlay, so this must not
+                even mount on mobile — not just be CSS-hidden. Relying on
+                `hidden md:block` alone let it render (and blur the panel's
+                own content) under stacking-context/portal edge cases on real
+                devices; a JS-level `isMobile` guard makes that impossible. */}
+            {!isMobile && (
+                <div
+                    aria-hidden="true"
+                    onClick={() => setOpen(false)}
+                    className={cn(
+                        "fixed inset-0 z-30 bg-black/45 backdrop-blur-md transition-opacity duration-300 ease-out",
+                        expanded ? "opacity-100" : "pointer-events-none opacity-0",
+                    )}
+                />
+            )}
+
+            <Sidebar
+                side="right"
+                collapsible="icon"
+                className="z-40 border-l border-white/[0.06] shadow-[-4px_0_12px_rgba(0,0,0,0.12)] transition-[width,right] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] group-data-[state=expanded]:w-(--rail-width)"
             >
-                <motion.span
-                    animate={{ rotate: drawerOpen ? 180 : 0 }}
-                    transition={{ duration: 0.2 }}
-                    className="text-white/50"
-                >
-                    ‹
-                </motion.span>
-            </motion.button>
+                <SidebarHeader className="h-16 shrink-0 flex-row items-center justify-between gap-2 border-b border-white/[0.04] bg-white/[0.015] shadow-[0_1px_8px_rgba(0,0,0,0.18)] px-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
 
-            {/* Mobile backdrop */}
-            <AnimatePresence>
-                {drawerOpen && (
-                    <motion.button
-                        type="button"
-                        aria-label="Close panel"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.2 }}
-                        onClick={() => setDrawerOpen(false)}
-                        className="fixed inset-0 z-[1100] bg-black/45 md:hidden"
-                    />
-                )}
-            </AnimatePresence>
-
-            {/* Drawer */}
-            <AnimatePresence>
-                {drawerOpen && (
-                    <motion.aside
-                        initial={{ x: "100%" }}
-                        animate={{ x: 0 }}
-                        exit={{ x: "100%" }}
-                        transition={{ type: "spring", stiffness: 360, damping: 36, mass: 0.8 }}
-                        className="fixed right-0 top-0 z-[1200] flex h-full w-[min(320px,85vw)] flex-col overflow-hidden border-l border-[var(--border)] bg-[#24211d] shadow-[-8px_0_30px_rgba(0,0,0,0.25)]"
-                    >
-                        {sections.map(({ key, label }) => (
-                            <div
-                                key={key}
-                                className="flex flex-col overflow-hidden border-t border-[var(--border)] first:border-t-0"
-                                style={{ flex: section === key ? 1 : "0 0 auto" }}
-                            >
-                                <button
+                    <div className="hidden md:flex">
+                        <SidebarMenu>
+                            <SidebarMenuItem>
+                                <SidebarMenuButton
                                     type="button"
-                                    onClick={() => setSection(key)}
-                                    className="flex shrink-0 items-center justify-between px-3.5 py-3 text-left"
+                                    onClick={() => setOpen(!expanded)}
                                 >
-                                    <span className="text-[13px] font-bold tracking-[0.08em] text-white">
-                                        {label}
-                                    </span>
-                                    <motion.span
-                                        animate={{ rotate: section === key ? 0 : -90 }}
-                                        transition={{ duration: 0.15 }}
-                                        className="text-white/40"
-                                    >
-                                        ▾
-                                    </motion.span>
-                                </button>
-
-                                <motion.div
-                                    animate={{ height: section === key ? "auto" : 0 }}
-                                    initial={false}
-                                    transition={{ duration: 0.2 }}
-                                    className="overflow-hidden"
-                                    style={{ flex: section === key ? 1 : "0 0 auto" }}
-                                >
-                                    {section === key && key === "news" && <NewsPanel />}
-                                    {section === key && key === "graphs" && <GraphsPanel />}
-                                    {section === key && key === "anomalies" && (
-                                        <AnomaliesPanel onEventSelect={onEventSelect} />
+                                    {expanded ? (
+                                        <PanelRightClose className="size-4" />
+                                    ) : (
+                                        <PanelRight className="size-4" />
                                     )}
-                                </motion.div>
-                            </div>
-                        ))}
-                    </motion.aside>
-                )}
-            </AnimatePresence>
-        </>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                        </SidebarMenu>
+                    </div>
+                </SidebarHeader>
+
+                {/* overflow-hidden: the open panel owns scrolling, not the rail. */}
+                <SidebarContent className="gap-0 overflow-hidden">
+                    {/* Collapsed state — icon menu. `group-data-*` only resolves on the
+                        desktop wrapper, so this never renders inside the mobile sheet. */}
+                    <SidebarGroup className="hidden p-1.5 group-data-[collapsible=icon]:block">
+                        <SidebarMenu className="gap-1">
+                            {RAIL_SECTIONS.map(({ id, label, icon: Icon }) => (
+                                <SidebarMenuItem key={id}>
+                                    <SidebarMenuButton
+                                        type="button"
+                                        tooltip={label}
+                                        isActive={section === id}
+                                        onClick={() => openSection(id)}
+                                        className="justify-center text-[var(--text-dim)] hover:text-[var(--text)] data-active:text-[var(--amber)]"
+                                    >
+                                        <Icon className="size-[18px]" />
+                                        <span className="sr-only">{label}</span>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                            ))}
+                        </SidebarMenu>
+                    </SidebarGroup>
+
+                    {/* Expanded state — accordion. */}
+                    <div className="flex min-h-0 flex-1 flex-col group-data-[collapsible=icon]:hidden">
+                        {RAIL_SECTIONS.map(({ id, label, icon: Icon }) => {
+                            const open = section === id;
+
+                            return (
+                                <SidebarGroup
+                                    key={id}
+                                    data-open={open || undefined}
+                                    className={cn(
+                                        "min-h-0 gap-0 border-b border-[var(--border)] p-0",
+                                        open ? "flex-1" : "flex-none",
+                                    )}
+                                >
+                                    <button
+                                        type="button"
+                                        aria-expanded={open}
+                                        aria-controls={`rail-panel-${id}`}
+                                        onClick={() => toggleSection(id)}
+                                        className={cn(
+                                            "flex h-11 w-full shrink-0 items-center rounded-none px-3 font-mono text-[11px] uppercase tracking-[0.14em] transition-colors duration-200 hover:bg-white/[0.03]",
+                                            open
+                                                ? "text-[var(--text)]"
+                                                : "text-[var(--text-muted)] hover:text-[var(--text)]",
+                                        )}
+                                    >
+                                        <Icon
+                                            className={cn(
+                                                "size-4 transition-colors duration-200",
+                                                open && "text-[var(--amber)]",
+                                            )}
+                                        />
+                                        <span className="ml-2">{label}</span>
+                                        <ChevronDown
+                                            className={cn(
+                                                "ml-auto size-4 transition-transform duration-300 ease-out",
+                                                open && "rotate-180",
+                                            )}
+                                        />
+                                    </button>
+
+                                    {open && (
+                                        <motion.div
+                                            key={id}
+                                            id={`rail-panel-${id}`}
+                                            initial={{ opacity: 0, y: -6 }}
+                                            animate={{ opacity: 1, y: 0 }}
+                                            transition={{ duration: 0.22, ease: "easeOut" }}
+                                            className="min-h-0 flex-1 overflow-hidden"
+                                        >
+                                            <SidebarGroupContent className="h-full">
+                                                {renderPanel(id)}
+                                            </SidebarGroupContent>
+                                        </motion.div>
+                                    )}
+                                </SidebarGroup>
+                            );
+                        })}
+                    </div>
+                </SidebarContent>
+
+                <SidebarFooter className="shrink-0 px-3 py-2 group-data-[collapsible=icon]:hidden">
+                    <span className="font-mono text-[10px] text-[var(--text-dim)]">
+                        ⌘B / Ctrl+B to toggle
+                    </span>
+                </SidebarFooter>
+            </Sidebar>
+        </TooltipProvider>
     );
 }
