@@ -58,7 +58,7 @@ export function useSidebar() {
 /* -------------------------------------------------------------------------- */
 
 export function SidebarProvider({
-  defaultOpen = true,
+  defaultOpen = false,
   open: openProp,
   onOpenChange: setOpenProp,
   className,
