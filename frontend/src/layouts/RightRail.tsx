@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { ChevronDown } from "lucide-react";
+import { ChevronDown, PanelRight, PanelRightClose } from "lucide-react";
 
 import {
     Sidebar,
@@ -94,12 +94,26 @@ export default function RightRail({ onEventSelect }: RightRailProps) {
             <Sidebar
                 side="right"
                 collapsible="icon"
-                className="z-40 border-[var(--border)] transition-[width,right] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] group-data-[state=expanded]:w-(--rail-width)"
+                className="z-40 border-l border-white/[0.06] shadow-[-4px_0_12px_rgba(0,0,0,0.12)] transition-[width,right] duration-300 ease-[cubic-bezier(0.32,0.72,0,1)] group-data-[state=expanded]:w-(--rail-width)"
             >
-                <SidebarHeader className="h-14 shrink-0 flex-row items-center justify-between gap-2 border-b border-[var(--border)] px-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
-                    <span className="truncate font-mono text-[10px] uppercase tracking-[0.18em] text-[var(--text-dim)] group-data-[collapsible=icon]:hidden">
-                        Research
-                    </span>
+                <SidebarHeader className="h-16 shrink-0 flex-row items-center justify-between gap-2 border-b border-white/[0.04] bg-white/[0.015] shadow-[0_1px_8px_rgba(0,0,0,0.18)] px-3 group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0">
+
+                    <div className="hidden md:flex">
+                        <SidebarMenu>
+                            <SidebarMenuItem>
+                                <SidebarMenuButton
+                                    type="button"
+                                    onClick={() => setOpen(!expanded)}
+                                >
+                                    {expanded ? (
+                                        <PanelRightClose className="size-4" />
+                                    ) : (
+                                        <PanelRight className="size-4" />
+                                    )}
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                        </SidebarMenu>
+                    </div>
                 </SidebarHeader>
 
                 {/* overflow-hidden: the open panel owns scrolling, not the rail. */}
