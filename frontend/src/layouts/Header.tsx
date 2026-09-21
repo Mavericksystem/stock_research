@@ -7,16 +7,7 @@ interface HeaderProps {
   stocksTracked: number;
 }
 
-/**
- * The ONLY rail trigger in the app lives here. It used to be duplicated
- * (this one, plus a second SidebarTrigger inside RightRail's own
- * SidebarHeader) — that second one has been removed. This one has to stay
- * in the header specifically because on mobile the rail renders as a closed
- * Sheet: a trigger placed *inside* the Sheet is invisible until the Sheet is
- * already open, so it can never be the thing that opens it. The header is
- * outside the Sheet on every breakpoint, so it's the only place a trigger
- * can actually do its job on mobile.
- */
+
 function HeaderSidebarTrigger() {
   const { open, openMobile, isMobile } = useSidebar();
 
@@ -26,7 +17,6 @@ function HeaderSidebarTrigger() {
 
   return (
     <SidebarTrigger
-      aria-label={expanded ? "Collapse research panel" : "Open research panel"}
       className="text-[var(--text-muted)] hover:bg-white/[0.05] hover:text-[var(--text)]"
     >
       {expanded ? (
@@ -40,7 +30,7 @@ function HeaderSidebarTrigger() {
 
 export default function Header({ stocksTracked }: HeaderProps) {
   return (
-    <header className="relative z-20 flex shrink-0 items-center gap-3 border-b border-[var(--border)] px-3 py-3.5 md:px-6 md:py-[18px]">
+    <header className="relative z-20 flex shrink-0 items-center gap-3 border-b border-white/[0.06] bg-white/[0.015] shadow-[0_1px_8px_rgba(0,0,0,0.18)] px-3 py-3.5 md:px-6 md:py-[18px]">
       <div className="flex min-w-0 items-center gap-2.5">
         <motion.div
           initial={{ scale: 0.92, opacity: 0 }}
@@ -66,7 +56,9 @@ export default function Header({ stocksTracked }: HeaderProps) {
           <span>{stocksTracked} STOCKS TRACKED</span>
         </div>
 
-        <HeaderSidebarTrigger />
+        <div className="md:hidden">
+          <HeaderSidebarTrigger />
+        </div>
       </div>
     </header>
   );
