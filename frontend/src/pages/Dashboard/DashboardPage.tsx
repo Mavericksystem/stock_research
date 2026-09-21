@@ -184,11 +184,11 @@ function EmptyState({
       </div>
 
       <div className="mb-3 mt-2 font-mono text-xs text-[var(--text-dim)]">
-        TRACKED STOCKS
+        10 TRACKED STOCKS
       </div>
       <div className="flex flex-wrap justify-center gap-2">
         {trackedStocks.map((symbol) => (
-          <motion.button key={symbol} type="button" whileHover={{ x: -2, y: -4 }} whileTap={{ x: 1, y: 2 }} transition={{ type: "spring", stiffness: 500, damping: 25 }} onClick={() => onStock(symbol)} className="rounded-md border border-[var(--border)] bg-[var(--surface)] px-3 py-1.5 font-mono text-xs font-medium text-[var(--text-muted)] shadow-[0_0_0_0_transparent] hover:shadow-[2px_5px_0_0_var(--border)]">
+          <motion.button key={symbol} type="button" whileHover={{ x: -2, y: -4 }} whileTap={{ x: 1, y: 2 }} transition={{ type: "spring", stiffness: 500, damping: 25 }} onClick={() => onStock(symbol)} className="rounded-md  bg-[var(--surface)] px-3 py-1.5 font-mono text-xs font-medium text-[var(--text-muted)] shadow-[0_0_0_0_transparent] hover:shadow-[2px_5px_0_0_var(--border)]">
             {symbol}
           </motion.button>
         ))}
