@@ -13,12 +13,12 @@ class Settings(BaseSettings):
     # --Nvidia NIM--
     NVIDIA_NIM_API_KEY: str
     NVIDIA_NIM_BASE_URL: str = "https://integrate.api.nvidia.com/v1"
-    NVIDIA_NIM_MODEL: str = "deepseek-ai/deepseek-v4-flash-0731"
+    NVIDIA_NIM_MODEL: str = "nvidia/nemotron-3-super-120b-a12b"
 
     # Agent config
-    AGENT_TEMPERATURE: float = 1.0
-    AGENT_MAX_TOKENS: int = 16384
-    AGENT_TOP_P: float = 0.95
+    AGENT_TEMPERATURE: float = 0.5
+    AGENT_MAX_TOKENS: int = 1024
+    AGENT_TOP_P: float = 1
 
     model_config = SettingsConfigDict(
         env_file=".env",
