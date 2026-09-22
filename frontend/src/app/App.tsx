@@ -14,29 +14,42 @@ const uid = () => ++msgId;
 
 export default function App() {
   const [messages, setMessages] = useState<Message[]>([]);
-  const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [steps, setSteps] = useState<ToolStep[]>([]);
   const [streamingAnswer, setStreamingAnswer] = useState("");
   const [streamingSymbol, setStreamingSymbol] = useState<string | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
-  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const abortControllerRef = useRef<AbortController | null>(null);
+  const pendingTimeoutsRef = useRef<Set<number>>(new Set());
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth", block: "end" });
   }, [messages, loading]);
 
+  // Abort any in-flight request and clear any pending step timeouts when
+  // the component unmounts, so a stale request can't keep writing into
+  // state after the tree is gone.
   useEffect(() => {
-    const textarea = textareaRef.current;
-    if (!textarea) return;
-
-    textarea.style.height = "auto";
-    textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
-  }, [input]);
+    return () => {
+      abortControllerRef.current?.abort();
+      pendingTimeoutsRef.current.forEach((id) => window.clearTimeout(id));
+      pendingTimeoutsRef.current.clear();
+    };
+  }, []);
 
   const submit = useCallback(async (question: string) => {
     const q = question.trim();
     if (!q || loading) return;
+
+    // Cancel any previous in-flight request (and its pending step-clear
+    // timeouts) before starting a new one, so an older stream can't keep
+    // writing into streamingAnswer/messages after a newer request starts.
+    abortControllerRef.current?.abort();
+    pendingTimeoutsRef.current.forEach((id) => window.clearTimeout(id));
+    pendingTimeoutsRef.current.clear();
+
+    const controller = new AbortController();
+    abortControllerRef.current = controller;
 
     const userMsg: Message = {
       id: uid(),
@@ -45,7 +58,6 @@ export default function App() {
     };
 
     setMessages((prev) => [...prev, userMsg]);
-    setInput("");
     setLoading(true);
     setSteps([]);
     setStreamingAnswer("");
@@ -84,50 +96,67 @@ export default function App() {
         ),
       );
 
-      window.setTimeout(() => {
+      const timeoutId = window.setTimeout(() => {
+        pendingTimeoutsRef.current.delete(timeoutId);
         setSteps((prev) =>
           prev.filter(
             (step) => !(step.tool === tool && step.status === "done"),
           ),
         );
       }, 250);
+
+      pendingTimeoutsRef.current.add(timeoutId);
     };
 
     const runStream = async () => {
-      await streamAskQuestion(q, {
-        onToolCall: (tool, status) => {
-          if (status === "calling") addStep(tool);
-          if (status === "done") completeStep(tool);
+      await streamAskQuestion(
+        q,
+        {
+          onToolCall: (tool, status) => {
+            if (status === "calling") addStep(tool);
+            if (status === "done") completeStep(tool);
+          },
+          onToken: (content) => {
+            setStreamingAnswer((prev) =>
+              prev ? `${prev} ${content}` : content,
+            );
+          },
+          onMetadata: setStreamingSymbol,
+          onResult: (normalized: AskResponse) => {
+            setMessages((prev) => [
+              ...prev,
+              {
+                id: uid(),
+                type: "assistant",
+                answer: normalized.answer,
+                symbol: normalized.symbol,
+                event_type: normalized.event_type,
+                event_date: normalized.event_date,
+                magnitude: normalized.magnitude,
+                sources: normalized.sources,
+              },
+            ]);
+          },
         },
-        onToken: (content) => {
-          setStreamingAnswer((prev) =>
-            prev ? `${prev} ${content}` : content,
-          );
-        },
-        onMetadata: setStreamingSymbol,
-        onResult: (normalized: AskResponse) => {
-          setMessages((prev) => [
-            ...prev,
-            {
-              id: uid(),
-              type: "assistant",
-              answer: normalized.answer,
-              symbol: normalized.symbol,
-              event_type: normalized.event_type,
-              event_date: normalized.event_date,
-              magnitude: normalized.magnitude,
-              sources: normalized.sources,
-            },
-          ]);
-        },
-      });
+        controller.signal,
+      );
     };
 
     try {
       await runStream();
-    } catch {
+    } catch (streamError) {
+      // An abort here means this request was superseded by a newer one (or
+      // the component unmounted) — the newer request owns state updates
+      // now, so don't fall back and don't touch loading/steps below.
+      if (
+        streamError instanceof DOMException &&
+        streamError.name === "AbortError"
+      ) {
+        return;
+      }
+
       try {
-        const data = await askQuestion(q);
+        const data = await askQuestion(q, controller.signal);
 
         const assistantMsg: Message = {
           id: uid(),
@@ -159,22 +188,56 @@ export default function App() {
         ]);
       }
     } finally {
-      setLoading(false);
-      setStreamingAnswer("");
-      setSteps([]);
+      // Only this request's own controller may reset loading/steps/streaming
+      // state — if it's been replaced, a newer submit() already owns that
+      // state and this stale request must not touch it.
+      if (abortControllerRef.current === controller) {
+        setLoading(false);
+        setStreamingAnswer("");
+        setSteps([]);
+      }
     }
   }, [loading]);
 
-  const handleKey = (event: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (event.key === "Enter" && !event.shiftKey) {
-      event.preventDefault();
-      void submit(input);
-    }
-  };
+  // Stable reference: keeps RightRail's props unchanged across App re-renders
+  // (input keystrokes, streaming tokens) so its React.memo can skip
+  // re-rendering the rail's panels.
+  const handleEventSelect = useCallback(
+    (question: string) => void submit(question),
+    [submit],
+  );
+
+  const handleSuggestion = useCallback(
+    (suggestion: string) => void submit(suggestion),
+    [submit],
+  );
+
+  const handleStock = useCallback(
+    (symbol: string) => void submit(`Why did ${symbol} move recently?`),
+    [submit],
+  );
+
+  // Clears the conversation back to the empty state instead of a real
+  // `window.location.reload()` — a full reload would drop the in-flight
+  // AbortController ungracefully and re-mount the whole app. This cancels
+  // any in-flight request/pending timeouts the same way unmount does, then
+  // resets every piece of state `submit()` touches.
+  const handleReset = useCallback(() => {
+    abortControllerRef.current?.abort();
+    pendingTimeoutsRef.current.forEach((id) => window.clearTimeout(id));
+    pendingTimeoutsRef.current.clear();
+
+    setMessages([]);
+    setLoading(false);
+    setSteps([]);
+    setStreamingAnswer("");
+    setStreamingSymbol(null);
+  }, []);
 
   return (
     <AppLayout
-      onEventSelect={(question) => void submit(question)}
+      onEventSelect={handleEventSelect}
+      onLogoClick={handleReset}
       trackedStocksCount={TRACKED_STOCKS.length}
     >
       <DashboardPage
@@ -183,16 +246,10 @@ export default function App() {
         steps={steps}
         streamingAnswer={streamingAnswer}
         streamingSymbol={streamingSymbol}
-        input={input}
-        onInputChange={setInput}
-        onKeyDown={handleKey}
-        onSubmit={() => void submit(input)}
-        onSuggestion={(suggestion) => void submit(suggestion)}
-        onStock={(symbol) =>
-          void submit(`Why did ${symbol} move recently?`)
-        }
+        onSubmit={submit}
+        onSuggestion={handleSuggestion}
+        onStock={handleStock}
         bottomRef={bottomRef}
-        textareaRef={textareaRef}
         suggestions={ANALYSIS_SUGGESTIONS}
         trackedStocks={TRACKED_STOCKS}
       />
