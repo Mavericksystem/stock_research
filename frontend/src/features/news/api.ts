@@ -1,4 +1,5 @@
 import { getApiBaseUrl } from "../../lib/api-client";
+import { NewsListResponseSchema } from "../../lib/schemas";
 
 export interface NewsItem {
     id: number;
@@ -23,10 +24,16 @@ export async function fetchLatestNews(
 
     if (!res.ok) return [];
 
-    const json = (await res.json()) as { data?: unknown };
-    const raw = json?.data ?? [];
+    const json: unknown = await res.json();
+    const parsed = NewsListResponseSchema.safeParse(json);
 
-    return Array.isArray(raw) ? (raw as NewsItem[]) : [];
+    if (!parsed.success) {
+        // eslint-disable-next-line no-console
+        console.warn("News payload failed validation:", parsed.error.flatten());
+        return [];
+    }
+
+    return parsed.data.data ?? [];
 }
 
 
