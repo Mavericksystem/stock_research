@@ -49,7 +49,7 @@ const CARD_COLORS = [
 ];
 
 function NewsCard({ item, index }: { item: NewsItem; index: number }) {
-    const cardColor = CARD_COLORS[index % CARD_COLORS.length];
+    const cardColor = CARD_COLORS[index % CARD_COLORS.length] ?? CARD_COLORS[0]!;
 
     return (
         <motion.a
