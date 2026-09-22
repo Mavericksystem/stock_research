@@ -132,9 +132,9 @@ export default function AnomaliesPanel({
     return (
         <div className="flex h-full min-h-0 flex-col">
             <div className="flex shrink-0 items-center justify-between px-1 pb-2">
-                <h2 className="m-0 font-mono text-[10px] uppercase tracking-[1px] text-[var(--text-dim)]">
+                <span className="font-mono text-[10px] uppercase tracking-[1px] text-[var(--text-dim)]">
                     Recent anomalies
-                </h2>
+                </span>
 
                 <motion.button
                     type="button"

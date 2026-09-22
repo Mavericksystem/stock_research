@@ -1,4 +1,3 @@
-import { lazy, memo, Suspense, type ReactNode } from "react";
 import { motion } from "framer-motion";
 import { ChevronDown, PanelRight, PanelRightClose } from "lucide-react";
 
@@ -16,47 +15,53 @@ import {
 } from "@/components/ui/sidebar";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
+
+import NewsPanel from "../features/news/NewsPanel";
+import GraphsPanel from "../features/graphs/GraphsPanel";
+import AnomaliesPanel from "../features/anomalies/AnomaliesPanel";
 import { RAIL_SECTIONS, useRail, type RailSectionId } from "./rail/rail-context";
-
-// Lazy-loaded: each panel (and its deps, e.g. recharts for GraphsPanel) is
-// its own chunk, fetched only when the user actually opens that section.
-const NewsPanel = lazy(() => import("../features/news/NewsPanel"));
-const GraphsPanel = lazy(() => import("../features/graphs/GraphsPanel"));
-const AnomaliesPanel = lazy(() => import("../features/anomalies/AnomaliesPanel"));
-
-function RailPanelFallback() {
-    return (
-        <div className="px-2.5 py-6 text-center font-mono text-[11px] text-white/25">
-            Loading…
-        </div>
-    );
-}
 
 interface RightRailProps {
     onEventSelect: (question: string) => void;
 }
 
-
-
-function RightRail({ onEventSelect }: RightRailProps) {
+/**
+ * Right research rail.
+ *
+ * Layout model — deliberately an *overlay*, not a push:
+ *   collapsed  → 3.5rem icon strip, always visible on desktop
+ *   expanded   → 22rem panel that floats over the chat behind a blurred scrim
+ *
+ * shadcn's `collapsible="icon"` normally reflows the page when it expands. Here
+ * `--sidebar-width` and `--sidebar-width-icon` are both set to the icon width
+ * (see AppLayout), so the in-flow gap is a constant 3.5rem and only the fixed
+ * container grows via `group-data-[state=expanded]:w-(--rail-width)`. The chat
+ * never reflows, and the open/close reads identically on desktop and mobile:
+ * panel slides in, background blurs.
+ *
+ * Inside, the three sections are an accordion (one open at a time). The open
+ * section takes the remaining height so its own scroll container works; the
+ * others collapse to their header row.
+ */
+export default function RightRail({ onEventSelect }: RightRailProps) {
     const { state, isMobile, setOpen } = useSidebar();
     const { section, toggleSection, openSection, closeRail } = useRail();
 
-
+    // `state` is derived from desktop-only `open`, which defaults to true and
+    // is independent of `openMobile` — so on mobile this was `true` from
+    // first paint, before the sheet ever opened. Gate on `isMobile` too so
+    // the value is never stale, on top of not rendering the scrim at all
+    // below.
     const expanded = !isMobile && state === "expanded";
 
     const renderPanel = (id: RailSectionId) => {
-        let panel: ReactNode;
-
         switch (id) {
             case "news":
-                panel = <NewsPanel />;
-                break;
+                return <NewsPanel />;
             case "graphs":
-                panel = <GraphsPanel />;
-                break;
+                return <GraphsPanel />;
             case "anomalies":
-                panel = (
+                return (
                     <AnomaliesPanel
                         onEventSelect={(question) => {
                             onEventSelect(question);
@@ -64,15 +69,17 @@ function RightRail({ onEventSelect }: RightRailProps) {
                         }}
                     />
                 );
-                break;
         }
-
-        return <Suspense fallback={<RailPanelFallback />}>{panel}</Suspense>;
     };
 
     return (
         <TooltipProvider delay={0}>
-
+            {/* Desktop-only scrim. Mobile gets an equivalent blurred backdrop
+                for free from the Sheet's own SheetOverlay, so this must not
+                even mount on mobile — not just be CSS-hidden. Relying on
+                `hidden md:block` alone let it render (and blur the panel's
+                own content) under stacking-context/portal edge cases on real
+                devices; a JS-level `isMobile` guard makes that impossible. */}
             {!isMobile && (
                 <div
                     aria-hidden="true"
@@ -111,7 +118,8 @@ function RightRail({ onEventSelect }: RightRailProps) {
 
                 {/* overflow-hidden: the open panel owns scrolling, not the rail. */}
                 <SidebarContent className="gap-0 overflow-hidden">
-
+                    {/* Collapsed state — icon menu. `group-data-*` only resolves on the
+                        desktop wrapper, so this never renders inside the mobile sheet. */}
                     <SidebarGroup className="hidden p-1.5 group-data-[collapsible=icon]:block">
                         <SidebarMenu className="gap-1">
                             {RAIL_SECTIONS.map(({ id, label, icon: Icon }) => (
@@ -131,8 +139,8 @@ function RightRail({ onEventSelect }: RightRailProps) {
                         </SidebarMenu>
                     </SidebarGroup>
 
-
-                    <div className="flex min-h-0 flex-1 flex-col gap-2 p-2 group-data-[collapsible=icon]:hidden">
+                    {/* Expanded state — accordion. */}
+                    <div className="flex min-h-0 flex-1 flex-col group-data-[collapsible=icon]:hidden">
                         {RAIL_SECTIONS.map(({ id, label, icon: Icon }) => {
                             const open = section === id;
 
@@ -141,10 +149,8 @@ function RightRail({ onEventSelect }: RightRailProps) {
                                     key={id}
                                     data-open={open || undefined}
                                     className={cn(
-                                        "min-h-0 gap-0 overflow-hidden rounded-xl border-l-2 p-0 transition-[background-color,border-color,box-shadow] duration-200",
-                                        open
-                                            ? "flex-1 border-l-[var(--amber)] bg-[var(--surface)] shadow-[inset_0_1px_0_0_rgba(255,255,255,0.04),0_4px_14px_rgba(0,0,0,0.28)] ring-1 ring-[var(--border-soft)]"
-                                            : "flex-none rounded-lg border border-white/[0.05] bg-white/[0.015] shadow-[0_2px_8px_rgba(0,0,0,0.18)]",
+                                        "min-h-0 gap-0 border-b border-[var(--border)] p-0",
+                                        open ? "flex-1" : "flex-none",
                                     )}
                                 >
                                     <button
@@ -153,10 +159,10 @@ function RightRail({ onEventSelect }: RightRailProps) {
                                         aria-controls={`rail-panel-${id}`}
                                         onClick={() => toggleSection(id)}
                                         className={cn(
-                                            "flex h-11 w-full shrink-0 items-center rounded-lg px-3 font-mono text-[11px] uppercase tracking-[0.14em] transition-all duration-200 hover:bg-white/[0.04] hover:shadow-[0_3px_10px_rgba(0,0,0,0.22)]",
+                                            "flex h-11 w-full shrink-0 items-center rounded-none px-3 font-mono text-[11px] uppercase tracking-[0.14em] transition-colors duration-200 hover:bg-white/[0.03]",
                                             open
                                                 ? "text-[var(--text)]"
-                                                : "text-[var(--text-dim)] hover:text-[var(--text)]",
+                                                : "text-[var(--text-muted)] hover:text-[var(--text)]",
                                         )}
                                     >
                                         <Icon
@@ -203,6 +209,3 @@ function RightRail({ onEventSelect }: RightRailProps) {
         </TooltipProvider>
     );
 }
-
-
-export default memo(RightRail);
