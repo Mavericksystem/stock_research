@@ -53,7 +53,8 @@ def _parse_explanation(raw: str) -> dict[str, Any]:
     import re
 
     # Strip markdown fences if present
-    cleaned = re.sub(r"```(?:json)?```", "", raw).strip()
+    cleaned = re.sub(r"```(?:json)?\s*", "", raw).strip()
+    cleaned = re.sub(r"\s*```$", "", cleaned).strip()
 
     try:
         return json.loads(cleaned)
@@ -78,6 +79,45 @@ def _parse_explanation(raw: str) -> dict[str, Any]:
         "data_quality": "weak",
         "caveats": "LLM returned non-JSON response",
     }
+
+
+async def _synthesize_explanation(
+    client: AsyncOpenAI,
+    messages: list[dict[str, Any]],
+) -> dict[str, Any]:
+    """Force a final JSON-only synthesis after tool collection."""
+    synthesis_messages = messages + [
+        {
+            "role": "user",
+            "content": (
+                "The investigation is complete. "
+                "Using ONLY the evidence already gathered in this conversation, "
+                "produce the final structured explanation.\n\n"
+                "Return ONLY one valid JSON object with exactly these fields: "
+                "primary_cause, confidence, causal_type, evidence, "
+                "technical_context, price_context, explanation, "
+                "data_quality, caveats.\n\n"
+                "Do not provide reasoning, analysis, markdown, code fences, "
+                "or any text outside the JSON object."
+            ),
+        }
+    ]
+
+    response = await client.chat.completions.create(
+        model=settings.NVIDIA_NIM_MODEL,
+        messages=synthesis_messages,
+        temperature=0.2,
+        max_tokens=settings.AGENT_MAX_TOKENS,
+        top_p=settings.AGENT_TOP_P,
+        extra_body={
+            "chat_template_kwargs": {
+                "enable_thinking": False
+            }
+        },
+    )
+
+    raw_content = response.choices[0].message.content or ""
+    return _parse_explanation(raw_content)
 
 
 async def _store_explanation(
@@ -150,6 +190,9 @@ async def run_agent(
         if not message.tool_calls:
             raw_content = message.content or ""
             explanation = _parse_explanation(raw_content)
+
+            if explanation["primary_cause"] == "Unable to parse structured explanation":
+                explanation = await _synthesize_explanation(client, messages)
 
             # Store explanation if we found the event ID during tool calls
             if event_id is not None:
@@ -288,6 +331,9 @@ async def stream_agent(
         if not message.tool_calls:
             raw_content = message.content or ""
             explanation = _parse_explanation(raw_content)
+
+            if explanation["primary_cause"] == "Unable to parse structured explanation":
+                explanation = await _synthesize_explanation(client, messages)
 
             if event_id is not None:
                 await _store_explanation(event_id, explanation)
