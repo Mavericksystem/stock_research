@@ -13,9 +13,12 @@ export function getAnalysisApiBaseUrl(): string {
   return getApiBaseUrl();
 }
 
-export async function askQuestion(question: string): Promise<AskResponse> {
+export async function askQuestion(
+  question: string,
+  signal?: AbortSignal,
+): Promise<AskResponse> {
   const symbol = extractSymbol(question) ?? "AAPL";
-  const res = await postJson("/api/v1/ask", { question, symbol });
+  const res = await postJson("/api/v1/ask", { question, symbol }, signal);
   const json = (await res.json()) as { data?: unknown } & Record<string, unknown>;
   const payload = (json?.data ?? json) as Parameters<typeof normalizeAskResponse>[0];
 
@@ -25,6 +28,7 @@ export async function askQuestion(question: string): Promise<AskResponse> {
 export async function streamAskQuestion(
   question: string,
   handlers: StreamHandlers = {},
+  signal?: AbortSignal,
 ): Promise<void> {
   const symbol = extractSymbol(question) ?? "AAPL";
 
@@ -34,6 +38,7 @@ export async function streamAskQuestion(
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ question, symbol }),
+      signal,
     },
   );
 

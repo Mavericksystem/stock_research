@@ -8,6 +8,7 @@ import { RailProvider } from "./rail/rail-context";
 
 interface AppLayoutProps {
   onEventSelect: (question: string) => void;
+  onLogoClick?: () => void;
   trackedStocksCount: number;
   children: ReactNode;
 }
@@ -36,6 +37,7 @@ interface AppLayoutProps {
  */
 export default function AppLayout({
   onEventSelect,
+  onLogoClick,
   trackedStocksCount,
   children,
 }: AppLayoutProps) {
@@ -51,12 +53,19 @@ export default function AppLayout({
         } as CSSProperties
       }
     >
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-3 focus:top-3 focus:z-[9999] focus:rounded-md focus:bg-[var(--amber)] focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:text-[#080c10] focus:shadow-lg"
+      >
+        Skip to main content
+      </a>
+
       <RailProvider>
         <SidebarInset className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-[var(--bg)]">
-          <Header stocksTracked={trackedStocksCount} />
+          <Header onLogoClick={onLogoClick} />
 
           <div className="flex min-h-0 flex-1">
-            <div className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-3 md:px-6">
+            <div id="main-content" className="relative flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden px-3 md:px-6">
               {children}
             </div>
 

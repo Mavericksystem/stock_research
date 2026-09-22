@@ -328,7 +328,7 @@ export default function GraphsPanel() {
                     }
 
                     return {
-                        symbol: TRACKED_STOCKS[index],
+                        symbol: TRACKED_STOCKS[index] ?? "UNKNOWN",
                         history: [],
                         livePrice: null,
                     };
@@ -390,9 +390,9 @@ export default function GraphsPanel() {
     return (
         <div className="flex h-full min-h-0 flex-col px-3">
             <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
-                <div className="flex h-[34px] items-end pb-1 font-sans text-[11px] font-medium text-[var(--text-dim)]">
+                <h2 className="flex h-[34px] items-end pb-1 font-sans text-[11px] font-medium text-[var(--text-dim)]">
                     Tracked Stocks
-                </div>
+                </h2>
 
                 {loading
                     ? TRACKED_STOCKS.map((symbol) => (
