@@ -33,7 +33,15 @@ export async function fetchLatestNews(
         return [];
     }
 
-    return parsed.data.data ?? [];
+    return (parsed.data.data ?? []).map((item) => ({
+        id: item.id,
+        symbol: item.symbol ?? "UNKNOWN",
+        title: item.title ?? "Untitled",
+        content: item.content,
+        source: item.source,
+        url: item.url,
+        published_at: item.published_at,
+    }));
 }
 
 
