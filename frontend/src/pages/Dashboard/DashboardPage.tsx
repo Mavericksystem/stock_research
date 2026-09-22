@@ -1,4 +1,5 @@
 import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useRef, useState } from "react";
 import type { ChangeEvent, KeyboardEvent, RefObject } from "react";
 import type { Message, Source, ToolStep } from "../../lib/api-client";
 
@@ -8,14 +9,10 @@ interface DashboardPageProps {
   steps: ToolStep[];
   streamingAnswer: string;
   streamingSymbol: string | null;
-  input: string;
-  onInputChange: (value: string) => void;
-  onKeyDown: (event: KeyboardEvent<HTMLTextAreaElement>) => void;
-  onSubmit: () => void;
+  onSubmit: (question: string) => void;
   onSuggestion: (suggestion: string) => void;
   onStock: (symbol: string) => void;
-  bottomRef: RefObject<HTMLDivElement | null>;
-  textareaRef: RefObject<HTMLTextAreaElement | null>;
+  bottomRef: RefObject<HTMLDivElement>;
   suggestions: readonly string[];
   trackedStocks: readonly string[];
 }
@@ -213,19 +210,47 @@ export default function DashboardPage({
   steps,
   streamingAnswer,
   streamingSymbol,
-  input,
-  onInputChange,
-  onKeyDown,
   onSubmit,
   onSuggestion,
   onStock,
   bottomRef,
-  textareaRef,
   suggestions,
   trackedStocks,
 }: DashboardPageProps) {
+  // Local to this component so typing doesn't re-render App (and everything
+  // under it, e.g. the message list, header, rail) on every keystroke.
+  const [input, setInput] = useState("");
+  const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  useEffect(() => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+
+    // Deferred to the next frame so the write-read-write (height reset,
+    // scrollHeight read, height set) doesn't force a synchronous layout
+    // inside the keystroke's own event handler.
+    const raf = requestAnimationFrame(() => {
+      textarea.style.height = "auto";
+      textarea.style.height = `${Math.min(textarea.scrollHeight, 120)}px`;
+    });
+
+    return () => cancelAnimationFrame(raf);
+  }, [input]);
+
   const handleInput = (event: ChangeEvent<HTMLTextAreaElement>) => {
-    onInputChange(event.target.value);
+    setInput(event.target.value);
+  };
+
+  const handleKeyDown = (event: KeyboardEvent<HTMLTextAreaElement>) => {
+    if (event.key === "Enter" && !event.shiftKey) {
+      event.preventDefault();
+
+      const value = input.trim();
+      if (!value || loading) return;
+
+      setInput("");
+      onSubmit(value);
+    }
   };
 
   return (
@@ -284,7 +309,10 @@ export default function DashboardPage({
         <div className="search-input-wrapper relative flex min-h-[58px] items-end gap-3 rounded-2xl border-2 border-transparent bg-[var(--surface-2)] px-[18px] py-3.5">
           <SearchIcon />
 
-          <textarea ref={textareaRef} rows={1} placeholder="Ask why a stock moved…" value={input} onChange={handleInput} onKeyDown={onKeyDown} disabled={loading} className="max-h-[120px] min-h-[22px] flex-1 resize-none overflow-y-auto border-none bg-transparent pl-[52px] text-sm leading-6 text-[var(--text)] outline-none placeholder:text-[var(--text-dim)] disabled:cursor-not-allowed disabled:opacity-60" />
+          <label htmlFor="chat-input" className="sr-only">
+            Ask why a stock moved
+          </label>
+          <textarea id="chat-input" ref={textareaRef} rows={1} placeholder="Ask why a stock moved…" value={input} onChange={handleInput} onKeyDown={handleKeyDown} disabled={loading} className="max-h-[120px] min-h-[22px] flex-1 resize-none overflow-y-auto border-none bg-transparent pl-[52px] text-sm leading-6 text-[var(--text)] outline-none placeholder:text-[var(--text-dim)] disabled:cursor-not-allowed disabled:opacity-60" />
         </div>
         <div className="mt-2 text-center font-mono text-[11px] text-[var(--text-dim)]">
           Enter to send · Shift+Enter for new line

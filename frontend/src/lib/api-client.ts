@@ -1,3 +1,5 @@
+import { AskResponseSchema, RawAskPayloadSchema } from "./schemas";
+
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? "";
 
 export interface Source {
@@ -99,9 +101,9 @@ export function extractSymbol(question: string): string | null {
     (word) => !stop.has(word) && word.length >= 2,
   );
 
-  return candidates.length > 0
-    ? candidates[candidates.length - 1]
-    : null;
+  // .at(-1) returns T | undefined regardless of noUncheckedIndexedAccess,
+  // so this stays correctly typed as string | null either way.
+  return candidates.at(-1) ?? null;
 }
 
 export function safeJsonParse(value: unknown): unknown {
@@ -116,31 +118,36 @@ export function safeJsonParse(value: unknown): unknown {
   }
 }
 
-interface ExplanationPayload {
-  explanation?: string | string[];
-  primary_cause?: string;
-}
-
-interface ToolCallPayload {
-  tool?: string;
-  result?: unknown;
-}
-
-interface RawAskPayload {
-  symbol?: string | null;
-  explanation?: ExplanationPayload;
-  event_type?: string | null;
-  event_date?: string | null;
-  magnitude?: number | null;
-  tool_calls_made?: ToolCallPayload[];
-}
-
+/**
+ * Normalizes a raw /api/v1/ask (or streamed "result" event) payload into
+ * the shape the UI renders.
+ *
+ * Runtime-validated at both ends:
+ *   1. RawAskPayloadSchema checks the incoming payload before we touch it —
+ *      an unknown/malformed backend shape falls back to `{}` instead of
+ *      propagating garbage into the rest of the function.
+ *   2. AskResponseSchema checks what we're about to hand to the UI — this
+ *      is what actually prevents e.g. a non-numeric `magnitude` reaching
+ *      `EventBadge`'s `.toFixed(2)` call in DashboardPage.tsx.
+ */
 export function normalizeAskResponse(
-  payload: RawAskPayload | null | undefined,
+  rawPayload: unknown,
   fallbackSymbol: string | null,
 ): AskResponse {
-  const symbol = payload?.symbol ?? fallbackSymbol ?? null;
-  const explanation = payload?.explanation ?? {};
+  const parsedPayload = RawAskPayloadSchema.safeParse(rawPayload);
+
+  if (!parsedPayload.success) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      "Ask response payload failed validation, using defaults:",
+      parsedPayload.error.flatten(),
+    );
+  }
+
+  const payload = parsedPayload.success ? parsedPayload.data : {};
+
+  const symbol = payload.symbol ?? fallbackSymbol ?? null;
+  const explanation = payload.explanation ?? {};
 
   let answer = "";
 
@@ -153,7 +160,7 @@ export function normalizeAskResponse(
   }
 
   let sources: Source[] = [];
-  const toolCalls = payload?.tool_calls_made;
+  const toolCalls = payload.tool_calls_made;
 
   if (Array.isArray(toolCalls)) {
     const newsCall = toolCalls.find(
@@ -179,24 +186,47 @@ export function normalizeAskResponse(
     }
   }
 
-  return {
+  const result = {
     answer,
     symbol,
-    event_type: payload?.event_type ?? null,
-    event_date: payload?.event_date ?? null,
-    magnitude: payload?.magnitude ?? null,
+    event_type: payload.event_type ?? null,
+    event_date: payload.event_date ?? null,
+    magnitude: payload.magnitude ?? null,
     sources,
+  };
+
+  const validated = AskResponseSchema.safeParse(result);
+
+  if (validated.success) {
+    return validated.data;
+  }
+
+  // eslint-disable-next-line no-console
+  console.error(
+    "Normalized ask response failed final validation, falling back:",
+    validated.error.flatten(),
+  );
+
+  return {
+    answer: result.answer || "Something went wrong reading this response.",
+    symbol,
+    event_type: null,
+    event_date: null,
+    magnitude: null,
+    sources: [],
   };
 }
 
 export async function postJson(
   path: string,
   body: unknown,
+  signal?: AbortSignal,
 ): Promise<Response> {
   const res = await fetch(`${API_BASE}${path}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
+    signal,
   });
 
   if (!res.ok) {

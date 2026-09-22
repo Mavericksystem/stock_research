@@ -1,14 +1,9 @@
 import { getApiBaseUrl } from "../../lib/api-client";
+import { LiveSnapshotSchema, PriceResponseSchema } from "../../lib/schemas";
 
 export interface PricePoint {
     date: string;
     close: number;
-}
-
-interface RawPriceRow {
-    date: string;
-    close: number;
-    adj_close: number;
 }
 
 export async function fetchPriceHistory(
@@ -20,8 +15,19 @@ export async function fetchPriceHistory(
     );
     if (!res.ok) return [];
 
-    const json = (await res.json()) as { data?: { prices?: RawPriceRow[] } };
-    const rows = json?.data?.prices ?? [];
+    const json: unknown = await res.json();
+    const parsed = PriceResponseSchema.safeParse(json);
+
+    if (!parsed.success) {
+        // eslint-disable-next-line no-console
+        console.warn(
+            "Price history payload failed validation:",
+            parsed.error.flatten(),
+        );
+        return [];
+    }
+
+    const rows = parsed.data.data?.prices ?? [];
 
     return rows
         .map((r) => ({ date: r.date, close: r.adj_close ?? r.close }))
@@ -44,12 +50,29 @@ export function subscribeLivePrices(
     const es = new EventSource(`${getApiBaseUrl()}/api/v1/stocks/stream`);
 
     es.onmessage = (event) => {
+        let raw: unknown;
+
         try {
-            const parsed = JSON.parse(event.data) as LiveSnapshot;
-            onSnapshot(parsed);
+            raw = JSON.parse(event.data);
         } catch {
-            // malformed snapshot — skip this tick, next one will arrive in ~1s
+            // malformed JSON — skip this tick, next one will arrive in ~1s
+            return;
         }
+
+        const parsed = LiveSnapshotSchema.safeParse(raw);
+        if (!parsed.success) {
+            // eslint-disable-next-line no-console
+            console.warn(
+                "Live price snapshot failed validation:",
+                parsed.error.flatten(),
+            );
+            return;
+        }
+
+        onSnapshot({
+            prices: (parsed.data.prices ?? {}) as Record<string, LiveTick>,
+            connected: parsed.data.connected ?? false,
+        });
     };
 
     es.onerror = () => {
