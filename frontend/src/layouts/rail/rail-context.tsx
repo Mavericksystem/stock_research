@@ -56,9 +56,7 @@ export function useRail(): RailContextValue {
  * mobile.
  */
 export function RailProvider({ children }: { children: ReactNode }) {
-    // Starts closed so no panel (and no panel fetch) mounts on initial load.
-    // Panels are lazy-loaded, so the first open also triggers their chunk fetch.
-    const [section, setSection] = useState<RailSectionId | null>(null);
+    const [section, setSection] = useState<RailSectionId | null>("news");
     const { isMobile, setOpen, setOpenMobile } = useSidebar();
 
     const toggleSection = useCallback((id: RailSectionId) => {

@@ -28,22 +28,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-# Security headers: this API only ever serves JSON, never HTML, so the
-# policy is intentionally locked down to "nothing should execute" rather
-# than trying to allowlist frontend script/style sources (that CSP belongs
-# on the frontend's own responses, e.g. via frontend/vercel.json).
-@app.middleware("http")
-async def add_security_headers(request: Request, call_next):
-    response = await call_next(request)
-    response.headers["Content-Security-Policy"] = (
-        "default-src 'none'; frame-ancestors 'none'; base-uri 'none'"
-    )
-    response.headers["X-Content-Type-Options"] = "nosniff"
-    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
-    return response
-
-
 # API Versioning implemented per critique
 API_V1 = "/api/v1"
 
@@ -70,12 +54,59 @@ async def health_check(request: Request):
 async def api_health_check(request: Request):
     return {"status": "healthy", "version": "v1"}
 
-# NOTE: the unauthenticated /api/v1/debug/db_test diagnostic endpoint that
-# used to live here (returning DB host, port, DNS resolution, and SSL config
-# to any caller) was removed as part of the pre-launch security pass — see
-# stock_project/checklist in Obsidian for details. If DB connectivity needs
-# to be checked again, do it via a local script against backend.db.connection
-# rather than a public route.
+@app.get(f"{API_V1}/debug/db_test")
+async def debug_db_test():
+    """Run a lightweight DB connectivity test and return result or full traceback."""
+    from sqlalchemy import text
+    from backend.db.connection import engine
+    import traceback
+    import socket
+
+    def _db_diagnostics() -> dict:
+        try:
+            url = engine.url
+            safe_url = url.render_as_string(hide_password=True)
+            host = url.host
+            port = url.port
+            query = dict(url.query)
+            from backend.db import connection as _dbc
+            ssl_info = {
+                "sslmode_effective": getattr(_dbc, "DB_SSLMODE_EFFECTIVE", None),
+                "ssl_config": getattr(_dbc, "DB_SSL_CONFIG", None),
+                "normalized_url": getattr(_dbc, "DB_URL_NORMALIZED", None),
+            }
+        except Exception:
+            return {"database_url": None, "host": None, "port": None, "query": None, "dns": None}
+
+        dns = None
+        if host:
+            try:
+                infos = socket.getaddrinfo(host, port or 5432, type=socket.SOCK_STREAM)
+                # Keep this small; just enough to see IPv4 vs IPv6.
+                dns = [
+                    {"family": i[0], "socktype": i[1], "proto": i[2], "address": i[4][0]}
+                    for i in infos
+                ][:10]
+            except Exception as e:
+                dns = {"error": str(e)}
+
+        return {
+            "database_url": safe_url,
+            "host": host,
+            "port": port,
+            "query": query,
+            "dns": dns,
+            "ssl": ssl_info,
+        }
+
+    try:
+        async with engine.connect() as conn:
+            res = await conn.execute(text("SELECT 1"))
+            val = res.scalar()
+        return {"status": "ok", "db_result": val, "db": _db_diagnostics()}
+    except Exception as e:
+        tb = traceback.format_exc()
+        return {"status": "error", "error": str(e), "traceback": tb, "db": _db_diagnostics()}
 
 @app.on_event("startup")
 async def start_background_tasks():

@@ -1,6 +1,5 @@
 import { getApiBaseUrl } from "../../lib/api-client";
 import { TRACKED_STOCKS } from "../../lib/constants";
-import { AnomalyEventsResponseSchema } from "../../lib/schemas";
 
 export { TRACKED_STOCKS as STOCKS };
 
@@ -23,22 +22,11 @@ export async function fetchEventsForSymbol(
 
     if (!res.ok) return [];
 
-    const json: unknown = await res.json();
-    const parsed = AnomalyEventsResponseSchema.safeParse(json);
+    const json = (await res.json()) as { data?: unknown };
+    const raw = json?.data ?? [];
 
-    if (!parsed.success) {
-      // eslint-disable-next-line no-console
-      console.warn(
-        "Anomaly events payload failed validation:",
-        parsed.error.flatten(),
-      );
-      return [];
-    }
-
-    const rows = parsed.data.data ?? [];
-
-    return rows.map((event) => ({
-      ...event,
+    return (Array.isArray(raw) ? raw : []).map((event) => ({
+      ...(event as Record<string, unknown>),
       symbol,
     }));
   } catch {
