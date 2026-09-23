@@ -18,9 +18,6 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip"
 
-const SIDEBAR_COOKIE_NAME = "sidebar_state"
-const SIDEBAR_COOKIE_MAX_AGE = 60 * 60 * 24 * 7
-
 const SIDEBAR_WIDTH = "16rem"
 const SIDEBAR_WIDTH_MOBILE = "18rem"
 const SIDEBAR_WIDTH_ICON = "3rem"
@@ -88,14 +85,14 @@ export function SidebarProvider({
           ? value(open)
           : value
 
+      // Intentionally no persistence (cookie or otherwise): the rail always
+      // starts closed (see `defaultOpen`), so nothing ever read the value back,
+      // and not setting a cookie keeps the site out of cookie-consent scope.
       if (setOpenProp) {
         setOpenProp(next)
       } else {
         _setOpen(next)
       }
-
-      document.cookie =
-        `${SIDEBAR_COOKIE_NAME}=${next}; path=/; max-age=${SIDEBAR_COOKIE_MAX_AGE}`
     },
     [open, setOpenProp]
   )
