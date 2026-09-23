@@ -2,6 +2,7 @@ import type { CSSProperties, ReactNode } from "react";
 
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 
+import Footer from "./Footer";
 import Header from "./Header";
 import RightRail from "./RightRail";
 import { RailProvider } from "./rail/rail-context";
@@ -72,6 +73,8 @@ export default function AppLayout({
             {/* No mobile icon strip. Desktop gets its icon strip from the
                 collapsed sidebar itself; mobile intentionally gets nothing. */}
           </div>
+
+          <Footer />
         </SidebarInset>
 
         {/* After the inset so the desktop gap reserves space on the right. */}
