@@ -1,7 +1,7 @@
 yfinance
 pandas
 numpy
-sqlalchemy
+sqlalchemy[asyncio]
 asyncpg
 fastapi
 uvicorn
