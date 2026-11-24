@@ -104,17 +104,15 @@ async def _synthesize_explanation(
     ]
 
     response = await client.chat.completions.create(
-        model=settings.NVIDIA_NIM_MODEL,
-        messages=synthesis_messages,
-        temperature=0.2,
-        max_tokens=settings.AGENT_MAX_TOKENS,
-        top_p=settings.AGENT_TOP_P,
-        extra_body={
-            "chat_template_kwargs": {
-                "enable_thinking": False
-            }
-        },
-    )
+    model=settings.NVIDIA_NIM_MODEL,
+    messages=messages,
+    tools=TOOL_DEFINITIONS,
+    tool_choice="auto",
+    temperature=settings.AGENT_TEMPERATURE,
+    max_tokens=settings.AGENT_MAX_TOKENS,
+    top_p=settings.AGENT_TOP_P,
+    reasoning_effort=settings.AGENT_REASONING_EFFORT,
+)
 
     raw_content = response.choices[0].message.content or ""
     return _parse_explanation(raw_content)
