@@ -336,7 +336,7 @@ async def score_ragas(
         os.environ["OPENAI_API_BASE"] = os.getenv("NVIDIA_NIM_BASE_URL", "https://integrate.api.nvidia.com/v1")
         nim_llm = ChatOpenAI(
             model=os.getenv(
-                "NVIDIA_NIM_MODEL", "nvidia/llama-3.3-nemotron-super-49b-v1"
+                "NVIDIA_NIM_MODEL", "nvidia/nemotron-3.5-super-vl-120b-a12b"
             ),
             temperature=0.0,
         )
